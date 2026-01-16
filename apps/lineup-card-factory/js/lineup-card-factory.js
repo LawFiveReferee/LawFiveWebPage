@@ -1034,37 +1034,62 @@ document.getElementById("closeFieldInspectorBtn")?.addEventListener("click", () 
 // ———————————————————————————
 // Schedule Carousel State
 // ———————————————————————————
+function updateScheduleStatus() {
+  const count = Array.isArray(window.SCHEDULE_LIST) ? window.SCHEDULE_LIST.length : 0;
+  const idx = window.selectedScheduleIndex ?? 0;
+  const statusEl = document.getElementById("scheduleStatus");
+
+  if (count === 0) {
+    statusEl.textContent = "No schedules saved.";
+  } else {
+    const name = window.SCHEDULE_LIST[idx]?.name || "(unnamed)";
+    statusEl.textContent = `Selected ${idx + 1} of ${count}: "${name}"`;
+  }
+}
+
 
 window.SCHEDULE_LIST = [];
 window.selectedScheduleIndex = 0;
 
 // Refresh the carousel HTML
+
 function refreshScheduleCarousel() {
   const viewport = document.getElementById("scheduleCarouselViewport");
   if (!viewport) return;
 
   viewport.innerHTML = "";
 
+  if (!Array.isArray(window.SCHEDULE_LIST) || !window.SCHEDULE_LIST.length) {
+    document.getElementById("scheduleStatus").textContent =
+      "No schedules saved.";
+    return;
+  }
+
   window.SCHEDULE_LIST.forEach((s, idx) => {
     const div = document.createElement("div");
     div.className = "carousel-item";
     div.textContent = s.name || `Schedule ${idx + 1}`;
+
     if (idx === window.selectedScheduleIndex) {
       div.classList.add("selected");
     }
+
     div.addEventListener("click", () => {
       window.selectedScheduleIndex = idx;
       refreshScheduleCarousel();
+      updateScheduleStatus();
+
+      // Populate textarea when selected
+      const rawArea = document.getElementById("rawInput");
+      if (rawArea) {
+        rawArea.value = window.SCHEDULE_LIST[idx].rawText;
+      }
     });
+
     viewport.appendChild(div);
   });
 
-  const statusEl = document.getElementById("scheduleStatus");
-  if (window.SCHEDULE_LIST.length) {
-    statusEl.textContent = `Selected ${window.selectedScheduleIndex + 1} of ${window.SCHEDULE_LIST.length}`;
-  } else {
-    statusEl.textContent = "No schedules saved.";
-  }
+  updateScheduleStatus();
 }
 
 // Load saved schedules from localStorage
@@ -1075,43 +1100,112 @@ function loadSavedSchedules() {
   refreshScheduleCarousel();
 }
 
+loadSavedSchedules();
+
 // Save the selected schedule into memory
-document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-  const raw = document.getElementById("rawInput")?.value || "";
-  if (!raw.trim()) {
-    alert("Paste schedule text before saving.");
+ document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
+  const raw = document.getElementById("rawInput")?.value.trim() || "";
+  if (!raw) {
+    alert("Please paste schedule text before saving.");
     return;
   }
-  const name = prompt("Name this schedule:", `Schedule ${window.SCHEDULE_LIST.length + 1}`);
+
+  const nameInput = prompt("Name this schedule:", "");
+  const name = nameInput?.trim();
   if (!name) return;
 
+  // Load existing saved schedules
   const stored = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
-  stored.push({ name, rawText: raw });
+
+  const existingIndex = stored.findIndex(s => s.name === name);
+
+  if (existingIndex > -1) {
+    if (!confirm(`A schedule named "${name}" already exists. Replace it?`)) {
+      return;
+    }
+    // Replace existing
+    stored[existingIndex].rawText = raw;
+  } else {
+    stored.push({ name, rawText: raw });
+  }
+
+  // Persist
   localStorage.setItem("savedSchedules", JSON.stringify(stored));
+  window.SCHEDULE_LIST = stored;
+  window.selectedScheduleIndex = existingIndex > -1 ? existingIndex : stored.length - 1;
 
-  loadSavedSchedules();
-  alert(`Saved schedule "${name}".`);
+  refreshScheduleCarousel();
+  updateScheduleStatus();
 });
-
 // Use the selected schedule
+
 document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const sel = window.SCHEDULE_LIST[window.selectedScheduleIndex];
   const rawArea = document.getElementById("rawInput");
-  if (!sel && !rawArea.value.trim()) {
-    alert("Select or paste a schedule first.");
+  const rawText = rawArea?.value.trim() || "";
+
+  if (!rawText) {
+    alert("There is no schedule to extract. Paste or select a schedule first.");
     return;
   }
 
-  const raw = sel ? sel.rawText : rawArea.value;
-  if (rawArea) rawArea.value = raw;
+  const parsed = parseScheduleText(rawText);
+
+  const statusEl = document.getElementById("scheduleStatus");
+  if (parsed && parsed.length) {
+    statusEl.textContent = `🔍 Extracted ${parsed.length} games`;
+  } else {
+    statusEl.textContent = "⚠️ No games extracted from schedule.";
+  }
+});
+
+  const rawArea = document.getElementById("rawInput");
+  const raw = rawArea.value.trim();
+
+  if (!raw) {
+    alert("No schedule data available to extract.");
+    return;
+  }
 
   const parsed = parseScheduleText(raw);
 
   const statusEl = document.getElementById("scheduleStatus");
   if (parsed && parsed.length) {
-    statusEl.textContent = `🔍 Extracted ${parsed.length} games from "${sel?.name || "paste"}"`;
+    statusEl.textContent = `🔍 Extracted ${parsed.length} games`;
   } else {
-    statusEl.textContent = `⚠️ No games extracted.`;
+    statusEl.textContent = `⚠️ No games extracted from schedule.`;
+  }
+});
+
+// Delete the selected schedule
+
+document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
+  const list = window.SCHEDULE_LIST || [];
+  if (!list.length) {
+    alert("No saved schedule to delete.");
+    return;
+  }
+
+  const idx = window.selectedScheduleIndex;
+  const name = list[idx]?.name || "";
+
+  if (!confirm(`Delete saved schedule "${name}"?`)) return;
+
+  list.splice(idx, 1);
+
+  // Persist
+  localStorage.setItem("savedSchedules", JSON.stringify(list));
+
+  // Update index if needed
+  window.selectedScheduleIndex = Math.max(0, Math.min(idx, list.length - 1));
+
+  window.SCHEDULE_LIST = list;
+  refreshScheduleCarousel();
+  updateScheduleStatus();
+
+  // Clear textarea if nothing selected
+  if (!list.length) {
+    const rawArea = document.getElementById("rawInput");
+    if (rawArea) rawArea.value = "";
   }
 });
 
@@ -1279,37 +1373,7 @@ window.SCHEDULE_LIST = [];
 window.selectedScheduleIndex = 0;
 
 // Refresh UI
-function refreshScheduleCarousel() {
-  const viewport = document.getElementById("scheduleCarouselViewport");
-  if (!viewport) return;
 
-  viewport.innerHTML = "";
-
-  window.SCHEDULE_LIST.forEach((s, idx) => {
-    const div = document.createElement("div");
-    div.className = "carousel-item";
-    div.textContent = s.name || `Schedule ${idx + 1}`;
-
-    if (idx === window.selectedScheduleIndex) {
-      div.classList.add("selected");
-    }
-
-    div.addEventListener("click", () => {
-      window.selectedScheduleIndex = idx;
-      refreshScheduleCarousel();
-    });
-
-    viewport.appendChild(div);
-  });
-
-  const statusEl = document.getElementById("scheduleStatus");
-  if (window.SCHEDULE_LIST.length) {
-    statusEl.textContent =
-      `Selected ${window.selectedScheduleIndex + 1} of ${window.SCHEDULE_LIST.length}`;
-  } else {
-    statusEl.textContent = "No schedules available";
-  }
-}
 
 // Add a schedule to the list
 function addSchedule(name, rawText) {

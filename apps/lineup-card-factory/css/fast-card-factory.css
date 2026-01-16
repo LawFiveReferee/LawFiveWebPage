@@ -1633,11 +1633,17 @@ footer {
   border-radius: 4px;
   text-align: center;
   cursor: pointer;
-  background: white;
+
+  /* Ensure visible text */
+  background: #ffffff;
+  color: #222222;
+  font-weight: 500;
 }
+
 .carousel-item.selected {
   border-color: #007bff;
-  background: #eef4ff;
+  background: #007bff;
+  color: #ffffff;
 }
 .schedule-buttons {
   display: flex;
