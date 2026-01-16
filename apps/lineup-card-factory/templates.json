@@ -1,0 +1,36 @@
+[
+	{
+		"Id": "TotalTemplate",
+		"name": "total-template",
+		"png": "total-template.png",
+		"pdf": "total-template.pdf"
+	},
+	{
+		"Id": "AYSOa1scAllStarsLineupCard2026",
+		"name": "ayso-a1sc-all-stars-lineup-card-2026",
+		"png": "ayso-a1sc-all-stars-lineup-card-2026.png",
+		"pdf": "ayso-a1sc-all-stars-lineup-card-2026.pdf"
+	},
+	{
+		"Id": "2026Area1CAllstarsLineup",
+		"name": "2026-area1c-allstars-lineup",
+		"png": "ayso-a1sc-all-stars-lineup-card-2026.png",
+		"pdf": "2026-area1c-allstars-lineup.pdf"
+	},
+	{
+		"Id": "AYSOofficial",
+		"name": "AYSO-Official",
+		"png": "ayso-official.png",
+		"pdf": "ayso-official.pdf"
+	},
+	{
+		"Id": "CustomLineupcard",
+		"name": "Custom-Lineupcard",
+		"png": "custom-lineupcard.png",
+		"pdf": "custom-lineupcard.pdf"
+	}
+]
+
+
+
+

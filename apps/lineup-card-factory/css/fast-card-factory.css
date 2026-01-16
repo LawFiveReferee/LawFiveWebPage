@@ -1,0 +1,1555 @@
+/* ============================================================
+   Root Variables
+============================================================ */
+
+:root {
+  --green: #1e7a3c;
+  --panel: rgba(230, 230, 230, 0.9);
+  --text-light: #f5f5f5;
+  --text-dark: #111;
+  --subcard-bg: rgba(240, 240, 240, 0.9);
+}
+
+/* ============================================================
+   Base Layout & Typography
+============================================================ */
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #1b1b1b url("../images/soccerfield.jpg") center/cover no-repeat fixed;
+  color: var(--text-light);
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  color: var(--green);
+  margin-top: 0;
+}
+
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.header {
+  background: var(--green);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-weight: 500;
+}
+.header a {
+  color: white;
+  text-decoration: none;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 20px;
+}
+
+/* Intro blurb under H1 */
+.container > p:first-of-type {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #fdfdfd;
+}
+
+/* ============================================================
+   Panels
+============================================================ */
+
+.panel {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-dark);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+/* ============================================================
+   Collapsible Panels (macOS-style headers)
+============================================================ */
+
+.collapsible-panel {
+  background: transparent;
+  border-radius: 14px;
+  margin: 1.5rem 0;
+  padding-bottom: 0.5rem;
+  box-shadow: none;
+}
+
+/* Header: macOS style “pill” */
+.collapsible-header {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.70);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Icon circle with + / – */
+.collapsible-icon {
+  width: 22px;
+  height: 22px;
+  background: var(--green);
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0; /* hide raw text; we use ::before */
+}
+
+.collapsible-icon::before {
+  content: "+";
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* When open: show "-" */
+.collapsible-panel.open .collapsible-icon::before {
+  content: "–";
+}
+
+/* kill all old rotate behavior */
+.collapsible-panel.open .collapsible-icon {
+  transform: none !important;
+}
+
+.collapsible-title {
+  color: var(--green);
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+/* Unified subtitle style */
+.section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #222;
+  opacity: 1;
+  margin: 0.5rem 1.25rem 1rem 1.25rem;
+  line-height: 1.35;
+}
+
+/* Collapsible body: macOS style body panel */
+.collapsible-body {
+  background: rgba(255,255,255,0.97);
+  border-radius: 10px;
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.18),
+    0 1px 0 rgba(255,255,255,0.75) inset;
+  padding: 24px 28px;
+  margin-top: 10px;
+  margin-bottom: 22px;
+  display: none;
+}
+
+.collapsible-panel.open .collapsible-body {
+  display: block;
+}
+
+/* Section 1 closed: keep subtitle only, hide controls */
+#section-1.collapsible-panel:not(.open) .parser-label,
+#section-1.collapsible-panel:not(.open) .parser-carousel-wrapper,
+#section-1.collapsible-panel:not(.open) .import-textarea,
+#section-1.collapsible-panel:not(.open) .parse-row {
+  display: none !important;
+}
+
+/* Section 3 subtitle (same style as Section 2) */
+#status-section-3.section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #222;
+  opacity: 1;
+  margin: 0.5rem 1.25rem 1rem 1.25rem;
+}
+
+/* Open panel adds a bit more space at bottom */
+.collapsible-panel.open {
+  padding-bottom: 1.5rem;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+/* ============================================================
+   Import Textarea / Raw Input
+============================================================ */
+
+textarea#rawInput {
+  width: 100%;
+  height: 260px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+#import-textarea,
+#rawInput {
+  white-space: pre-wrap;
+  font-family: monospace;
+  min-height: 120px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff;
+  color: #000;
+  outline: none;
+}
+
+#import-textarea:empty:before,
+#rawInput:empty:before {
+  content: attr(data-placeholder);
+  color: #777;
+  pointer-events: none;
+}
+
+#rawInput {
+  min-height: 140px;
+}
+
+/* Import section scroll */
+#importSection #rawInput,
+#rawInput {
+  max-height: 200px;
+  min-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   Parser Carousel (D-1: rounded white with arrows)
+============================================================ */
+
+.parser-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  margin: 0.25rem auto 0.75rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(255,255,255,0.90);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  padding: 0.5rem 2.5rem;
+}
+
+.parser-main,
+.parser-info {
+  text-align: center;
+}
+
+.parser-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 2px;
+  color: #222;
+}
+
+.parser-description {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.parser-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.6rem;
+  line-height: 1;
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s ease;
+}
+.parser-arrow:hover {
+  background: rgba(0,0,0,0.7);
+}
+.parser-arrow.left {
+  left: 6px;
+}
+.parser-arrow.right {
+  right: 6px;
+}
+.parser-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.parser-label {
+  margin: 0 0 6px 0;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.parser-help-wrapper {
+  max-width: 650px;
+  margin: 0.5rem auto;
+}
+
+.parser-help-btn,
+.parser-help-toggle {
+  width: 100%;
+  text-align: left;
+  background: var(--green);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.parser-help-body {
+  display: none;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem 1rem;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #ccc;
+  border-top: none;
+  margin-top: -2px;
+}
+
+.parser-help-item {
+  margin: 0.5rem 0 0.75rem 0;
+  font-size: 0.9rem;
+}
+.parser-help-item strong {
+  font-size: 1rem;
+}
+
+/* ============================================================
+   Buttons
+============================================================ */
+
+button {
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+button:hover {
+  background: #166a32;
+}
+
+.secondary {
+  background: #ddd;
+  color: #111;
+}
+.secondary:hover {
+  background: #ccc;
+}
+
+.generate-button-row,
+.export-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   Parse / Import Row
+============================================================ */
+
+.parse-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.parse-status {
+  white-space: nowrap;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+/* ============================================================
+   Cards Layout (B-2: responsive grid auto-fit)
+============================================================ */
+
+/* Scrollable container with grid layout */
+
+#cardsContainer {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 1rem !important;
+  padding: 0.5rem 0;
+}
+
+/* Game card core style */
+
+.game-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  font-size: 1.05rem;
+  color: #222;
+  width: 100% !important;
+  max-width: 300px !important;
+  margin: 0 auto;
+  box-sizing: border-box !important;
+
+  /* align left edge for checkbox + text */
+  padding-left: 12px;
+}
+
+/* Card header row: checkbox above, game text below */
+
+.card-header-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.card-header-row .select-box {
+  margin: 0;
+  padding: 0;
+}
+
+/* spacing ABOVE "Game ####" */
+.card-header-row h3 {
+  margin: 0;
+  margin-top: 16px;
+  color: var(--green);
+}
+
+/* Checkbox visual style (card-level) */
+
+.select-box {
+  width: 22px;
+  height: 22px;
+  transform: scale(1.25);
+  cursor: pointer;
+}
+
+/* Older inline placement helper (if used in other rows) */
+.card-select-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  height: 28px;
+}
+
+/* Card content */
+
+.game-card label {
+  font-weight: 600;
+  color: #333;
+}
+
+.card-row {
+  margin-bottom: 0.35rem;
+}
+
+.card-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}
+
+/* Edit mode */
+
+.edit-mode {
+  background: #fffef2 !important;
+  box-shadow: 0 0 0 2px #ffe36e inset, 0 3px 10px rgba(0,0,0,0.25);
+}
+
+/* Edit mode inputs */
+
+.edit-field {
+  width: 100%;
+  padding: 6px;
+  font-size: 1rem;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+}
+
+.edit-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+/* Responsive tweaks */
+
+@media (max-width: 1100px) {
+  #cardsContainer {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  #cardsContainer {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   Filter Rules Panel
+============================================================ */
+
+.filter-rules-panel {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  margin-bottom: 18px;
+}
+
+.filter-global-actions-row,
+.filter-rules-header,
+.filter-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  font-size: 1rem;
+  align-items: center;
+}
+
+.filter-rules-header {
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.filter-rules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-rule-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.filter-rule-row select.filter-field-select,
+.filter-rule-row select.filter-operator-select,
+.filter-rule-row .filter-value-input,
+.filter-rule-row .filter-value-select {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.30);
+  background: #ffffff;
+  color: #111;
+}
+
+.filter-rule-row .filter-value-input,
+.filter-rule-row .filter-value-select {
+  flex: 1;
+}
+
+.filter-pill-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #dce8ff;
+  color: #111;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.rule-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.35);
+  background: #ddd;
+  color: #111;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.rule-btn:hover {
+  background: #c9c9c9;
+}
+
+/* Section 2 specific card look */
+
+#section-2 .filter-rules-panel {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
+   Bulk Edit (C-1: macOS-style panel)
+============================================================ */
+
+#section-3 .collapsible-body {
+  background: rgba(255,255,255,0.92);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* MacOS bulk panel wrapper */
+.macos-bulk-body {
+  padding: 0 20px 20px 20px;
+}
+
+.macos-bulk-panel {
+  background: rgba(250, 250, 250, 0.88);
+  border-radius: 14px;
+  padding: 22px 26px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+}
+
+.macos-help-line {
+  font-size: 14px;
+  color: #000;
+  margin: 10px 0 15px 4px;
+  opacity: 0.9;
+}
+
+.macos-row {
+  margin-bottom: 18px;
+}
+.macos-row.two-columns {
+  display: flex;
+  gap: 20px;
+}
+.macos-row.two-columns .column {
+  flex: 1;
+}
+
+.macos-input,
+.macos-select {
+  width: 100%;
+  font-size: 15px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.22);
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.macos-control-pair {
+  display: flex;
+  gap: 12px;
+}
+
+.macos-button-row,
+#section-3 .btn-row {
+  margin-top: 22px;
+  display: flex;
+  gap: 16px;
+}
+
+#applyBulkEditBtn {
+  font-weight: 600;
+}
+
+/* Bulk edit grid */
+
+#section-3 .bulk-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 36px;
+  row-gap: 20px;
+  padding-top: 10px;
+}
+
+#section-3 .bulk-field.full-width {
+  grid-column: 1 / 3;
+}
+
+#section-3 .bulk-field {
+  margin-bottom: 10px;
+}
+
+#section-3 label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+  display: block;
+  margin-bottom: 4px;
+}
+
+#section-3 .combo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#bulkGameInfoSelect {
+  width: 300px;
+  min-width: 260px;
+}
+
+#bulkGameInfoInput {
+  flex: 1;
+  height: 34px;
+}
+
+/* Inputs inside bulk edit */
+
+#section-3 input[type="text"],
+#section-3 input[type="date"],
+#section-3 select {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.30) !important;
+  border-radius: 6px !important;
+  padding: 7px 10px !important;
+  color: #111 !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+#section-3 input[type="text"]:focus,
+#section-3 input[type="date"]:focus,
+#section-3 select:focus {
+  border-color: #1a73e8 !important;
+  outline: none;
+  box-shadow: 0 0 4px rgba(26,115,232,0.3);
+}
+
+#bulkDate {
+  max-width: 220px;
+}
+
+.bulk-edit-grid input,
+.bulk-edit-grid select {
+  border: 1.5px solid rgba(0,0,0,0.35) !important;
+  background: #fff !important;
+  color: #222 !important;
+  font-size: 1rem;
+}
+
+.bulk-edit-grid input::placeholder,
+.bulk-edit-grid select::placeholder {
+  color: #222 !important;
+}
+
+.bulk-edit-subcard .bulk-edit-note {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+/* ============================================================
+   Footer
+============================================================ */
+
+footer {
+  background: var(--green);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  margin-top: 3rem;
+  font-weight: 500;
+}
+
+/* --- Correct collapsed mode behavior --- */
+
+/* Hide only the expandable body */
+.collapsible-panel:not(.open) .collapsible-body {
+  display: none !important;
+}
+
+/* Always show subtitle text */
+.collapsible-panel:not(.open) .section-subtitle {
+  display: block !important;
+  opacity: 1 !important;
+  margin: 0.5rem 1.25rem 1rem 1.25rem !important; /* full subtitle spacing */
+}
+
+/* Prevent panel from collapsing too tightly */
+.collapsible-panel:not(.open) {
+  padding-bottom: 1rem !important;
+}
+
+/* ============================================================
+   Correct collapsed-card appearance for ALL sections
+============================================================ */
+
+/* Keep the white card background visible even when collapsed */
+.collapsible-panel {
+  background: rgba(255,255,255,0.97) !important;
+  border-radius: 12px;
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.18),
+    0 1px 0 rgba(255,255,255,0.75) inset;
+  padding: 0.75rem 0 !important;  /* card breathing room */
+}
+
+/* When OPEN, body appears normally */
+.collapsible-panel.open {
+  padding-bottom: 1.5rem !important;
+}
+
+/* When COLLAPSED — keep subtitle inside card */
+.collapsible-panel:not(.open) .collapsible-body {
+  display: none !important;
+}
+
+/* Subtitle stays visible + has card spacing */
+.collapsible-panel:not(.open) .section-subtitle {
+  display: block !important;
+  opacity: 1 !important;
+  margin: 0.75rem 1.25rem 1rem 1.25rem !important;
+}
+
+/* Header always stays at top of the card */
+.collapsible-header {
+  margin-bottom: 0.25rem !important;
+}
+/* ============================================================
+   SECTION 5 — Clean Template Carousel Styling
+============================================================ */
+
+/* ============================================================
+   SECTION 5 — Template Carousel (Clean, Final Version)
+============================================================ */
+
+/* ---------------------------------------
+   1. Template Preview Image (62.5% width)
+---------------------------------------- */
+#section-5 .template-slide img {
+  width: 100% !important;    /* enlarged from 50% */
+  height: auto !important;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+/* ---------------------------------------
+   2. Carousel Wrapper
+---------------------------------------- */
+#section-5 .template-carousel-wrapper {
+  position: relative !important;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;                  /* no artificial edge padding */
+}
+
+/* ---------------------------------------
+   3. Arrow Buttons (large, bold, centered)
+---------------------------------------- */
+#section-5 .carousel-arrow {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 20 !important;
+
+  width: 44px;
+  height: 44px;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: white !important;
+
+  background: rgba(0,0,0,0.55);
+  border-radius: 8px;
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+#section-5 .carousel-arrow:hover {
+  background: rgba(0,0,0,0.75);
+}
+
+/* ---------------------------------------
+   4. Arrow Positioning (just outside image)
+---------------------------------------- */
+/*
+   Slide width = 500px
+   Image width = 500px × 0.625 = 312.5px
+   Half-image = 156.25px
+   Offset from image edge = 24px (gap)
+*/
+
+#section-5 .carousel-arrow.left {
+  left: calc(50% - 156.25px - 160px) !important;
+}
+
+#section-5 .carousel-arrow.right {
+  right: calc(50% - 156.25px - 160px) !important;
+}
+
+
+/* ---------------------------------------
+   Selected template name
+---------------------------------------- */
+
+
+#templateName {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.macos-row select,
+.macos-row input.macos-input {
+  margin-bottom: 8px;
+}
+
+#bulkGameInfoInput {
+  margin-top: 4px;
+}
+
+/* ---------------------------------------
+   History
+---------------------------------------- */
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.history-delete-btn {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.history-delete-btn:hover {
+  background: #c9302c;
+}
+
+/* ===== Modal Overlay ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ===== Modal Window ===== */
+.modal-window {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 30px;
+  width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  color: #111;
+}
+
+/* ===== History Item Row ===== */
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.history-delete-btn {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.history-delete-btn:hover {
+  background: #c9302c;
+}
+
+/* ---------- Section 6 Clean Layout ---------- */
+
+#section-6 .fullwidth {
+  width: 100%;
+}
+
+#section-6 .status-line {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #444;
+}
+
+#section-6 .export-subpanel {
+  margin-top: 20px;
+}
+
+#section-6 .export-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+#section-6 .export-row > * {
+  flex: 1;
+}
+
+#section-6 .history-btn {
+  margin-top: 20px;
+}
+
+/* ---------- Two-column layout ---------- */
+#section-6 .two-columns {
+  display: flex;
+  gap: 20px;
+}
+
+#section-6 .two-columns .column {
+  flex: 1;
+}
+
+#section-6 label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #111;
+}
+
+#section-6 .invisible-label {
+  opacity: 0;
+}
+/* EDIT MODAL — Modern macOS Style */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-window.edit-window {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  animation: slideDown 0.18s ease-out;
+}
+
+.modal-title {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 12px;
+}
+
+.edit-row label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.edit-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-14px); opacity:0; }
+  to   { transform: translateY(0); opacity:1; }
+}
+
+/* ============================================================
+   GENERIC MAPPING PANEL — macOS-style
+============================================================ */
+
+.mapping-panel {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 650px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  z-index: 5000;
+}
+
+.mapping-panel.hidden {
+  display: none;
+}
+
+
+/* Title text */
+.mapping-panel h3 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Helper text */
+.mapping-panel p {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+
+/* Table styling */
+.mapping-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.mapping-table th {
+  padding: 10px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111 !important;
+  border-bottom: 2px solid #ccc;
+}
+
+.mapping-table td {
+  padding: 8px;
+  font-size: 14px;
+  color: #111 !important;
+  vertical-align: middle;
+  border-bottom: 1px solid #e3e3e3;
+}
+
+/* Column 1 (input names) */
+.mapping-table td.input-col {
+  font-weight: 600;
+}
+
+/* Sample columns */
+.mapping-table td.sample-col {
+  color: #333 !important;
+}
+
+/* Dropdown column */
+.mapping-table select {
+  width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #111;
+}
+
+
+/* Button row */
+.mapping-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.mapping-buttons .btn,
+.mapping-buttons .btn-primary,
+.mapping-buttons .secondary {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   GENERIC MAPPING PANEL — macOS Style
+============================================================ */
+
+.mapping-panel {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 650px;
+
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  padding: 24px 28px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.28);
+
+  z-index: 5000;
+}
+
+.mapping-panel.hidden {
+  display: none;
+}
+
+/* Title & description */
+.mapping-panel h3 {
+  margin-top: 0;
+  padding: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+}
+
+.mapping-panel p {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+/* ============================================================
+   Table
+============================================================ */
+
+.mapping-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+.mapping-table th {
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 2px solid #d0d0d0;
+  color: #111 !important;
+}
+
+.mapping-table td {
+  padding: 8px 8px;
+  font-size: 14px;
+  color: #111 !important;
+  border-bottom: 1px solid #e5e5e5;
+  vertical-align: middle;
+}
+
+.mapping-table td.input-col {
+  font-weight: 600 !important;
+}
+
+.mapping-table td.sample-col {
+  color: #333 !important;
+}
+
+/* Dropdown styling */
+.mapping-table select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #c8c8c8;
+  background: #fff;
+  font-size: 14px;
+  color: #111;
+}
+
+/* Button row */
+.mapping-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.mapping-buttons button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+/* ============================================================
+   PDF progress UI
+============================================================ */
+.pdf-progress {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(6px);
+}
+
+.pdf-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pdf-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(0,0,0,0.18);
+  border-top-color: rgba(0,0,0,0.55);
+  animation: pdfspin 0.8s linear infinite;
+}
+
+@keyframes pdfspin {
+  to { transform: rotate(360deg); }
+}
+
+.pdf-progress-text {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.pdf-progressbar-wrap {
+  margin-top: 10px;
+}
+
+.pdf-progressbar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.10);
+  overflow: hidden;
+}
+
+.pdf-progressbar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.45);
+  transition: width 120ms linear;
+}
+
+.pdf-progress-count {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Uses your existing .hidden convention, but define if missing */
+.hidden { display: none !important; }
+
+.filter-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 12px;
+  flex-wrap: wrap;
+}
+
+.filter-presets-label {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   Popup-style select (Saved Filters)
+============================================================ */
+.popup-select {
+  -webkit-appearance: menulist-button;
+  appearance: menulist-button;
+
+  padding: 8px 34px 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.18);
+  background-color: rgba(255,255,255,0.9);
+
+  font-size: 14px;
+  line-height: 1.2;
+
+  /* custom chevron */
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(0,0,0,0.55) 50%),
+    linear-gradient(135deg, rgba(0,0,0,0.55) 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 18px) 55%,
+    calc(100% - 12px) 55%,
+    0 0;
+  background-size:
+    6px 6px,
+    6px 6px,
+    100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Lineup card preview overrides */
+#lineup-card-factory .lineup-card,
+.lineup-card {
+  color: black; /* ensure all text is black */
+  background: white; /* if needed */
+}
+
+.lineup-card .card-header,
+.lineup-card .team-info,
+.lineup-card .roster-list {
+  color: black;
+}
+
+/* Lineup card grid: responsive columns */
+.lineup-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.lineup-card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  background: white;
+  color: black; /* forces black text */
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+  border-radius: 6px;
+}
+/* ─ Lineup Card Style ───────────────────────────────────── */
+
+.lineup-card {
+  border: 1px solid #ccc;
+  padding: 0.8rem;
+  background: #fff;
+  color: #000;
+  border-radius: 6px;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+
+.lineup-card .card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.lineup-card .card-header-row h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.lineup-card .select-box {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.lineup-card .card-body {
+  margin-bottom: 0.8rem;
+}
+
+.lineup-card .card-row {
+  margin: 0.2rem 0;
+}
+
+.lineup-card .card-row strong {
+  display: inline-block;
+  width: 75px;
+}
+
+.lineup-card .card-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.lineup-card .card-buttons button {
+  font-size: 0.9rem;
+}
+
+.card-actions button {
+  margin-right: 6px;
+}
+#templateFieldList {
+  color: black;
+  padding: 0.5em 0;
+}
+
+

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF‑8"></head>
+<body>
+  <div style="text-align:center;margin:20px;">
+    <h1>{{Competition}}</h1>
+    <h3>{{ageDivision}}</h3>
+  </div>
+  <div>
+    <p><strong>Team:</strong> {{teamName}} ({{teamColors}})</p>
+    <p><strong>Coach:</strong> {{teamCoach}}</p>
+    <hr />
+  </div>
+  <ul>
+    {{#players}}
+      <li>{{playerNumber}} — {{playerName}}</li>
+    {{/players}}
+  </ul>
+</body>
+</html>

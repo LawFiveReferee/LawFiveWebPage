@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rule of Six Verifier – Law Five Referee</title>
+
+  <!-- Shared site stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header>
+  <h1>Law Five Referee</h1>
+  <nav>
+    <a href="/index.html">Home</a>
+    <a href="/penalty-shootout.html">Penalty Shoot-out</a>
+    <a href="/quicklook-today.html">QuickLook Today</a>
+    <a href="/apps/game-card-factory/index.html">Game Card Factory</a>
+     <a href="/apps/Lineup-card-factory/index.html">Lineup Card Factory</a>
+    <a href="/downloads.html">Downloads</a>
+
+    <a href="/contact.html">Contact</a>
+    <a href="/privacy.html">Privacy</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================================
+       CARD 1 — TITLE + INTRO + RULE
+  ================================ -->
+  <section class="verifier-card">
+    <h2>Penalty Shoot-out: Rule-of-Six Verifier</h2>
+    <p class="verifier-subtitle">
+      Analyzing all 1,024 possible combinations of goals and misses in the first 5 rounds of a shoot-out.
+    </p>
+
+    <div class="rule-box">
+      <h3>The Rule of Six</h3>
+      <p>
+        When Team A kicks: if they score, Team A gets +1 rule-of-6 tally; if they miss, Team B gets +1.<br>
+        When Team B kicks: if they score, Team B gets +1; if they miss, Team A gets +1.<br><br>
+        <strong>The first team to reach 6 in their rule-of-6 tally is mathematically guaranteed to win.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================
+       CARD 2 — ALL SCENARIOS SECTION
+  ================================ -->
+  <section class="verifier-card">
+
+    <h2>Every Penalty Shoot-out Rule of 6 Scenario</h2>
+    <p class="verifier-subtext">
+      All 1,024 possible combinations of goals and misses.
+    </p>
+
+    <!-- ========== STATS SUBCARDS ========== -->
+    <h3>Scenario Statistics</h3>
+    <div id="statsGrid" class="verifier-subgrid"></div>
+
+    <!-- ========== ROUNDS SUBCARDS ========== -->
+    <h3>Winners Determined by Round</h3>
+    <div id="roundsGrid" class="verifier-subgrid"></div>
+
+  </section>
+
+  <!-- ================================
+       CARD 3 — SAMPLE SCENARIOS
+  ================================ -->
+  <section class="verifier-card">
+
+    <h2>Sample Scenarios</h2>
+
+    <!-- WIDE SUBCARD: TITLE + EXPORT + TABLE -->
+    <div class="verifier-subcard wide">
+
+      <!-- Plain-text title -->
+      <div class="subcard-title">First 20 Sample Scenarios</div>
+
+      <!-- Export button ABOVE the table (only one button) -->
+      <button onclick="exportToCSV()" class="verifier-export-btn">
+        ⬇ Export All 1,024 Scenarios to CSV
+      </button>
+
+      <!-- Table BELOW export button -->
+      <div class="overflow">
+        <table id="scenarioTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>R1-A</th><th>R1-B</th>
+              <th>R2-A</th><th>R2-B</th>
+              <th>R3-A</th><th>R3-B</th>
+              <th>R4-A</th><th>R4-B</th>
+              <th>R5-A</th><th>R5-B</th>
+              <th>Goals A</th><th>Goals B</th>
+              <th>R6 A</th><th>R6 B</th>
+              <th>Winner</th>
+              <th>Round</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <p class="note" id="tableNote"></p>
+
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2025 Law Five Referee.  Site design and build assistance by
+    <a href="https://chat.openai.com/" target="_blank">ChatGPT</a>
+  </p>
+</footer>
+
+<script>
+  // ============================================
+  //  Rule of Six Scenario Engine
+  //  (logic from your original standalone page)
+  // ============================================
+
+  let allScenarios = [];
+
+  function generateAllScenarios() {
+    const scenarios = [];
+
+    for (let i = 0; i < 1024; i++) {
+      const kicks = [];
+      let teamAGoals = 0;
+      let teamBGoals = 0;
+      let teamARuleOfSix = 0;
+      let teamBRuleOfSix = 0;
+      let winner = null;
+      let winRound = null;
+
+      for (let kickNum = 0; kickNum < 10; kickNum++) {
+
+        // If we already have a winner, mark remaining kicks as "not taken"
+        if (winner) {
+          kicks.push({
+            kickNum: kickNum + 1,
+            team: kickNum % 2 === 0 ? "A" : "B",
+            scored: null,
+            teamAGoals,
+            teamBGoals,
+            teamARuleOfSix,
+            teamBRuleOfSix,
+            notTaken: true
+          });
+          continue;
+        }
+
+        const isTeamA = (kickNum % 2 === 0);
+        const scored = (i >> kickNum) & 1;
+
+        // Update goals
+        if (scored) {
+          if (isTeamA) teamAGoals++;
+          else teamBGoals++;
+        }
+
+        // Update Rule-of-6 tallies
+        if (isTeamA) {
+          if (scored) teamARuleOfSix++;
+          else teamBRuleOfSix++;
+        } else {
+          if (scored) teamBRuleOfSix++;
+          else teamARuleOfSix++;
+        }
+
+        kicks.push({
+          kickNum: kickNum + 1,
+          team: isTeamA ? "A" : "B",
+          scored,
+          teamAGoals,
+          teamBGoals,
+          teamARuleOfSix,
+          teamBRuleOfSix,
+          notTaken: false
+        });
+
+        // Check for winner by Rule of 6 or by final score at end of 5th round
+        if (teamARuleOfSix >= 6) {
+          winner = "A";
+          winRound = Math.ceil((kickNum + 1) / 2);
+        } else if (teamBRuleOfSix >= 6) {
+          winner = "B";
+          winRound = Math.ceil((kickNum + 1) / 2);
+        } else if (kickNum === 9) {
+          if (teamAGoals > teamBGoals) {
+            winner = "A";
+          } else if (teamBGoals > teamAGoals) {
+            winner = "B";
+          } else {
+            winner = "Tie";
+          }
+          winRound = 5;
+        }
+      }
+
+      scenarios.push({
+        id: i,
+        kicks,
+        winner,
+        winRound,
+        finalScoreA: teamAGoals,
+        finalScoreB: teamBGoals,
+        finalRuleOfSixA: teamARuleOfSix,
+        finalRuleOfSixB: teamBRuleOfSix
+      });
+    }
+
+    return scenarios;
+  }
+
+  function calculateStats(scenarios) {
+    return {
+      total: scenarios.length,
+      teamAWins: scenarios.filter(s => s.winner === "A").length,
+      teamBWins: scenarios.filter(s => s.winner === "B").length,
+      ties:     scenarios.filter(s => s.winner === "Tie").length,
+      earlyWins: scenarios.filter(s => s.winRound < 5).length,
+      ruleOfSixWins: scenarios.filter(
+        s => s.finalRuleOfSixA >= 6 || s.finalRuleOfSixB >= 6
+      ).length
+    };
+  }
+
+  // Scenario Statistics subcards
+  function renderStats(stats) {
+    const grid = document.getElementById("statsGrid");
+    grid.innerHTML = `
+      <div class="stat-card">
+        <div class="number">${stats.teamAWins}</div>
+        <div class="label">Team A Wins</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${stats.teamBWins}</div>
+        <div class="label">Team B Wins</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${stats.ties}</div>
+        <div class="label">Ties (Sudden Death)</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${stats.earlyWins}</div>
+        <div class="label">Decided Before Round 5</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${stats.ruleOfSixWins}</div>
+        <div class="label">Won by Rule of Six</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${stats.total}</div>
+        <div class="label">Total Scenarios</div>
+      </div>
+    `;
+  }
+
+  // Winners by round subcards
+  function renderRounds(scenarios) {
+    const grid = document.getElementById("roundsGrid");
+
+    const counts = [
+      { round: 1, count: scenarios.filter(s => s.winRound === 1).length },
+      { round: 2, count: scenarios.filter(s => s.winRound === 2).length },
+      { round: 3, count: scenarios.filter(s => s.winRound === 3).length },
+      { round: 4, count: scenarios.filter(s => s.winRound === 4).length },
+      { round: 5, count: scenarios.filter(s => s.winRound === 5).length }
+    ];
+
+    grid.innerHTML = counts.map(r => `
+      <div class="round-card">
+        <div class="number">${r.count}</div>
+        <div class="label">Round ${r.round}</div>
+      </div>
+    `).join("");
+  }
+
+  // Table of first 20 sample scenarios
+  function renderTable(scenarios) {
+    const sampleScenarios = scenarios.slice(0, 20);
+    const tbody = document.getElementById("tableBody");
+
+    let rows = "";
+
+    sampleScenarios.forEach(scenario => {
+      rows += "<tr>";
+      rows += `<td>${scenario.id}</td>`;
+
+      scenario.kicks.forEach(kick => {
+        if (kick.notTaken) {
+          rows += `<td style="color:#9ca3af;">—</td>`;
+        } else {
+          const className = kick.scored ? "scored" : "missed";
+          const symbol = kick.scored ? "✓" : "✗";
+          rows += `<td class="${className}">${symbol}</td>`;
+        }
+      });
+
+      rows += `<td><strong>${scenario.finalScoreA}</strong></td>`;
+      rows += `<td><strong>${scenario.finalScoreB}</strong></td>`;
+
+      const r6AClass = scenario.finalRuleOfSixA >= 6 ? "rule-six-win" : "";
+      const r6BClass = scenario.finalRuleOfSixB >= 6 ? "rule-six-win" : "";
+
+      rows += `<td class="${r6AClass}"><strong>${scenario.finalRuleOfSixA}</strong></td>`;
+      rows += `<td class="${r6BClass}"><strong>${scenario.finalRuleOfSixB}</strong></td>`;
+
+      let winnerClass = "winner-tie";
+      if (scenario.winner === "A") winnerClass = "winner-a";
+      else if (scenario.winner === "B") winnerClass = "winner-b";
+
+      rows += `<td class="${winnerClass}">${scenario.winner}</td>`;
+      rows += `<td>${scenario.winRound}</td>`;
+
+      rows += "</tr>";
+    });
+
+    tbody.innerHTML = rows;
+    document.getElementById("tableNote").textContent =
+      "Showing first 20 of 1,024 scenarios. Export to CSV to see all combinations.";
+  }
+
+  // CSV export for all 1,024 scenarios
+  function exportToCSV() {
+    let csv =
+      "Scenario,A Kick 1,B Kick 2,A Kick 3,B Kick 4,A Kick 5,B Kick 6,A Kick 7,B Kick 8,A Kick 9,B Kick 10,Final A Goals,Final B Goals,Final A Rule6,Final B Rule6,Winner,Win Round\n";
+
+    allScenarios.forEach(scenario => {
+      const kickResults = scenario.kicks
+        .map(k => (k.notTaken ? "—" : (k.scored ? "✓" : "✗")))
+        .join(",");
+
+      csv += `${scenario.id},${kickResults},${scenario.finalScoreA},${scenario.finalScoreB},${scenario.finalRuleOfSixA},${scenario.finalRuleOfSixB},${scenario.winner},${scenario.winRound}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "penalty_shootout_scenarios.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  // Initialize page on load
+  document.addEventListener("DOMContentLoaded", () => {
+    allScenarios = generateAllScenarios();
+    const stats = calculateStats(allScenarios);
+    renderStats(stats);
+    renderRounds(allScenarios);
+    renderTable(allScenarios);
+  });
+</script>
+
+
+
+<script data-goatcounter="https://law5ref.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
+

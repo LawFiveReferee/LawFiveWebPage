@@ -1,0 +1,16 @@
+[
+ {
+    "category": "About QuickLook Today",
+    "questions":
+    [
+	 {
+		 "q": "What is QuickLook Today?",
+		 "a": "QuickLook Today is an iPhone app in development designed to give users a look at their Calendar events, one day at a time."
+	   },
+	   {
+		 "q": "When will the app be released?",
+		 "a": "As soon as a few outstanding issues are resolved."
+	   }
+    ]
+  }
+]

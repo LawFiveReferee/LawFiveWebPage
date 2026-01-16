@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Downloads | Law Five Referee</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <!-- Favicons -->
+  <link rel="icon" href="/images/favicon.ico" sizes="any" />
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/images/favicon.png" />
+
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#1e7a3c" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
+
+  <!-- SEO meta -->
+  <meta name="description" content="Software and resources for soccer referees, including the Penalty Shoot-out Simulator and QuickLook Today apps." />
+</head>
+
+<body>
+  <header>
+    <h1>Law Five Referee</h1>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/penalty-shootout.html">Penalty Shoot-out</a>
+      <a href="/quicklook-today.html">QuickLook Today</a>
+      <a href="/apps/game-card-factory/index.html">Game Card Factory</a>
+      <a href="/downloads.html">Downloads</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== App Store Cards Section ===== -->
+    <section class="appstore-section downloads-section">
+          <h2 class="downloads-heading">Apple App Store</h2>
+
+      <div class="appstore-gallery">
+        <!-- Penalty Shoot-out Card -->
+        <div class="app-card">
+          <img src="/images/penalty-shootout/icon-placeholder.png" alt="Penalty Shoot-out App Icon" class="app-icon" />
+          <h4>Penalty Shoot-out</h4>
+          <a href="https://apps.apple.com/app/penalty-shootout/idXXXXXXXXX">
+            <img src="/images/appstore-badge.svg" alt="Download on the App Store" class="appstore-badge" />
+          </a>
+        </div>
+
+        <!-- QuickLook Today Card -->
+        <div class="app-card">
+          <img src="/images/quicklook-today/icon-placeholder.png" alt="QuickLook Today App Icon" class="app-icon" />
+          <h4>QuickLook Today</h4>
+          <img src="/images/appstore-badge.svg" alt="Coming Soon on the App Store" class="appstore-badge coming-soon" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Downloads Heading & Gallery ===== -->
+    <h2 class="downloads-heading">Downloads</h2>
+
+    <section class="downloads-section">
+      <div class="gallery" id="downloads-gallery"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Law Five Referee. Site design and build assistance by <a href="https://chat.openai.com/" target="_blank" rel="noopener">ChatGPT</a></p>
+  </footer>
+
+  <!-- ===== Scripts ===== -->
+<script src="/scripts/downloads-loader.js"></script>
+<script>
+  loadDownloads("downloads/downloads.json");
+
+  // Tag download links for GoatCounter after the gallery is rendered
+  (function tagDownloadsForGoatCounter() {
+    const gallery = document.getElementById("downloads-gallery");
+    if (!gallery) return;
+
+    // Wait a tick in case the loader renders async
+    setTimeout(() => {
+      const links = gallery.querySelectorAll("a[href]");
+      links.forEach(a => {
+        const href = a.getAttribute("href") || "";
+        // Only track actual downloads folder links (adjust if needed)
+        if (!href.includes("downloads/")) return;
+
+        const file = href.split("/").pop() || href;
+        a.setAttribute("data-goatcounter-click", "download:" + file);
+        a.setAttribute("data-goatcounter-title", "Download " + file);
+      });
+    }, 0);
+  })();
+</script>
+
+
+
+<script data-goatcounter="https://law5ref.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
+

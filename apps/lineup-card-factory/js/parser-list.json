@@ -1,0 +1,62 @@
+[
+  {
+    "key": "text-advanced",
+    "name": "Text: Advanced (12-line)",
+    "description": "Original Card Factory text schedule format",
+    "function": "parseTextAdvanced"
+  },
+  {
+    "key": "arbiter",
+    "name": "Arbiter: Game Details",
+    "description": "Full ArbiterSports Game Details page",
+    "function": "parseArbiter"
+  },
+  {
+    "key": "arbiter-email",
+    "name": "Arbiter Email",
+    "description": "Copy/Paste from ArbiterSports email",
+    "function": "parseArbiterEmail"
+  },
+  {
+    "key": "csv",
+    "name": "CSV / Google Sheets",
+    "description": "Standard CSV or spreadsheet rows",
+    "function": "parseCSV"
+  },
+  {
+    "key": "compact",
+    "name": "Compact Single-Line",
+    "description": "One-line-per-game CSV, pipe, or tab-separated format",
+    "function": "parseCompact"
+  },
+  {
+    "key": "ayso",
+    "name": "AYSO Region 88 Weekly Schedule",
+    "description": "AYSO age/div, home, away, date/time formats",
+    "function": "parseAYSO"
+  },
+ {
+  "key": "ayso-playoffs",
+  "name": "AYSO Region 88 Playoffs",
+  "description": "Tab-separated playoff schedule with referee assignments",
+  "function": "parseAysoPlayoffs"
+	},
+  {
+	  "key": "glendale-table",
+	  "name": "Glendale / AYSO Table Format",
+	  "description": "Columnar multi-block schedule (Game#, Div, Round, Home, Away, Date, Time...)",
+	  "function": "parseGlendaleTable"
+   },
+  {
+    "key": "arbiter-csv-schedule",
+    "name": "Arbiter: CSV Schedule",
+    "description": "Paste Arbiter's Plain Text File Format",
+    "function": "parseArbiterCsvSchedule"
+  },
+	{
+  "key": "generic-mapper",
+  "name": "User Defined Mapper (TSV/CSV)",
+  "description": "User-defined mapping from columns to standardized game fields.",
+  "function": "parseGenericMapped"
+	}
+]

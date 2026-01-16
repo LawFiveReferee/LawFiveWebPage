@@ -1,0 +1,39 @@
+.mapping-panel {
+  background: #fff;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  max-width: 800px;
+  margin: 20px auto;
+}
+.mapping-panel.hidden {
+  display: none;
+}
+.mapping-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+.mapping-panel td, .mapping-panel th {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+.mapping-buttons {
+  display: flex;
+  gap: 10px;
+}
+.mapping-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+#mappingProfileSelect {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+

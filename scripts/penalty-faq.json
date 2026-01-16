@@ -1,0 +1,25 @@
+[{
+    "category": "About the Penalty Shoot-out Simulator",
+    "questions":
+    [{
+        "q": "What is Penalty Shoot-out Simulator?",
+        "a": "This app demonstrates scorekeeping for a Penalty Shoot-out and shows how to apply the Rule-of-6."
+      },
+      {
+        "q": "How does the app work?",
+        "a": "Tap 'Goal' or 'Miss' to record each kick. The app tracks scores and applies the Rule-of-6 until a winner is determined."
+      },
+      {
+        "q": "How is a winner determined?",
+        "a": "After five rounds, the team with more goals wins. If tied, sudden death continues until one team leads at the end of a round."
+    }]
+  },
+  {
+    "category": "Technical",
+    "questions":
+    [{
+        "q": "Do I need an internet connection?",
+        "a": "No — Penalty Shoot-out Simulator works completely offline after download."
+    }]
+  }
+]

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickLook Today FAQ | Law Five Referee</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Favicons -->
+  <link rel="icon" href="images/favicon.ico" sizes="any" />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="images/favicon.png" />
+
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#1e7a3c" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
+
+  <!-- SEO meta -->
+  <meta name="description" content="Software and resources for soccer referees, including the Penalty Shoot-out Simulator and QuickLook Today apps." />
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const items = document.querySelectorAll(".faq-item");
+
+    items.forEach(item => {
+      const question = item.querySelector(".faq-q");
+      const answer = item.querySelector(".faq-a");
+      const icon = item.querySelector(".icon");
+
+      question.addEventListener("click", () => {
+        const isOpen = answer.classList.toggle("open");
+        icon.classList.toggle("rotated", isOpen);
+      });
+    });
+  });
+</script>
+
+
+</head>
+<body>
+<header>
+  <h1>Law Five Referee</h1>
+  <nav>
+    <a href="/index.html">Home</a>
+    <a href="/penalty-shootout.html">Penalty Shoot-out</a>
+    <a href="/quicklook-today.html">QuickLook Today</a>
+    <a href="/apps/game-card-factory/index.html">Game Card Factory</a>
+     <a href="/apps/Lineup-card-factory/index.html">Lineup Card Factory</a>
+    <a href="/downloads.html">Downloads</a>
+
+    <a href="/contact.html">Contact</a>
+    <a href="/privacy.html">Privacy</a>
+  </nav>
+</header>
+
+  <main>
+
+
+
+<section class="faq">
+  <h2>QuickLook Today — FAQ</h2>
+</section>
+
+<script src="scripts/faq-loader.js"></script>
+<script>
+  loadFAQ("scripts/quicklook-faq.json");
+</script>
+
+
+
+  </main>
+
+<footer>
+  <p>© 2025 Law Five Referee.  Site design and build assistance by <a href="https://chat.openai.com/" target="_blank">ChatGPT</a></p>
+</footer>
+
+
+<script data-goatcounter="https://law5ref.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

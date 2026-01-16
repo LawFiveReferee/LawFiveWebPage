@@ -1,0 +1,26 @@
+[
+	{
+		"id": "custom",
+		"name": "custom law-5 ref",
+		"png": "custom-blank-card.png",
+		"pdf": "custom-blank-card.pdf"
+	},
+	{
+		"id": "special",
+		"name": "special blank law-5 ref",
+		"png": "special-blank-card.png",
+		"pdf": "special-blank-card.pdf"
+	},
+	{
+		"id": "highschool",
+		"name": "high school law-5 ref",
+		"png": "highschool-blank-card.png",
+		"pdf": "highschool-blank-card.pdf"
+	},
+	{
+		"id": "ayso",
+		"name": "ayso law-5 ref",
+		"png": "ayso-blank-card.png",
+		"pdf": "ayso-blank-card.pdf"
+	}
+]
