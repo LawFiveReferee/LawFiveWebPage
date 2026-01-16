@@ -1031,6 +1031,114 @@ document.getElementById("closeFieldInspectorBtn")?.addEventListener("click", () 
   document.getElementById("templateFieldInspector").classList.add("hidden");
 });
 
+// ———————————————————————————
+// Schedule Carousel State
+// ———————————————————————————
+
+window.SCHEDULE_LIST = [];
+window.selectedScheduleIndex = 0;
+
+// Refresh the carousel HTML
+function refreshScheduleCarousel() {
+  const viewport = document.getElementById("scheduleCarouselViewport");
+  if (!viewport) return;
+
+  viewport.innerHTML = "";
+
+  window.SCHEDULE_LIST.forEach((s, idx) => {
+    const div = document.createElement("div");
+    div.className = "carousel-item";
+    div.textContent = s.name || `Schedule ${idx + 1}`;
+    if (idx === window.selectedScheduleIndex) {
+      div.classList.add("selected");
+    }
+    div.addEventListener("click", () => {
+      window.selectedScheduleIndex = idx;
+      refreshScheduleCarousel();
+    });
+    viewport.appendChild(div);
+  });
+
+  const statusEl = document.getElementById("scheduleStatus");
+  if (window.SCHEDULE_LIST.length) {
+    statusEl.textContent = `Selected ${window.selectedScheduleIndex + 1} of ${window.SCHEDULE_LIST.length}`;
+  } else {
+    statusEl.textContent = "No schedules saved.";
+  }
+}
+
+// Load saved schedules from localStorage
+function loadSavedSchedules() {
+  const stored = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
+  window.SCHEDULE_LIST = Array.isArray(stored) ? stored : [];
+  window.selectedScheduleIndex = 0;
+  refreshScheduleCarousel();
+}
+
+// Save the selected schedule into memory
+document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
+  const raw = document.getElementById("rawInput")?.value || "";
+  if (!raw.trim()) {
+    alert("Paste schedule text before saving.");
+    return;
+  }
+  const name = prompt("Name this schedule:", `Schedule ${window.SCHEDULE_LIST.length + 1}`);
+  if (!name) return;
+
+  const stored = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
+  stored.push({ name, rawText: raw });
+  localStorage.setItem("savedSchedules", JSON.stringify(stored));
+
+  loadSavedSchedules();
+  alert(`Saved schedule "${name}".`);
+});
+
+// Use the selected schedule
+document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const sel = window.SCHEDULE_LIST[window.selectedScheduleIndex];
+  const rawArea = document.getElementById("rawInput");
+  if (!sel && !rawArea.value.trim()) {
+    alert("Select or paste a schedule first.");
+    return;
+  }
+
+  const raw = sel ? sel.rawText : rawArea.value;
+  if (rawArea) rawArea.value = raw;
+
+  const parsed = parseScheduleText(raw);
+
+  const statusEl = document.getElementById("scheduleStatus");
+  if (parsed && parsed.length) {
+    statusEl.textContent = `🔍 Extracted ${parsed.length} games from "${sel?.name || "paste"}"`;
+  } else {
+    statusEl.textContent = `⚠️ No games extracted.`;
+  }
+});
+
+// Clear all saved schedules
+document.getElementById("clearAllSchedulesBtn")?.addEventListener("click", () => {
+  if (!confirm("Delete ALL saved schedules?")) return;
+  localStorage.removeItem("savedSchedules");
+  loadSavedSchedules();
+});
+
+// Carousel navigation
+document.getElementById("schedulePrev")?.addEventListener("click", () => {
+  if (!window.SCHEDULE_LIST.length) return;
+  window.selectedScheduleIndex =
+    (window.selectedScheduleIndex + window.SCHEDULE_LIST.length - 1) %
+    window.SCHEDULE_LIST.length;
+  refreshScheduleCarousel();
+});
+document.getElementById("scheduleNext")?.addEventListener("click", () => {
+  if (!window.SCHEDULE_LIST.length) return;
+  window.selectedScheduleIndex =
+    (window.selectedScheduleIndex + 1) % window.SCHEDULE_LIST.length;
+  refreshScheduleCarousel();
+});
+
+// Load saved schedules on startup
+loadSavedSchedules();
 
 /* ============================================================
    INIT UI
@@ -1104,7 +1212,17 @@ window.initUI = function initUI() {
     window.ROSTER_LIST = [];
     renderRosterTable();
   });
+// Load saved schedules
+const savedSchedules =
+  JSON.parse(localStorage.getItem("savedSchedules") || "[]") || [];
 
+savedSchedules.forEach(s => addSchedule(s.name, s.rawText));
+
+// Optional: add sample schedules
+addSchedule(
+  "Sample AYSO",
+  `Home\tAway\tDate\tTime\tLocation\nTeam1\tTeam2\tSat, Jan 10, 2026\t10:00 AM\tField1`
+);
   // Schedule parse
 document.getElementById("parseBtn")?.addEventListener("click", () => {
   const raw = document.getElementById("rawInput")?.value || "";

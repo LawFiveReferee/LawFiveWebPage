@@ -71,33 +71,38 @@
     </div>
   </section>
 
-  <!-- ============================================================
-     2. SELECT SCHEDULE
+
+<!-- ============================================================
+     2. Schedule Import / Carousel
 ============================================================ -->
 <section class="collapsible-panel" id="section-2">
   <button class="collapsible-header">
     <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">2. Select Schedule</span>
+    <span class="collapsible-title">2. Select / Import Schedule</span>
   </button>
-  <p class="section-subtitle" id="status-section-2">Choose or load a schedule.</p>
+  <p class="section-subtitle" id="status-section-2">Choose or import a schedule.</p>
 
   <div class="collapsible-body">
 
-    <!-- Schedule carousel -->
+    <!-- carousel -->
     <div class="schedule-carousel">
       <button id="schedulePrev" class="carousel-nav">⟨</button>
       <div id="scheduleCarouselViewport" class="carousel-viewport"></div>
       <button id="scheduleNext" class="carousel-nav">⟩</button>
     </div>
 
-    <!-- Schedule action row -->
+    <!-- action row -->
     <div class="schedule-buttons">
       <button id="loadScheduleBtn" class="btn">Use Selected Schedule</button>
-      <button id="clearScheduleBtn" class="secondary">Clear Schedule</button>
+      <button id="saveScheduleBtn" class="btn secondary">Save Schedule</button>
+      <button id="clearAllSchedulesBtn" class="btn danger">Clear All</button>
     </div>
 
-    <!-- Status line -->
-    <div id="scheduleStatus" class="status-line">No schedules loaded.</div>
+    <!-- optional raw paste -->
+    <textarea id="rawInput" class="import-textarea"
+      placeholder="Paste schedule text here (optional)"></textarea>
+
+    <div class="schedule-feedback status-line" id="scheduleStatus">No schedule loaded.</div>
 
   </div>
 </section>
