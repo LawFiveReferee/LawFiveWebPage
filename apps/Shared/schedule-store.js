@@ -4,7 +4,9 @@
    Used by both Game Card Factory and Lineup Card Factory
 ============================================================================= */
 
-import { normalizeGameObject } from "./parser-utils.js";
+import {
+	normalizeGameObject
+} from "./parser-utils.js";
 
 // Key used in localStorage
 const STORAGE_KEY = "savedSchedules";
@@ -14,14 +16,14 @@ const STORAGE_KEY = "savedSchedules";
  * @returns {Array}
  */
 function loadAllSchedules() {
-  try {
-    const json = localStorage.getItem(STORAGE_KEY) || "[]";
-    const list = JSON.parse(json);
-    return Array.isArray(list) ? list : [];
-  } catch (err) {
-    console.error("scheduleStore.loadAll() parse error:", err);
-    return [];
-  }
+	try {
+		const json = localStorage.getItem(STORAGE_KEY) || "[]";
+		const list = JSON.parse(json);
+		return Array.isArray(list) ? list : [];
+	} catch (err) {
+		console.error("scheduleStore.loadAll() parse error:", err);
+		return [];
+	}
 }
 
 /**
@@ -29,11 +31,11 @@ function loadAllSchedules() {
  * @param {Array} list
  */
 function saveAllSchedules(list) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error("scheduleStore.saveAll() error:", err);
-  }
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+	} catch (err) {
+		console.error("scheduleStore.saveAll() error:", err);
+	}
 }
 
 /**
@@ -41,9 +43,9 @@ function saveAllSchedules(list) {
  * Fallback if crypto.randomUUID isn’t available
  */
 function generateId() {
-  return typeof crypto?.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+	return typeof crypto?.randomUUID === "function" ?
+		crypto.randomUUID() :
+		`${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
@@ -53,14 +55,14 @@ function generateId() {
  * @param {string} source
  */
 function makeSchedule(name, rawText, source) {
-  return {
-    id: generateId(),
-    name,
-    rawText,
-    importSource: source,
-    dateCreated: new Date().toISOString(),
-    games: []
-  };
+	return {
+		id: generateId(),
+		name,
+		rawText,
+		importSource: source,
+		dateCreated: new Date().toISOString(),
+		games: []
+	};
 }
 
 /**
@@ -68,8 +70,8 @@ function makeSchedule(name, rawText, source) {
  * @param {string} id
  */
 function deleteScheduleById(id) {
-  const list = loadAllSchedules().filter(s => s.id !== id);
-  saveAllSchedules(list);
+	const list = loadAllSchedules().filter(s => s.id !== id);
+	saveAllSchedules(list);
 }
 
 /**
@@ -78,11 +80,14 @@ function deleteScheduleById(id) {
  * @param {Object} updates
  */
 function updateScheduleById(id, updates) {
-  const list = loadAllSchedules().map(s => {
-    if (s.id === id) return { ...s, ...updates };
-    return s;
-  });
-  saveAllSchedules(list);
+	const list = loadAllSchedules().map(s => {
+		if (s.id === id) return {
+			...s,
+			...updates
+		};
+		return s;
+	});
+	saveAllSchedules(list);
 }
 
 /**
@@ -99,58 +104,64 @@ function updateScheduleById(id, updates) {
  *   source   — source identifier
  *   save     — boolean, whether to save schedule
  */
-function importSchedule({ rawText, parserKey = "generic", name, source = "", save = false }) {
-  if (!rawText || !rawText.trim()) {
-    console.warn("scheduleStore.importSchedule: no raw text provided");
-    return [];
-  }
+function importSchedule({
+	rawText,
+	parserKey = "generic",
+	name,
+	source = "",
+	save = false
+}) {
+	if (!rawText || !rawText.trim()) {
+		console.warn("scheduleStore.importSchedule: no raw text provided");
+		return [];
+	}
 
-  let rawGames = [];
+	let rawGames = [];
 
-  // Dispatch to appropriate parser
-  try {
-    switch (parserKey) {
-      case "generic":
-        rawGames = window.parseGenericMapped(rawText) || [];
-        break;
+	// Dispatch to appropriate parser
+	try {
+		switch (parserKey) {
+			case "generic":
+				rawGames = window.parseGenericMapped(rawText) || [];
+				break;
 
-      // TODO: add other built-in parser functions here, for example:
-      // case "arbiter": rawGames = window.parseArbiterSchedule(rawText); break;
-      // case "csv": rawGames = parseCSVSchedule(rawText); break;
+				// TODO: add other built-in parser functions here, for example:
+				// case "arbiter": rawGames = window.parseArbiterSchedule(rawText); break;
+				// case "csv": rawGames = parseCSVSchedule(rawText); break;
 
-      default:
-        console.warn(`Unknown parserKey "${parserKey}", falling back to generic`);
-        rawGames = window.parseGenericMapped(rawText) || [];
-    }
-  } catch (err) {
-    console.error("scheduleStore.importSchedule parser error:", err);
-    rawGames = [];
-  }
+			default:
+				console.warn(`Unknown parserKey "${parserKey}", falling back to generic`);
+				rawGames = window.parseGenericMapped(rawText) || [];
+		}
+	} catch (err) {
+		console.error("scheduleStore.importSchedule parser error:", err);
+		rawGames = [];
+	}
 
-  // Normalize each game object
-  const games = rawGames.map(raw => normalizeGameObject(raw));
+	// Normalize each game object
+	const games = rawGames.map(raw => normalizeGameObject(raw));
 
-  // Optionally save schedule definition
-  if (save) {
-    const schedName = name || `Schedule ${new Date().toLocaleString()}`;
-    const schedule = makeSchedule(schedName, rawText, source);
-    schedule.games = games;
+	// Optionally save schedule definition
+	if (save) {
+		const schedName = name || `Schedule ${new Date().toLocaleString()}`;
+		const schedule = makeSchedule(schedName, rawText, source);
+		schedule.games = games;
 
-    const all = loadAllSchedules();
-    const idx = all.findIndex(s => s.name === schedName);
+		const all = loadAllSchedules();
+		const idx = all.findIndex(s => s.name === schedName);
 
-    if (idx >= 0) {
-      all[idx] = schedule;
-    } else {
-      all.push(schedule);
-    }
+		if (idx >= 0) {
+			all[idx] = schedule;
+		} else {
+			all.push(schedule);
+		}
 
-    saveAllSchedules(all);
-  }
+		saveAllSchedules(all);
+	}
 
-  // Update global game list
-  window.GAME_LIST = games;
-  return games;
+	// Update global game list
+	window.GAME_LIST = games;
+	return games;
 }
 
 /**
@@ -159,31 +170,31 @@ function importSchedule({ rawText, parserKey = "generic", name, source = "", sav
  * @param {string} id
  */
 function loadSavedSchedule(id) {
-  const list = loadAllSchedules() || [];
-  const schedule = list.find(s => s.id === id);
+	const list = loadAllSchedules() || [];
+	const schedule = list.find(s => s.id === id);
 
-  if (!schedule) {
-    console.warn(`scheduleStore.loadSavedSchedule: no schedule found for id="${id}"`);
-    window.GAME_LIST = [];
-    return [];
-  }
+	if (!schedule) {
+		console.warn(`scheduleStore.loadSavedSchedule: no schedule found for id="${id}"`);
+		window.GAME_LIST = [];
+		return [];
+	}
 
-  window.GAME_LIST = schedule.games || [];
-  return schedule.games;
+	window.GAME_LIST = schedule.games || [];
+	return schedule.games;
 }
 
 /**
  * Return the current saved schedules list
  */
 function getSavedSchedules() {
-  return loadAllSchedules();
+	return loadAllSchedules();
 }
 
 // Expose the store API
 export const ScheduleStore = {
-  importSchedule,
-  loadSavedSchedule,
-  getSavedSchedules,
-  deleteScheduleById,
-  updateScheduleById
+	importSchedule,
+	loadSavedSchedule,
+	getSavedSchedules,
+	deleteScheduleById,
+	updateScheduleById
 };
