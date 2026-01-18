@@ -1,103 +1,101 @@
-]
 import {
-	loadSavedParsers,
-	addOrUpdateParser,
-	deleteParser
+  loadSavedParsers,
+  addOrUpdateParser,
+  deleteParser
 } from "./parser-store.js";
 
 let currentEditKey = null; // track parser being edited
 
 /**
- * Populate the parser carousel / list
+ * Populate the parser list / carousel
  */
 export function refreshParserList() {
-	const container = document.getElementById("parserListContainer");
-	if (!container) return;
+  const container = document.getElementById("parserListContainer");
+  if (!container) return;
 
-	container.innerHTML = "";
-	const list = loadSavedParsers();
+  container.innerHTML = "";
 
-	list.forEach(parser => {
-		const row = document.createElement("div");
-		row.className = "parser-row";
-		row.textContent = parser.name;
+  const list = loadSavedParsers();
 
-		// Edit button
-		const editBtn = document.createElement("button");
-		editBtn.textContent = "Edit";
-		editBtn.onclick = () => showParserEditor(parser);
-		row.appendChild(editBtn);
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-hint">No saved parsers</div>`;
+    return;
+  }
 
-		// Delete button
-		const delBtn = document.createElement("button");
-		delBtn.textContent = "Delete";
-		delBtn.onclick = () => {
-			if (confirm(`Remove parser "${parser.name}"?`)) {
-				deleteParser(parser.key);
-				refreshParserList();
-			}
-		};
-		row.appendChild(delBtn);
+  list.forEach(parser => {
+    const row = document.createElement("div");
+    row.className = "parser-row";
 
-		container.appendChild(row);
-	});
+    const name = document.createElement("span");
+    name.textContent = parser.name;
+    row.appendChild(name);
+
+    // Edit button
+    const editBtn = document.createElement("button");
+    editBtn.className = "secondary";
+    editBtn.textContent = "Edit";
+    editBtn.onclick = () => showParserEditor(parser);
+    row.appendChild(editBtn);
+
+    // Delete button
+    const delBtn = document.createElement("button");
+    delBtn.className = "danger";
+    delBtn.textContent = "Delete";
+    delBtn.onclick = () => {
+      if (confirm(`Delete parser "${parser.name}"?`)) {
+        deleteParser(parser.key);
+        refreshParserList();
+      }
+    };
+    row.appendChild(delBtn);
+
+    container.appendChild(row);
+  });
 }
 
 /**
- * Show the parser editor modal
+ * Show parser editor UI
  */
+
 export function showParserEditor(parser) {
-	currentEditKey = parser?.key || null;
+  currentEditKey = parser?.key || null;
 
-	document.getElementById("parserNameInput").value =
-		parser?.name || "";
+  document.getElementById("parserNameInput").value = parser?.name || "";
+  document.getElementById("parserDescInput").value = parser?.description || "";
+  document.getElementById("parserRulesInput").value = parser?.rules || "";
 
-	document.getElementById("parserDescInput").value =
-		parser?.description || "";
+  // Mark the textarea to use this parser on import
+  const rawArea = document.getElementById("rawInput");
+  if (rawArea) {
+    if (currentEditKey) {
+      rawArea.setAttribute("data-parser-key", currentEditKey);
+    } else {
+      rawArea.removeAttribute("data-parser-key");
+    }
+  }
 
-	document.getElementById("parserRulesInput").value =
-		parser?.rules || "";
-
-	document.getElementById("parserManagerModal").classList.remove("hidden");
+  document.getElementById("parserManagerModal").classList.remove("hidden");
 }
-
 /**
- * Hide the modal
+ * Save parser from editor
  */
-function closeParserEditor() {
-	document.getElementById("parserManagerModal").classList.add("hidden");
+export function saveParserFromEditor() {
+  const name = document.getElementById("parserName")?.value.trim();
+  const pattern = document.getElementById("parserPattern")?.value.trim();
+
+  if (!name || !pattern) {
+    alert("Parser name and pattern are required.");
+    return;
+  }
+
+  addOrUpdateParser({
+    key: currentEditKey,
+    name,
+    pattern
+  });
+
+  currentEditKey = null;
+  refreshParserList();
+
+  document.getElementById("parserEditor")?.classList.add("hidden");
 }
-
-/**
- * Save parser handler
- */
-document.getElementById("saveParserBtn")?.addEventListener("click", () => {
-	const name = document.getElementById("parserNameInput").value.trim();
-	const desc = document.getElementById("parserDescInput").value.trim();
-	const rules = document.getElementById("parserRulesInput").value;
-
-	if (!name) {
-		alert("Parser name is required");
-		return;
-	}
-
-	// Assign a stable key if new
-	const key = currentEditKey || `parser-${Date.now()}`;
-
-	addOrUpdateParser({
-		key,
-		name,
-		description: desc,
-		rules
-	});
-
-	closeParserEditor();
-	refreshParserList();
-});
-
-/**
- * Cancel parser editing
- */
-document.getElementById("cancelParserBtn")?.addEventListener("click", () => {
-	closeParserEditor();
-});

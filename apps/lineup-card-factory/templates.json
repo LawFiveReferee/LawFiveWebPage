@@ -1,5 +1,4 @@
-[
-	{
+[{
 		"Id": "TotalTemplate",
 		"name": "total-template",
 		"png": "total-template.png",
@@ -30,7 +29,3 @@
 		"pdf": "custom-lineupcard.pdf"
 	}
 ]
-
-
-
-

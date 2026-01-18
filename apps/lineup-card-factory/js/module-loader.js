@@ -78,31 +78,36 @@ import "../../shared/team-store.js";
 console.log("✅  team-store.jsloaded");
 import "../../shared/carousel-ui.js";
 console.log("✅ carousel-ui.js loaded");
+import { refreshImportCarousel } from "../../shared/carousel-ui.js";
+console.log("✅  refreshImportCarousel function loaded");
+
 // —————————————————————————————
 // ONE SINGLE BOOTSTRAP
 // —————————————————————————————
 
 function bootLineupCardFactory() {
-  console.log("✅ DOM ready — booting Lineup Card Factory…");
+	console.log("✅ DOM ready — booting Lineup Card Factory…");
 
-  // Initialize collapsibles
-  if (typeof initCollapsibles === "function") {
-    initCollapsibles();
-  } else {
-    console.warn("⚠️ initCollapsibles() not found");
-  }
+	// Initialize collapsibles
+	if (typeof initCollapsibles === "function") {
+		initCollapsibles();
+	} else {
+		console.warn("⚠️ initCollapsibles() not found");
+	}
 
-  // Initialize UI
-  if (typeof initUI === "function") {
-    initUI();
-  } else {
-    console.warn("⚠️ initUI() not found");
-  }
+	// Initialize UI
+	if (typeof initUI === "function") {
+		initUI();
+	} else {
+		console.warn("⚠️ initUI() not found");
+	}
 }
 
 // Only call once when DOM is ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bootLineupCardFactory, { once: true });
+	document.addEventListener("DOMContentLoaded", bootLineupCardFactory, {
+		once: true
+	});
 } else {
-  bootLineupCardFactory();
+	bootLineupCardFactory();
 }

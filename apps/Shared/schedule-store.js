@@ -186,8 +186,14 @@ function loadSavedSchedule(id) {
 /**
  * Return the current saved schedules list
  */
-function getSavedSchedules() {
-	return loadAllSchedules();
+export function getSavedSchedules() {
+  try {
+    const raw = localStorage.getItem("savedSchedules") || "[]";
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading savedSchedules:", e);
+    return [];
+  }
 }
 
 // Expose the store API

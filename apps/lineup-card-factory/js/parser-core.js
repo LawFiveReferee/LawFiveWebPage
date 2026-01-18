@@ -1,4 +1,5 @@
-```js
+``
+`js
 /* ============================================================
    Game Card Factory — Unified Parser Core
    Handles:
@@ -128,4 +129,5 @@ window.loadParserList = async function loadParserList() {
     window.selectedParserKey = null;
   }
 };
-```
+`
+``
