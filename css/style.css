@@ -1229,3 +1229,40 @@ h1.hero-title {
 .intro p {
   margin-top: 0;
 }
+.shared‑carousel {
+  display: flex;
+  align‑items: center;
+  gap: 0.5rem;
+  margin‑bottom: 8px;
+}
+.carousel‑nav {
+  cursor: pointer;
+  background: #444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  font‑size: 18px;
+  border‑radius: 4px;
+}
+.carousel‑viewport {
+  flex: 1;
+  display: flex;
+  overflow‑x: auto;
+  gap: 8px;
+  padding: 8px 0;
+}
+.carousel‑item {
+  min‑width: 180px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border‑radius: 4px;
+  text‑align: center;
+  background: white;
+  color: #222;
+  cursor: pointer;
+}
+.carousel‑item.selected {
+  border‑color: #007bff;
+  background: #eef4ff;
+  color: #000;
+}

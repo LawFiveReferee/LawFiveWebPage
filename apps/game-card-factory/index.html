@@ -154,6 +154,27 @@
 
   </div>
 </section>
+<!-- Shared Parser Editor Modal -->
+<div id="parserManagerModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <h2 id="parserManagerTitle">Parser Editor</h2>
+
+    <label>Parser Name</label>
+    <input id="parserNameInput" type="text">
+
+    <label>Description</label>
+    <input id="parserDescInput" type="text">
+
+    <label>Rules / Code</label>
+    <textarea id="parserRulesInput" rows="8"
+              placeholder="// Enter mapping rules or JS code"></textarea>
+
+    <div class="modal-buttons">
+      <button id="saveParserBtn" class="btn">Save Parser</button>
+      <button id="cancelParserBtn" class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
   <!-- ============================================================
        2. SELECT & FILTER GAMES
   ============================================================ -->

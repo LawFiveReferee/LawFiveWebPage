@@ -69,6 +69,15 @@ console.log("✅ bulk-edit loaded");
 import "./lineup-card-factory.js";
 console.log("✅ lineup-card-factory.js loaded");
 
+// UI Shared .js
+
+console.log("✅ constants.js loaded");
+import "../../shared/schedule-store.js";
+console.log("✅ schedule-store.js loaded");
+import "../../shared/team-store.js";
+console.log("✅  team-store.jsloaded");
+import "../../shared/carousel-ui.js";
+console.log("✅ carousel-ui.js loaded");
 // —————————————————————————————
 // ONE SINGLE BOOTSTRAP
 // —————————————————————————————

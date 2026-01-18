@@ -58,6 +58,15 @@ function loadTeamsFromStorage() {
   }
 }
 
+
+/* ============================================================
+   SCHEDULE PARSING
+============================================================ */
+
+export function parseScheduleText(raw) {
+  return parseGenericSchedule(raw);
+}
+
 /* ============================================================
    text utilities
 ============================================================ */
@@ -337,72 +346,6 @@ function renderRosterTable() {
       }
     });
   });
-}
-
-/* ============================================================
-   SCHEDULE PARSING
-============================================================ */
-
-function parseScheduleText(raw) {
-  let parsed = [];
-  if (!raw || !raw.trim()) return parsed;
-
-  // 🔒 PDF-safe sanitizer for game fields
-  const pdfSafe = (value) => {
-    if (value == null) return "";
-    return String(value)
-      // Normalize Unicode
-      .normalize("NFKD")
-
-      // Replace problematic Unicode characters
-      .replace(/[\u202F\u00A0]/g, " ")   // narrow no-break / nbsp → space
-      .replace(/[“”]/g, '"')
-      .replace(/[‘’]/g, "'")
-      .replace(/[✓✔]/g, "X")             // checkmarks → X
-      .replace(/[–—]/g, "-")             // dashes
-      .replace(/\s+/g, " ")               // collapse whitespace
-      .trim();
-  };
-
-  try {
-    parsed = window.parseGenericMapped(raw) || [];
-  } catch (err) {
-    console.error("Schedule parse error:", err);
-  }
-
-  // 🧼 Sanitize parsed game fields ONCE
-  parsed = parsed.map(g => ({
-    ...g,
-    match_date:  pdfSafe(g.match_date),
-    match_time:  pdfSafe(g.match_time),
-    location:    pdfSafe(g.location),
-    home_team:   pdfSafe(g.home_team),
-    away_team:   pdfSafe(g.away_team),
-    field:       pdfSafe(g.field),
-    age_division:pdfSafe(g.age_division)
-  }));
-
-  window.GAME_LIST = parsed;
-
-  console.log("✅ parseScheduleText(): parsed", parsed.length, "game(s)");
-
-  // ✅ Ensure teams are loaded
-  if (!Array.isArray(window.TEAM_LIST) || window.TEAM_LIST.length === 0) {
-    console.log("🟡 parseScheduleText(): loading teams from storage");
-    loadTeamsFromStorage();
-    populateTeamSelect();
-  }
-
-  // ✅ Ensure a team is selected
-  if (window.CURRENT_TEAM === null && window.TEAM_LIST.length > 0) {
-    console.log("🟢 parseScheduleText(): auto-selecting team 0");
-    selectTeam(0, { skipPreview: true });
-  }
-
-  updateStatusLines();
-  renderPreviewCards();
-
-  return parsed;
 }
 
 
@@ -1164,7 +1107,11 @@ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   const rawArea = document.getElementById("rawInput");
   rawArea.value = raw;
 
-  const parsed = parseScheduleText(raw);
+  const parsed = window.ScheduleStore.importSchedule({
+  rawText: raw,
+  source: "paste",          // or "saved", "single-game", etc
+  autoSelect: true          // optional, selects games by default
+});
   const statusEl = document.getElementById("scheduleStatus");
 
   if (parsed && parsed.length) {
@@ -1317,7 +1264,11 @@ addSchedule(
   // Schedule parse
 document.getElementById("parseBtn")?.addEventListener("click", () => {
   const raw = document.getElementById("rawInput")?.value || "";
-  const parsed = parseScheduleText(raw);
+  const parsed = window.ScheduleStore.importSchedule({
+  rawText: raw,
+  source: "paste",          // or "saved", "single-game", etc
+  autoSelect: true          // optional, selects games by default
+});
 
   if (parsed && parsed.length) {
 
