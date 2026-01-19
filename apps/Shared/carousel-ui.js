@@ -147,42 +147,79 @@ export function refreshImportCarousel() {
 /**
  * Handle what happens when a user selects a carousel item.
  */
-
-function handleImportSelection(source) {
+ function handleImportSelection(source) {
   const statusEl = document.getElementById("importStatus");
+  const rawArea = document.getElementById("rawInput");
 
+  // -----------------------------
+  // SAVED SCHEDULE
+  // -----------------------------
   if (source.type === "savedSchedule") {
-    // Load the schedule into GAME_LIST
-    ScheduleStore.loadSavedSchedule(source.id);
-    statusEl.textContent = `Selected schedule: ${source.displayName}`;
 
-  } else if (source.type === "parser") {
-    // Open editor for built‑in parser
-    showParserEditor({
-      key: source.parserKey,
-      name: source.displayName,
-      description: "",
-      rules: ""
-    });
-    statusEl.textContent = `Parser selected: ${source.displayName}`;
+    // 1️⃣ Show schedule text in textarea
+    if (rawArea) {
+      rawArea.value = source.rawText || "";
+      rawArea.setAttribute("data-parser-key", source.parserKey || "generic");
+    }
 
-  } else if (source.type === "customParser") {
-    // Open editor for custom saved parser
-    showParserEditor({
-      key: source.parserKey,
-      name: source.displayName,
-      description: "",
-      rules: ""
-    });
-    statusEl.textContent = `Editing parser: ${source.displayName}`;
+    // 2️⃣ Parse immediately (THIS replaces "Extract Games")
+    if (rawArea && rawArea.value.trim()) {
+      ScheduleStore.importSchedule({
+        rawText: rawArea.value,
+        parserKey: source.parserKey || "generic",
+        name: source.displayName,
+        source: "saved",
+        save: false
+      });
 
-  } else if (source.type === "newParser") {
-    // Open a blank editor
-    showParserEditor(null);
-    statusEl.textContent = `Create a new parser`;
+      // 3️⃣ Update UI downstream
+	// Notify the host app that a schedule was selected/imported
+	window.dispatchEvent(new CustomEvent("scheduleImported", {
+	  detail: { sourceItem: source }
+	}));
+
+    }
+
+    statusEl.textContent =
+      `Selected schedule: ${source.displayName} (${window.GAME_LIST?.length || 0} games)`;
+
+    return;
+  }
+
+  // -----------------------------
+  // BUILT-IN PARSER
+  // -----------------------------
+  if (source.type === "parser") {
+    if (rawArea) {
+      rawArea.setAttribute("data-parser-key", source.parserKey);
+    }
+
+    statusEl.textContent =
+      `Parser selected: ${source.displayName} — paste schedule text`;
+    return;
+  }
+
+  // -----------------------------
+  // CUSTOM PARSER
+  // -----------------------------
+  if (source.type === "customParser") {
+    if (rawArea) {
+      rawArea.setAttribute("data-parser-key", source.parserKey);
+    }
+
+    statusEl.textContent =
+      `Custom parser selected: ${source.displayName}`;
+    return;
+  }
+
+  // -----------------------------
+  // NEW PARSER
+  // -----------------------------
+  if (source.type === "newParser") {
+    openParserEditor();
+    return;
   }
 }
-
 /**
  * Open the parser editor for a built‑in parser key.
  * For built‑ins we just seed the editor with the key;

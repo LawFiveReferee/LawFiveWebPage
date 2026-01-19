@@ -11,10 +11,6 @@ import {
 // Key used in localStorage
 const STORAGE_KEY = "savedSchedules";
 
-/**
- * Load all saved schedules from localStorage
- * @returns {Array}
- */
 function loadAllSchedules() {
 	try {
 		const json = localStorage.getItem(STORAGE_KEY) || "[]";
@@ -26,10 +22,6 @@ function loadAllSchedules() {
 	}
 }
 
-/**
- * Save updated schedule list
- * @param {Array} list
- */
 function saveAllSchedules(list) {
 	try {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
@@ -38,22 +30,12 @@ function saveAllSchedules(list) {
 	}
 }
 
-/**
- * Generate a unique ID
- * Fallback if crypto.randomUUID isn’t available
- */
 function generateId() {
-	return typeof crypto?.randomUUID === "function" ?
-		crypto.randomUUID() :
-		`${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+	return typeof crypto?.randomUUID === "function"
+		? crypto.randomUUID()
+		: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-/**
- * Create a schedule object
- * @param {string} name
- * @param {string} rawText
- * @param {string} source
- */
 function makeSchedule(name, rawText, source) {
 	return {
 		id: generateId(),
@@ -65,45 +47,19 @@ function makeSchedule(name, rawText, source) {
 	};
 }
 
-/**
- * Delete a saved schedule by ID
- * @param {string} id
- */
 function deleteScheduleById(id) {
 	const list = loadAllSchedules().filter(s => s.id !== id);
 	saveAllSchedules(list);
 }
 
-/**
- * Update a saved schedule
- * @param {string} id
- * @param {Object} updates
- */
 function updateScheduleById(id, updates) {
 	const list = loadAllSchedules().map(s => {
-		if (s.id === id) return {
-			...s,
-			...updates
-		};
+		if (s.id === id) return { ...s, ...updates };
 		return s;
 	});
 	saveAllSchedules(list);
 }
 
-/**
- * Main import function used by UI:
- * - Parses raw text using the selected parser
- * - Normalizes game fields
- * - Optionally saves as a saved schedule
- * - Updates global GAME_LIST
- *
- * @param {Object} config
- *   rawText  — schedule text to parse
- *   parserKey — which parser to use
- *   name     — if saving schedule, what name
- *   source   — source identifier
- *   save     — boolean, whether to save schedule
- */
 function importSchedule({
 	rawText,
 	parserKey = "generic",
@@ -116,35 +72,31 @@ function importSchedule({
 		return [];
 	}
 
+	// 🔧 Clean raw text of invisible Unicode characters
+	const cleanedRaw = rawText.replace(/[\u202F\u00A0]/g, " ");
+
 	let rawGames = [];
 
-	// Dispatch to appropriate parser
 	try {
 		switch (parserKey) {
 			case "generic":
-				rawGames = window.parseGenericMapped(rawText) || [];
+				rawGames = window.parseGenericMapped(cleanedRaw) || [];
 				break;
-
-				// TODO: add other built-in parser functions here, for example:
-				// case "arbiter": rawGames = window.parseArbiterSchedule(rawText); break;
-				// case "csv": rawGames = parseCSVSchedule(rawText); break;
-
+			// Add other parser cases as needed
 			default:
 				console.warn(`Unknown parserKey "${parserKey}", falling back to generic`);
-				rawGames = window.parseGenericMapped(rawText) || [];
+				rawGames = window.parseGenericMapped(cleanedRaw) || [];
 		}
 	} catch (err) {
 		console.error("scheduleStore.importSchedule parser error:", err);
 		rawGames = [];
 	}
 
-	// Normalize each game object
 	const games = rawGames.map(raw => normalizeGameObject(raw));
 
-	// Optionally save schedule definition
 	if (save) {
 		const schedName = name || `Schedule ${new Date().toLocaleString()}`;
-		const schedule = makeSchedule(schedName, rawText, source);
+		const schedule = makeSchedule(schedName, cleanedRaw, source);
 		schedule.games = games;
 
 		const all = loadAllSchedules();
@@ -159,16 +111,10 @@ function importSchedule({
 		saveAllSchedules(all);
 	}
 
-	// Update global game list
 	window.GAME_LIST = games;
 	return games;
 }
 
-/**
- * Load a saved schedule by ID
- * - Populates the global GAME_LIST
- * @param {string} id
- */
 function loadSavedSchedule(id) {
 	const list = loadAllSchedules() || [];
 	const schedule = list.find(s => s.id === id);
@@ -183,20 +129,16 @@ function loadSavedSchedule(id) {
 	return schedule.games;
 }
 
-/**
- * Return the current saved schedules list
- */
 export function getSavedSchedules() {
-  try {
-    const raw = localStorage.getItem("savedSchedules") || "[]";
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error("Error reading savedSchedules:", e);
-    return [];
-  }
+	try {
+		const raw = localStorage.getItem("savedSchedules") || "[]";
+		return JSON.parse(raw);
+	} catch (e) {
+		console.error("Error reading savedSchedules:", e);
+		return [];
+	}
 }
 
-// Expose the store API
 export const ScheduleStore = {
 	importSchedule,
 	loadSavedSchedule,
