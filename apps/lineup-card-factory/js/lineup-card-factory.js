@@ -1071,8 +1071,8 @@ import { validatePdfTemplate } from "../../shared/pdf-utils.js";
 document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
   console.log("🔍 Inspect Template Fields clicked");
 
-  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
   const outputEl = document.getElementById("templateValidationOutput");
+  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
 
   if (!tpl) {
     if (outputEl) {
@@ -1081,9 +1081,18 @@ document.getElementById("inspectTemplateBtn")?.addEventListener("click", async (
     return;
   }
 
-  // Load & validate the selected template
+  // Build the URL for the selected template
   const url = `./templates/${tpl.pdf}?v=${Date.now()}`;
-  const report = await validatePdfTemplate(url);
+
+  let report;
+  try {
+    // CALL the global function defined in shared/pdf-utils.js
+    report = await window.validatePdfTemplate(url);
+  } catch (err) {
+    console.error("Template validation error:", err);
+    if (outputEl) outputEl.innerHTML = "<p style='color:red;'>Validation failed — see console for details.</p>";
+    return;
+  }
 
   console.log("📄 Validation report:", report);
 
@@ -1092,41 +1101,41 @@ document.getElementById("inspectTemplateBtn")?.addEventListener("click", async (
     return;
   }
 
-  // Build a lines array for the clean text output
+  // Build clean text lines
   let lines = [];
 
-  // 1️⃣ Template name at top
+  // 1️⃣ Template name
   lines.push(`Template: ${tpl.name}`);
 
-  // 2️⃣ PDF size (width × height in points, if available)
+  // 2️⃣ PDF size (if available)
   if (report.pageSize) {
     const { width, height } = report.pageSize;
     lines.push(`Size (pts): ${width} × ${height}`);
   }
 
-  // 3️⃣ Summary status
+  // 3️⃣ Summary line
   if (report.hasIllegalNames || report.hasIllegalValues) {
     lines.push("⚠️ Template has fields with illegal characters.");
   } else {
     lines.push("✅ Template passed validation. All fields safe.");
   }
 
-  // Blank line between summary and the field list
-  lines.push("");
+  lines.push(""); // blank line
 
-  // 4️⃣ List of field names (only name text)
-  report.fields.forEach(f => {
+  // 4️⃣ List of field names
+  (report.fields || []).forEach(f => {
     lines.push(f.name);
   });
 
-  // Collapse multiple blank lines into just one
+  // Collapse multiple blank lines
   const textOutput = lines
     .join("\n")
     .replace(/\n{2,}/g, "\n\n");
 
-  // Write into the UI container (so it's selectable/copiable)
+  // Write clean output
   outputEl.innerText = textOutput;
 });
+
 // ———————————————————————————
 // Schedule Carousel State
 // ———————————————————————————
