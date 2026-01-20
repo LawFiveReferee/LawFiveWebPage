@@ -920,8 +920,8 @@ window.createPdfForLineup = async function (team, game) {
     const isHome = team.teamId === game.homeTeamRaw;
     const opponentId = isHome ? game.awayTeamRaw : game.homeTeamRaw;
 
-    setField("HomeX", isHome ? "√" : "");
-    setField("VisitorX", isHome ? "" : "√");
+    setField("HomeX", isHome ? "X" : "");
+    setField("VisitorX", isHome ? "" : "X");
 
     setField("HomeID", isHome ? team.teamId : opponentId);
     setField("VisitorID", isHome ? opponentId : team.teamId);
@@ -1054,52 +1054,79 @@ function refreshTemplateCarousel() {
 
 	img.src = `templates/${tpl.png}`;
 }
-import { validatePdfTemplate } from "../shared/pdf-utils.js"; // Adjust path if needed
+
+import { validatePdfTemplate } from "../../shared/pdf-utils.js";
 
 document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
+  console.log("🔍 Inspect Template Fields clicked");
+
   const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+  const outputEl = document.getElementById("templateValidationOutput");
+  if (!tpl || !outputEl) {
+    console.warn("Missing template or output container");
+    return;
+  }
+import { validatePdfTemplate } from "../../shared/pdf-utils.js";
+
+document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
+  console.log("🔍 Inspect Template Fields clicked");
+
+  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+  const outputEl = document.getElementById("templateValidationOutput");
+
   if (!tpl) {
-    alert("No template selected.");
+    if (outputEl) {
+      outputEl.innerHTML = "<p style='color:red;'>No template selected.</p>";
+    }
     return;
   }
 
+  // Load & validate the selected template
   const url = `./templates/${tpl.pdf}?v=${Date.now()}`;
   const report = await validatePdfTemplate(url);
 
-  if (!report.fields.length) {
-    alert("No fields found in this template.");
+  console.log("📄 Validation report:", report);
+
+  if (!outputEl) {
+    console.warn("No #templateValidationOutput element found in DOM.");
     return;
   }
 
-  const outputEl = document.getElementById("templateValidationOutput");
-  if (!outputEl) return;
+  // Build a lines array for the clean text output
+  let lines = [];
 
-  const lines = report.fields.map(f => {
-    const nameIssue = f.illegalInName.length
-      ? `❌ Name: ${f.illegalInName.map(i => i.char + " [0x" + i.code + "]").join(", ")}`
-      : "✅ Name OK";
+  // 1️⃣ Template name at top
+  lines.push(`Template: ${tpl.name}`);
 
-    const valueIssue = f.illegalInValue.length
-      ? `❌ Value: ${f.illegalInValue.map(i => i.char + " [0x" + i.code + "]").join(", ")}`
-      : "✅ Value OK";
+  // 2️⃣ PDF size (width × height in points, if available)
+  if (report.pageSize) {
+    const { width, height } = report.pageSize;
+    lines.push(`Size (pts): ${width} × ${height}`);
+  }
 
-    return `<li><strong>${f.name}</strong> — ${nameIssue} | ${valueIssue}</li>`;
+  // 3️⃣ Summary status
+  if (report.hasIllegalNames || report.hasIllegalValues) {
+    lines.push("⚠️ Template has fields with illegal characters.");
+  } else {
+    lines.push("✅ Template passed validation. All fields safe.");
+  }
+
+  // Blank line between summary and the field list
+  lines.push("");
+
+  // 4️⃣ List of field names (only name text)
+  report.fields.forEach(f => {
+    lines.push(f.name);
   });
 
-  outputEl.innerHTML = `<ul>${lines.join("")}</ul>`;
+  // Collapse multiple blank lines into just one
+  const textOutput = lines
+    .join("\n")
+    .replace(/\n{2,}/g, "\n\n");
 
-  if (report.hasIllegalNames || report.hasIllegalValues) {
-    alert("⚠️ Template has fields with illegal characters. See list below.");
-  } else {
-    alert("✅ All field names and values are valid.");
-  }
+  // Write into the UI container (so it's selectable/copiable)
+  outputEl.innerText = textOutput;
 });
-
-
-document.getElementById("closeFieldInspectorBtn")?.addEventListener("click", () => {
-	document.getElementById("templateFieldInspector").classList.add("hidden");
-});
-
 // ———————————————————————————
 // Schedule Carousel State
 // ———————————————————————————

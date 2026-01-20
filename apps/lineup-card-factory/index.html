@@ -219,23 +219,50 @@
   <!-- ============================================================
        6. TEMPLATE SELECTOR
   ============================================================ -->
-  <section class="collapsible-panel" id="section-6">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">6. Choose Template</span>
-    </button>
-    <p class="section-subtitle" id="status-section-6">Select lineup or roster template.</p>
-    <div class="collapsible-body">
-      <div class="template-carousel-wrapper">
-        <button id="prevTemplate" class="carousel-arrow left">&lsaquo;</button>
-        <div class="template-carousel"><div class="template-slide active"><img id="templateImage"></div></div>
-        <button id="nextTemplate" class="carousel-arrow right">&rsaquo;</button>
-        <button id="inspectTemplateBtn" class="btn secondary">Inspect Template Fields</button>
+<!-- ============================================================
+     6. TEMPLATE SELECTOR
+============================================================ -->
+<section class="collapsible-panel" id="section-6">
+  <button class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">6. Choose Template</span>
+  </button>
+  <p class="section-subtitle" id="status-section-6">Select lineup or roster template.</p>
+
+  <div class="collapsible-body">
+    <!-- Template carousel -->
+    <div class="template-carousel-wrapper">
+      <button id="prevTemplate" class="carousel-arrow left">&lsaquo;</button>
+      <div class="template-carousel">
+        <div class="template-slide active">
+          <img id="templateImage" alt="Template preview" />
+        </div>
       </div>
-      <p id="templateName" class="template-name"></p>
-      <p id="templateStatus" class="template-status"></p>
+      <button id="nextTemplate" class="carousel-arrow right">&rsaquo;</button>
     </div>
-    <div id="templateFieldInspector" class="modal-backdrop hidden">
+
+    <!-- Template name and status -->
+    <p id="templateName" class="template-name"></p>
+    <p id="templateStatus" class="template-status"></p>
+
+    <!-- Inspect button -->
+    <button id="inspectTemplateBtn" class="btn secondary">Inspect Template Fields</button>
+
+    <!-- Field validation output -->
+
+<!-- Template Field Validation Output -->
+<div id="templateValidationOutputContainer" class="template-validation-container">
+  <div class="template-validation-header">
+    <strong>Template Fields</strong>
+    <button id="copyTemplateFieldsBtn" class="btn small">Copy Fields</button>
+  </div>
+<div id="templateValidationOutput" class="template-validation-output"
+     style="white-space: pre-wrap; font-family: monospace; color: #000;">
+</div>
+</div>
+
+<!-- Template Field Inspector Modal -->
+<div id="templateFieldInspector" class="modal-backdrop hidden">
   <div class="modal-content">
     <h2>PDF Template Fields</h2>
     <div id="templateFieldList"></div>
@@ -244,7 +271,32 @@
     </div>
   </div>
 </div>
-  </section>
+  </div>
+</section>
+
+
+<!-- Inline style for validation output -->
+<style>
+  #templateValidationOutput {
+    color: #000; /* force black text */
+    background: #fff; /* white background */
+    border: 1px solid #ccc;
+    padding: 0.6em;
+    margin-top: 0.5em;
+    max-height: 350px;
+    overflow-y: auto;
+    font-size: 0.9em;
+    font-family: monospace;
+  }
+  #templateValidationOutput ul {
+    list-style: disc;
+    margin-left: 1.2em;
+    padding-left: 0;
+  }
+  #templateValidationOutput li {
+    margin-bottom: 0.5em;
+  }
+</style>
 
   <!-- ============================================================
        7. GENERATE LINEUP CARDS & ROSTERS

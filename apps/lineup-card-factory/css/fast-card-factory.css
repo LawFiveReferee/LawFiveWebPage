@@ -1650,4 +1650,105 @@ footer {
   gap: 8px;
   margin-bottom: 8px;
 }
+.template-validation-output {
+  font-size: 0.9em;
+  margin-top: 1em;
+  padding: 0.5em;
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+  max-height: 300px;
+  overflow-y: auto;
+}
+/* Template Carousel Wrapper */
+.template-carousel-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1em;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1em 0;
+}
 
+/* Carousel Arrow Buttons */
+.carousel-arrow {
+  background-color: #eee;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: 0.5em;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.carousel-arrow:hover {
+  background-color: #ccc;
+}
+
+/* Template Carousel Container */
+.template-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Template Slide (holds image) */
+.template-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+}
+
+/* Template Image Styling */
+.template-carousel img {
+  max-width: 4in;       /* Max width = 4 inches */
+  width: 100%;          /* Scales down with container */
+  height: auto;         /* Maintain aspect ratio */
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Template Name and Status */
+.template-name,
+.template-status {
+  text-align: center;
+  margin-top: 0.5em;
+  font-size: 1em;
+  color: #333;
+}
+.template-validation-container {
+  margin-top: 1em;
+  font-size: 0.9em;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.template-validation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f0f0;
+  padding: 0.5em 1em;
+  border-bottom: 1px solid #ccc;
+}
+
+.template-validation-output {
+  padding: 1em;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #111;
+  font-family: monospace;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.btn.small {
+  font-size: 0.8em;
+  padding: 0.3em 0.6em;
+}
