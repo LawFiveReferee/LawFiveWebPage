@@ -1,20 +1,19 @@
-[
-  {
-    "thumbnail": "images/downloads/scorecard-thumb.jpg",
-    "title": "Penalty Shoot-out Scorecards",
-    "description": "Printable cards for tracking penalty results.",
-    "file": "downloads/penalty-scorecards.pdf"
-  },
-  {
-    "thumbnail": "images/downloads/matchreport-thumb.jpg",
-    "title": "Match Report Template",
-    "description": "Editable PDF match report form.",
-    "file": "downloads/match-report.pdf"
-  },
-  {
-    "thumbnail": "images/downloads/lineup-thumb.jpg",
-    "title": "Lineup Card Sheet",
-    "description": "Printable lineup cards for quick team setup.",
-    "file": "downloads/lineup-cards.pdf"
-  }
+[{
+		"thumbnail": "images/downloads/scorecard-thumb.jpg",
+		"title": "Penalty Shoot-out Scorecards",
+		"description": "Printable cards for tracking penalty results.",
+		"file": "downloads/penalty-scorecards.pdf"
+	},
+	{
+		"thumbnail": "images/downloads/matchreport-thumb.jpg",
+		"title": "Match Report Template",
+		"description": "Editable PDF match report form.",
+		"file": "downloads/match-report.pdf"
+	},
+	{
+		"thumbnail": "images/downloads/lineup-thumb.jpg",
+		"title": "Lineup Card Sheet",
+		"description": "Printable lineup cards for quick team setup.",
+		"file": "downloads/lineup-cards.pdf"
+	}
 ]

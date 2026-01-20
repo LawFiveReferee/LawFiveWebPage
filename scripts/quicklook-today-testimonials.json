@@ -1,12 +1,11 @@
-[
-  {
-    "quote": "QuickLook Today keeps me organized before every match.",
-    "name": "—Megan L.",
-    "source": "Referee Feedback"
-  },
-  {
-    "quote": "The simplicity and clarity are outstanding.",
-    "name": "—Sam W.",
-    "source": "Beta Tester"
-  }
+[{
+		"quote": "QuickLook Today keeps me organized before every match.",
+		"name": "—Megan L.",
+		"source": "Referee Feedback"
+	},
+	{
+		"quote": "The simplicity and clarity are outstanding.",
+		"name": "—Sam W.",
+		"source": "Beta Tester"
+	}
 ]

@@ -1,97 +1,96 @@
-[
-	{
-	"file": "IMG_9785_2688.PNG",
-	 "caption": "Reminders Lists",
-	 "description": "Users select which lists from Reminders app to include."
+[{
+		"file": "IMG_9785_2688.PNG",
+		"caption": "Reminders Lists",
+		"description": "Users select which lists from Reminders app to include."
 	},
 	{
-	"file": "IMG_9784_2688.PNG",
-	 "caption": "Calendars",
-	 "description": "Users can select which calendars from the Calendars app to show."
+		"file": "IMG_9784_2688.PNG",
+		"caption": "Calendars",
+		"description": "Users can select which calendars from the Calendars app to show."
 	},
 	{
-	"file": "IMG_9777_2688.PNG",
-	 "caption": "Full Access Alert",
-	 "description": "The final step in granting Calendar access."
+		"file": "IMG_9777_2688.PNG",
+		"caption": "Full Access Alert",
+		"description": "The final step in granting Calendar access."
 	},
 	{
-	"file": "IMG_9776_2688.PNG",
-	 "caption": "Full Calendar Access",
-	 "description": "To set and reset full Calendar Access click \"None\" then click \"Full Access\""
+		"file": "IMG_9776_2688.PNG",
+		"caption": "Full Calendar Access",
+		"description": "To set and reset full Calendar Access click \"None\" then click \"Full Access\""
 	},
 	{
-	"file": "IMG_9792_2688.PNG",
-	 "caption": "Full access alert",
-	 "description": ""
+		"file": "IMG_9792_2688.PNG",
+		"caption": "Full access alert",
+		"description": ""
 	},
 	{
-	"file": "IMG_9793_2688.PNG",
-	 "caption": "About (top)",
-	 "description": "The top of the About page, describes the app, lists some features and offers a few tips"
+		"file": "IMG_9793_2688.PNG",
+		"caption": "About (top)",
+		"description": "The top of the About page, describes the app, lists some features and offers a few tips"
 	},
 	{
-	"file": "IMG_9794_2688.PNG",
-	 "caption": "About (bottom)",
-	 "description": "Application links"
+		"file": "IMG_9794_2688.PNG",
+		"caption": "About (bottom)",
+		"description": "Application links"
 	},
 	{
-	"file": "IMG_9782_2688.PNG",
-	 "caption": "Shopping lists",
-	 "description": "Tap the Shopping Bag Icon to view your shopping list from the Reminders app."
+		"file": "IMG_9782_2688.PNG",
+		"caption": "Shopping lists",
+		"description": "Tap the Shopping Bag Icon to view your shopping list from the Reminders app."
 	},
 	{
-	"file": "IMG_9783_2688.PNG",
-	 "caption": "The Menu Button",
-	 "description": "The items displayed by the Menu Button."
+		"file": "IMG_9783_2688.PNG",
+		"caption": "The Menu Button",
+		"description": "The items displayed by the Menu Button."
 	},
 	{
-	"file": "IMG_9775_2688.PNG",
-	 "caption": "The App settings page",
-	 "description": "The settings page for the app."
+		"file": "IMG_9775_2688.PNG",
+		"caption": "The App settings page",
+		"description": "The settings page for the app."
 	},
 	{
-	"file": "IMG_9791_2688.PNG",
-	 "caption": "Settings Page (Top)",
-	 "description": "This is where the user sets wake-up time and bedtime and Waketime,"
+		"file": "IMG_9791_2688.PNG",
+		"caption": "Settings Page (Top)",
+		"description": "This is where the user sets wake-up time and bedtime and Waketime,"
 	},
 	{
-	"file": "IMG_9790_2688.PNG",
-	 "caption": "No Events",
-	 "description": "Could be a sign that the app does not have access to the Calendar app."
+		"file": "IMG_9790_2688.PNG",
+		"caption": "No Events",
+		"description": "Could be a sign that the app does not have access to the Calendar app."
 	},
 	{
-	"file": "IMG_9769_2688.PNG",
-	 "caption": "Calendar Events and Reminders",
-	 "description": "Fully displaying the day's Calendar events and active reminders."
+		"file": "IMG_9769_2688.PNG",
+		"caption": "Calendar Events and Reminders",
+		"description": "Fully displaying the day's Calendar events and active reminders."
 	},
 	{
-	"file": "IMG_9786_2688.PNG",
-	 "caption": "Reminder lists",
-	 "description": "Duplicate"
+		"file": "IMG_9786_2688.PNG",
+		"caption": "Reminder lists",
+		"description": "Duplicate"
 	},
 	{
-	"file": "IMG_9781_2688.PNG",
-	 "caption": "Yesterday's Events",
-	 "description": "Tap the < and > to move forward or back one day at a time. Tap the date between them to return to Today."
+		"file": "IMG_9781_2688.PNG",
+		"caption": "Yesterday's Events",
+		"description": "Tap the < and > to move forward or back one day at a time. Tap the date between them to return to Today."
 	},
 	{
-	"file": "IMG_9780_2688.PNG",
-	 "caption": "Tomorrow's Events",
-	 "description": ""
+		"file": "IMG_9780_2688.PNG",
+		"caption": "Tomorrow's Events",
+		"description": ""
 	},
 	{
-	"file": "IMG_9779_2688.PNG",
-	 "caption": "Displaying All Reminders in the app",
-	 "description": "You can limit how many Reminnder lists the app uses by selecting Reminders from the menu button and deselecting Reminder lists."
+		"file": "IMG_9779_2688.PNG",
+		"caption": "Displaying All Reminders in the app",
+		"description": "You can limit how many Reminnder lists the app uses by selecting Reminders from the menu button and deselecting Reminder lists."
 	},
 	{
-	"file": "icon-placeholder.png",
-	 "caption": "placeholder",
-	 "description": ""
+		"file": "icon-placeholder.png",
+		"caption": "placeholder",
+		"description": ""
 	},
 	{
-	"file": "IMG_9772_2688.PNG",
-	 "caption": "Menu button display",
-	 "description": ""
+		"file": "IMG_9772_2688.PNG",
+		"caption": "Menu button display",
+		"description": ""
 	}
 ]
