@@ -19,6 +19,41 @@ window.selectedTemplateIndex = 0;
 window.ROSTER_LIST = [];
 
 /* ============================================================
+   Shared schedule import and parsing
+============================================================ */
+
+
+const { parseAndImport } = window.ScheduleImport || {};
+
+document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const list = window.SCHEDULE_LIST || [];
+  const idx = window.selectedScheduleIndex;
+  if (!list.length || idx == null || !list[idx]) {
+    alert("Select a schedule first.");
+    return;
+  }
+
+  const sel = list[idx];
+  const games = parseAndImport({
+    rawText: sel.rawText,
+    parserKey: sel.parserKey || "generic",
+    save: false,
+    name: sel.name,
+    source: "saved"
+  });
+
+  window.GAME_LIST = games;
+
+  // auto‑select a team if desired
+  if (games.length > 0) {
+    const firstGame = games[0];
+    window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
+  }
+
+  renderPreviewCards();
+  updateStatusLines();
+});
+/* ============================================================
    STORAGE HELPERS
 ============================================================ */
 
@@ -64,6 +99,8 @@ function loadTeamsFromStorage() {
 /* ============================================================
    SCHEDULE PARSING
 ============================================================ */
+const allParsers = ParserStore.loadAllParsers();
+// Use `allParsers` to populate dropdowns, carousels, etc.
 
 export function parseScheduleText(raw) {
 	return parseGenericSchedule(raw);
@@ -592,10 +629,31 @@ function enterEditModeInline(card, team, game) {
 	});
 }
 
-
-
 function renderPreviewCards() {
+  const container = document.getElementById("previewCardContainer");
   console.log("🔄 renderPreviewCards() called…");
+  console.log("📋 GAME_LIST:", window.GAME_LIST);
+
+  if (!container) {
+    console.warn("⚠️ previewCardContainer not found in DOM");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  const list = window.GAME_LIST || [];
+  list.forEach((g, idx) => {
+    const div = document.createElement("div");
+    div.textContent = `Game ${idx + 1}: ${g.raw}`;
+    container.appendChild(div);
+  });
+}
+
+/*
+function renderPreviewCards() {
+
+  console.log("🔄 renderPreviewCards() called…");
+  console.log("📋 GAME_LIST:", window.GAME_LIST);
 
   const container = document.getElementById("previewContainer");
   if (!container) return;
@@ -665,6 +723,7 @@ function renderPreviewCards() {
     console.log(`🎯 Total matches: ${matchCount}`);
   }
 }
+*/
 window.renderPreviewCards = renderPreviewCards;
 
 
@@ -1234,115 +1293,7 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
 });
 
 
-// Load existing saved schedules
-// —————————————————————————————————
-// Load the selected saved schedule
-// —————————————————————————————————
 
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const list = window.SCHEDULE_LIST || [];
-  const idx = window.selectedScheduleIndex;
-
-  if (!list.length || idx == null || !list[idx]) {
-    alert("Select a schedule first.");
-    return;
-  }
-
-  const selected = list[idx];
-  const raw = selected.rawText || "";
-
-  if (!raw) {
-    alert("Selected schedule is empty.");
-    return;
-  }
-
-  // populate textarea so user sees it
-  const rawArea = document.getElementById("rawInput");
-  if (rawArea) {
-    rawArea.value = raw;
-  }
-
-  // import & parse schedule with shared store
-  const games = ScheduleStore.importSchedule({
-    rawText: raw,
-    parserKey: rawArea.getAttribute("data-parser-key") || "generic",
-    name: selected.name,
-    source: "saved",
-    save: false
-  });
-
-  // update status
-  const statusEl = document.getElementById("scheduleStatus");
-  if (games && games.length) {
-    statusEl.textContent = `🔍 Extracted ${games.length} games from "${selected.name}"`;
-  } else {
-    statusEl.textContent = "⚠️ No games extracted from schedule.";
-  }
-
-  // update UI
-  if (typeof refreshScheduleCarousel === "function") {
-    refreshScheduleCarousel();
-  }
-  if (typeof renderPreviewCards === "function") {
-    renderPreviewCards();
-  }
-});
-// Use the selected schedule
-
-// —————————————————————————————————
-// Load the selected saved schedule & refresh previews
-// —————————————————————————————————
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const list = window.SCHEDULE_LIST || [];
-  const idx = window.selectedScheduleIndex;
-
-  if (!list.length || idx == null || !list[idx]) {
-    alert("Select a schedule first.");
-    return;
-  }
-
-  const selected = list[idx];
-  const raw = selected.rawText || "";
-
-  if (!raw) {
-    alert("Selected schedule is empty.");
-    return;
-  }
-
-  const rawArea = document.getElementById("rawInput");
-  if (rawArea) rawArea.value = raw;
-
-  // Parse games
-  const games = ScheduleStore.importSchedule({
-    rawText: raw,
-    parserKey: rawArea.getAttribute("data-parser-key") || "generic",
-    name: selected.name,
-    source: "saved",
-    save: false,
-  });
-
-  window.GAME_LIST = games;
-
-  // ✅ Auto‑select first team
-  const firstGame = games[0];
-  const teamName = firstGame?.home?.name || firstGame?.away?.name;
-
-  if (teamName) {
-    window.CURRENT_TEAM = teamName;
-    console.log("🎯 Auto‑selected team:", teamName);
-  } else {
-    window.CURRENT_TEAM = null;
-    console.warn("⚠️ No team auto‑selected");
-  }
-
-  if (typeof updateStatusLines === "function") updateStatusLines();
-  if (typeof renderPreviewCards === "function") renderPreviewCards();
-
-  const statusEl = document.getElementById("scheduleStatus");
-  if (statusEl) {
-    statusEl.textContent = `✅ Loaded "${selected.name}" — ${games.length} games | Current team: ${teamName || "None"}`;
-  }
-});
 // Delete the selected schedule
 
 document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
@@ -1651,28 +1602,6 @@ document.getElementById("scheduleNext")?.addEventListener("click", () => {
 	refreshScheduleCarousel();
 });
 
-
-// Load the selected schedule
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-	const sel = window.SCHEDULE_LIST[window.selectedScheduleIndex];
-	if (!sel) {
-		alert("Select a schedule first.");
-		return;
-	}
-
-	// Populate your existing raw input (if you have one) just in case
-	const rawInput = document.getElementById("rawInput");
-	if (rawInput) rawInput.value = sel.rawText;
-
-	const parsed = parseScheduleText(sel.rawText);
-
-	const statusEl = document.getElementById("scheduleStatus");
-	if (parsed && parsed.length) {
-		statusEl.textContent = `🔍 Extracted ${parsed.length} games from "${sel.name}"`;
-	} else {
-		statusEl.textContent = `⚠️ No games extracted from "${sel.name}"`;
-	}
-});
 
 // Save the currently selected schedule
 document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {

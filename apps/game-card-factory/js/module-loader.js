@@ -52,10 +52,17 @@ console.log("✅ bulk-edit loaded");
 // UI Shared .js
 
 console.log("✅ constants.js loaded");
+
 import "../../shared/schedule-store.js";
 console.log("✅ schedule-store.js loaded");
+
 import "../../shared/team-store.js";
 console.log("✅  team-store.jsloaded");
+
+
+import "../../shared/schedule-import.js";
+console.log("✅ schedule-import.js loaded");
+
 import "../../shared/carousel-ui.js";
 console.log("✅ carousel-ui.js loaded");
 
@@ -64,6 +71,7 @@ console.log("✅ parser-store.js loaded");
 
 import "../../shared/parser-ui.js";
 console.log("✅ parser-ui.js loaded");
+
 
 // Main app last
 import "./app.js";

@@ -138,7 +138,6 @@ export function getSavedSchedules() {
 		return [];
 	}
 }
-
 export const ScheduleStore = {
 	importSchedule,
 	loadSavedSchedule,
@@ -146,3 +145,6 @@ export const ScheduleStore = {
 	deleteScheduleById,
 	updateScheduleById
 };
+
+// Make available to carousel-ui and apps via window
+window.ScheduleStore = ScheduleStore;

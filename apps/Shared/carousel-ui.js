@@ -11,18 +11,105 @@
      • schedule-store.js
  ============================================================ */
 
-import { loadSavedParsers } from "./parser-store.js";
-import { showParserEditor } from "./parser-ui.js";
-import { ScheduleStore } from "./schedule-store.js";
-import { getSavedSchedules } from "./schedule-store.js";
+
+
+// =========================================================================
+// carousel-ui.js
+// Provides the shared import carousel UI
+// =========================================================================
+
+
+// carousel-ui.js (below the IMPORT_SOURCES + importSelectedIndex initialization)
+
+window.handleImportSelection = function(item) {
+  console.log("🎯 handleImportSelection called:", item);
+
+  // If this is a saved schedule
+  if (item.type === "savedSchedule") {
+    const rawText = item.rawText || "";
+    const parserKey = item.parserKey || "generic";
+
+    const { parseAndImport } = window.ScheduleImport || {};
+    if (typeof parseAndImport === "function") {
+      const games = parseAndImport(rawText, parserKey);
+      window.GAME_LIST = games || [];
+
+      console.log(`🎉 Loaded schedule '${item.displayName}' with ${games.length} games.`);
+    } else {
+      console.warn("⚠️ ScheduleImport.parseAndImport not available.");
+    }
+
+    // If you’re in the Game Card Factory:
+    if (typeof renderPreviewCards === "function") {
+      renderPreviewCards();
+    }
+    if (typeof updateStatusLines === "function") {
+      updateStatusLines();
+    }
+
+    return;
+  }
+
+  // If this is a built‑in or custom parser
+  if (item.type === "parser" || item.type === "customParser") {
+    const parserKey = item.parserKey;
+    window.selectedParserKey = parserKey;
+
+    console.log(`✨ Parser selected: ${parserKey}`);
+
+    // Update parser UI if present
+    if (typeof refreshParserCarousel === "function") {
+      refreshParserCarousel();
+    }
+
+    return;
+  }
+
+  // If “New Parser”
+  if (item.type === "newParser") {
+    if (typeof window.showParserEditor === "function") {
+      window.showParserEditor();
+    } else {
+      console.warn("⚠️ showParserEditor() not available.");
+    }
+    return;
+  }
+
+  // Fallback
+  console.warn("⚠️ Unknown import item type:", item);
+};
+// Lazy getters for shared store functions
+function getParserStore() {
+  return window.ParserStore || {};
+}
+
+function getLoadSavedParsers() {
+  const store = getParserStore();
+  return typeof store.loadSavedParsers === "function"
+    ? store.loadSavedParsers
+    : function() { return []; };
+}
+
+function getScheduleStore() {
+  return window.ScheduleStore || {
+    getSavedSchedules: function() { return []; }
+  };
+}
+
+function getShowParserEditor() {
+  return typeof window.showParserEditor === "function"
+    ? window.showParserEditor
+    : function() {};
+}
+
 // Main carousel state
 window.IMPORT_SOURCES = [];
 window.importSelectedIndex = null;
-
 /**
  * Refreshes the import carousel items.
  * This must be called after any change to schedules or parsers.
  */
+
 export function refreshImportCarousel() {
   const viewport = document.getElementById("carouselViewport");
   const statusEl = document.getElementById("importStatus");
@@ -36,26 +123,32 @@ export function refreshImportCarousel() {
   }
 
   viewport.innerHTML = "";
-  IMPORT_SOURCES = [];
+  window.IMPORT_SOURCES = [];
+
+  const ScheduleStore = window.ScheduleStore;
+  const ParserStore = window.ParserStore;
 
   // ───────────────────────────────────────────
   // 1) Saved Schedules
   // ───────────────────────────────────────────
   let savedSchedules = [];
-  try {
-    savedSchedules = ScheduleStore.getSavedSchedules() || [];
-  } catch (err) {
-    console.error("Error reading saved schedules:", err);
+  if (ScheduleStore?.getSavedSchedules) {
+    try {
+      savedSchedules = ScheduleStore.getSavedSchedules() || [];
+    } catch (err) {
+      console.error("❌ Error reading saved schedules:", err);
+    }
   }
 
   console.log("📁 Saved schedules:", savedSchedules);
 
   savedSchedules.forEach(s => {
-    IMPORT_SOURCES.push({
+    window.IMPORT_SOURCES.push({
       type: "savedSchedule",
       id: s.id,
       displayName: s.name || "(Unnamed Schedule)",
-      rawText: s.rawText
+      rawText: s.rawText,
+      parserKey: s.parserKey || "generic"
     });
   });
 
@@ -63,33 +156,36 @@ export function refreshImportCarousel() {
   // 2) Built‑in Parsers
   // ───────────────────────────────────────────
   const builtInParsers = [
-    { parserKey: "generic", displayName: "Generic Parser" }
-    // add more built‑in definitions here as needed
+    { key: "generic", name: "Generic Parser" }
+    // add more built‑ins here later
   ];
+
   console.log("📦 Built‑in parsers:", builtInParsers);
 
   builtInParsers.forEach(p => {
-    IMPORT_SOURCES.push({
+    window.IMPORT_SOURCES.push({
       type: "parser",
-      parserKey: p.parserKey,
-      displayName: p.displayName || p.parserKey
+      parserKey: p.key,
+      displayName: p.name
     });
   });
 
   // ───────────────────────────────────────────
-  // 3) Saved Custom Parsers
+  // 3) Custom Parsers
   // ───────────────────────────────────────────
   let customParsers = [];
-  try {
-    customParsers = loadSavedParsers() || [];
-  } catch (err) {
-    console.error("Error reading custom parsers:", err);
+  if (ParserStore?.loadSavedParsers) {
+    try {
+      customParsers = ParserStore.loadSavedParsers() || [];
+    } catch (err) {
+      console.error("❌ Error reading custom parsers:", err);
+    }
   }
 
   console.log("🛠 Custom parsers:", customParsers);
 
   customParsers.forEach(p => {
-    IMPORT_SOURCES.push({
+    window.IMPORT_SOURCES.push({
       type: "customParser",
       parserKey: p.key,
       displayName: p.name || p.key
@@ -97,53 +193,62 @@ export function refreshImportCarousel() {
   });
 
   // ───────────────────────────────────────────
-  // 4) New Parser
+  // 4) New Parser Entry
   // ───────────────────────────────────────────
-  IMPORT_SOURCES.push({
+  window.IMPORT_SOURCES.push({
     type: "newParser",
     displayName: "✏️ New Parser"
   });
 
-  console.log("🧠 Total import sources:", IMPORT_SOURCES);
+  console.log("🧠 Total import sources:", window.IMPORT_SOURCES);
 
   // ───────────────────────────────────────────
-  // Set default selection if none
+  // Default selection
   // ───────────────────────────────────────────
-  if (importSelectedIndex === null && IMPORT_SOURCES.length > 0) {
-    importSelectedIndex = 0;
+  if (
+    window.importSelectedIndex == null ||
+    window.importSelectedIndex >= window.IMPORT_SOURCES.length
+  ) {
+    window.importSelectedIndex = window.IMPORT_SOURCES.length ? 0 : null;
   }
 
   // ───────────────────────────────────────────
-  // Render carousel items
+  // Render carousel
   // ───────────────────────────────────────────
-  IMPORT_SOURCES.forEach((item, idx) => {
+  window.IMPORT_SOURCES.forEach((item, idx) => {
     const div = document.createElement("div");
     div.className = "carousel-item";
     div.textContent = item.displayName || `Item ${idx + 1}`;
 
-    if (idx === importSelectedIndex) {
+    if (idx === window.importSelectedIndex) {
       div.classList.add("selected");
     }
 
     div.addEventListener("click", () => {
-      importSelectedIndex = idx;
+      window.importSelectedIndex = idx;
       console.log("➡️ Carousel item clicked:", item);
       refreshImportCarousel();
-      handleImportSelection(item);
+
+      if (typeof window.handleImportSelection === "function") {
+        window.handleImportSelection(item);
+      } else {
+        console.warn("⚠️ handleImportSelection() not defined");
+      }
     });
 
     viewport.appendChild(div);
   });
 
-  // Update status line
+  // ───────────────────────────────────────────
+  // Status line
+  // ───────────────────────────────────────────
   if (statusEl) {
     statusEl.textContent =
-      IMPORT_SOURCES.length > 0
-        ? `Imported sources: ${IMPORT_SOURCES.length}`
+      window.IMPORT_SOURCES.length > 0
+        ? `Available import sources: ${window.IMPORT_SOURCES.length}`
         : "No saved schedules or parsers available.";
   }
 }
-
 /**
  * Handle what happens when a user selects a carousel item.
  */

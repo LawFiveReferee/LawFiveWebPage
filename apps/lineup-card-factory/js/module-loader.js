@@ -7,9 +7,28 @@
 
 // Shared first
 import "../../shared/constants.js";
+
 import "../../shared/schedule-store.js";
+console.log("✅ schedule-store.js loaded");
+
 import "../../shared/team-store.js";
-import "../../shared/carousel-ui.js";   // now globals are attached
+console.log("✅ team-store.jsloaded");
+
+// Load the parser store before any code that uses it
+import "../../shared/parser-store.js";
+console.log("✅ parser-store.js loaded");
+
+import "../../shared/schedule-import.js";
+console.log("✅ schedule-import.js loaded");
+
+
+import "../../shared/carousel-ui.js";
+console.log("✅ carousel-ui.js loaded");
+
+import { refreshImportCarousel } from "../../shared/carousel-ui.js";
+console.log("✅ refreshImportCarousel function loaded");
+
+
 
 console.log("✅ Shared modules loaded");
 

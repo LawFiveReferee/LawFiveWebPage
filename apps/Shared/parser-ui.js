@@ -1,8 +1,13 @@
-import {
+// parser-ui.js
+// Uses global ParserStore (loaded via <script> tag)
+
+const {
   loadSavedParsers,
+  loadAllParsers,
   addOrUpdateParser,
   deleteParser
-} from "./parser-store.js";
+} = window.ParserStore || {};
+
 
 let currentEditKey = null; // track parser being edited
 

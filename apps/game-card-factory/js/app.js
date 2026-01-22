@@ -49,6 +49,42 @@ const makeGameId = () => {
 window.makeGameId = makeGameId;
 
 /* ============================================================
+   Shared Schedule Import and parsing
+============================================================ */
+const allParsers = ParserStore.loadAllParsers();
+// Use `allParsers` to populate dropdowns, carousels, etc.
+
+const { parseAndImport } = window.ScheduleImport || {};
+
+document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const list = window.SCHEDULE_LIST || [];
+  const idx = window.selectedScheduleIndex;
+  if (!list.length || idx == null || !list[idx]) {
+    alert("Select a schedule first.");
+    return;
+  }
+
+  const sel = list[idx];
+  const games = parseAndImport({
+    rawText: sel.rawText,
+    parserKey: sel.parserKey || "generic",
+    save: false,
+    name: sel.name,
+    source: "saved"
+  });
+
+  window.GAME_LIST = games;
+
+  // auto‑select a team if desired
+  if (games.length > 0) {
+    const firstGame = games[0];
+    window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
+  }
+
+  renderPreviewCards();
+  updateStatusLines();
+});
+/* ============================================================
    UTILITY: Date / Time formatting
 ============================================================ */
 function parseDateFlexible(raw) {
@@ -378,7 +414,14 @@ function initParserCarouselControls() {
 
 		selectedParserIndex = (newIndex + PARSER_LIST.length) % PARSER_LIST.length;
 		selectedParserKey = PARSER_LIST[selectedParserIndex].key;
-
+		// Update parser key on the raw input element
+		const rawInputEl = document.getElementById("rawInput");
+		if (rawInputEl && PARSER_LIST[selectedParserIndex]) {
+		  rawInputEl.setAttribute(
+			"data-parser-key",
+			PARSER_LIST[selectedParserIndex].key
+		  );
+		}
 		refreshParserCarousel(); // will call updateMappingButtons() too (see next patch)
 		updateMappingButtons();
 	}
@@ -759,6 +802,17 @@ function initParsingControls() {
 
 	if (!rawEl) return;
 
+	document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
+	  const rawInput = document.getElementById("rawInput")?.value?.trim();
+	  if (!rawInput) return alert("Nothing to save — paste or select a schedule first.");
+	  const name = prompt("Enter a name for this schedule:");
+	  if (!name) return;
+	  const parserKey = selectedParserKey || "generic";
+	  const schedules = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
+	  schedules.push({ name, rawText: rawInput, parserKey });
+	  localStorage.setItem("savedSchedules", JSON.stringify(schedules));
+	  alert("Saved.");
+	});
 	/* ----------------------------
 	   EDIT MAPPING BUTTON
 	---------------------------- */
@@ -793,81 +847,44 @@ function initParsingControls() {
 	---------------------------- */
 	if (parseBtn) {
 		parseBtn.addEventListener("click", () => {
-			const rawOriginal = rawEl.value; // keep leading delimiters
-			const rawTrimmed = rawOriginal.trim();
+  // Grab raw schedule text
+  const raw = rawArea.value.trim();
+  if (!raw) {
+    alert("Please paste schedule text before extracting games.");
+    return;
+  }
 
-			console.log(
-				"DEBUG raw value:",
-				rawOriginal.length > 200 ? rawOriginal.slice(0, 200) + "…" : rawOriginal
-			);
+  // Determine selected parser key
+  const parserKey = rawArea.getAttribute("data-parser-key") || "generic";
 
-			if (!rawTrimmed) {
-				alert("Paste schedule text first.");
-				return;
-			}
+  // Shared parse & import
+  const games = parseAndImport({
+    rawText: raw,
+    parserKey: parserKey,
+    save: false,
+    name: "" // or "", since App doesn’t save here
+  });
 
-			const parser = PARSER_LIST[selectedParserIndex];
-			if (!parser || typeof parser.parseFn !== "function") {
-				console.error("Parser missing:", parser);
-				alert("Parser not available.");
-				return;
-			}
+  console.log(`📊 Shared parseAndImport returned ${games.length} games`);
 
-			if (typeof parser.key === "string" && parser.key.startsWith("arbiter")) {
-				const idx = TEMPLATE_LIST.findIndex(t => /high\s*school/i.test(t.name));
-				if (idx >= 0) {
-					selectedTemplateIndex = idx;
-					refreshTemplateCarousel();
-				}
-			}
+  // Save to global
+  window.GAME_LIST = games;
 
-			let parsed = [];
-			try {
-				parsed = parser.parseFn(rawOriginal) || [];
-			} catch (err) {
-				console.error("Parser error:", err);
-				parsed = [];
-			}
+  // Enable clear button if present
+  if (clearBtn) clearBtn.disabled = games.length === 0;
 
-			if (!Array.isArray(parsed)) parsed = parsed ? [parsed] : [];
+  // Update status line
+  if (statusEl) {
+    statusEl.textContent = games.length
+      ? `Extracted ${games.length} game(s)`
+      : "⚠️ No games detected — check the parser or schedule text";
+  }
 
-			const isGenericMapper =
-				parser.key === "generic-mapper" ||
-				(typeof parser.key === "string" && parser.key.startsWith("generic-mapper:"));
-
-			if (isGenericMapper && parsed.length === 0) {
-				console.warn("Generic mapper awaiting column mapping...");
-				return;
-			}
-
-			// ensure each game has id + selected
-			window.GAME_LIST = [];
-
-			parsed.forEach(g => {
-				if (!g.id) g.id = makeGameId();
-				if (typeof g.selected !== "boolean") g.selected = true;
-				window.GAME_LIST.push(g);
-			});
-
-			// Also sync `games` for backward compatibility (cards rendering)
-			games = window.GAME_LIST;
-			window.games = window.GAME_LIST;
-			if (!games.length) {
-				if (statusEl) statusEl.innerHTML = "<strong>No games detected.</strong> Ensure extractor is correct.";
-			} else {
-				if (statusEl) statusEl.textContent = `Extracted ${games.length} game(s) using ${parser.name}.`;
-			}
-
-			if (window.collectFilterVocabulary) window.collectFilterVocabulary();
-
-			renderCards()
-			updateStatusLines()
-			updateSelectedCountUI();
-			updateSelectedCountUI();
-			updateStatusLines();
-
-			if (clearBtn) clearBtn.disabled = games.length === 0;
-		});
+  // Call existing UI rendering logic:
+  renderCards();
+  updateStatusLines();    // your existing function
+  updateSelectedCountUI(); // if used
+});
 	}
 
 	/* ----------------------------
