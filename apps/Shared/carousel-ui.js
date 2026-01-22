@@ -252,3 +252,17 @@ document.getElementById("carouselNext")?.addEventListener("click", () => {
     (importSelectedIndex + 1) % IMPORT_SOURCES.length;
   refreshImportCarousel();
 });
+
+// ----- EXPOSE CAROUSEL HELPERS GLOBALLY -----
+
+// Import Carousel
+window.refreshImportCarousel = refreshImportCarousel;
+
+// If you have a schedule carousel in this module,
+// also expose them:
+if (typeof refreshScheduleCarousel === "function") {
+  window.refreshScheduleCarousel = refreshScheduleCarousel;
+}
+if (typeof updateScheduleStatus === "function") {
+  window.updateScheduleStatus = updateScheduleStatus;
+}

@@ -1,6 +1,9 @@
 /* ============================================================
    Lineup Card Factory — lineup-card-factory.js
 ============================================================ */
+import("../../shared/pdf-utils.js").then(module => {
+  window.validatePdfTemplate = module.validatePdfTemplate;
+});
 
 console.log("Lineup Card Factory loaded…");
 
@@ -29,7 +32,6 @@ function saveTeamsToStorage() {
 		console.error("Failed saving teams:", e);
 	}
 }
-import { refreshImportCarousel } from "../../shared/carousel-ui.js";
 function loadTeamsFromStorage() {
 	try {
 		const raw = localStorage.getItem("lineupCardFactoryTeams");
@@ -1055,85 +1057,67 @@ function refreshTemplateCarousel() {
 	img.src = `templates/${tpl.png}`;
 }
 
-import { validatePdfTemplate } from "../../shared/pdf-utils.js";
 
 document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
   console.log("🔍 Inspect Template Fields clicked");
 
   const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
   const outputEl = document.getElementById("templateValidationOutput");
-  if (!tpl || !outputEl) {
-    console.warn("Missing template or output container");
-    return;
-  }
-import { validatePdfTemplate } from "../../shared/pdf-utils.js";
-
-document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
-  console.log("🔍 Inspect Template Fields clicked");
-
-  const outputEl = document.getElementById("templateValidationOutput");
-  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
 
   if (!tpl) {
-    if (outputEl) {
-      outputEl.innerHTML = "<p style='color:red;'>No template selected.</p>";
-    }
+    outputEl.innerHTML = "<p style='color:red;'>No template selected.</p>";
     return;
   }
 
-  // Build the URL for the selected template
   const url = `./templates/${tpl.pdf}?v=${Date.now()}`;
 
-  let report;
-  try {
-    // CALL the global function defined in shared/pdf-utils.js
-    report = await window.validatePdfTemplate(url);
-  } catch (err) {
-    console.error("Template validation error:", err);
-    if (outputEl) outputEl.innerHTML = "<p style='color:red;'>Validation failed — see console for details.</p>";
-    return;
-  }
+  const report = await window.validatePdfTemplate(url);
 
   console.log("📄 Validation report:", report);
 
-  if (!outputEl) {
-    console.warn("No #templateValidationOutput element found in DOM.");
+  // Build a summary at the top
+  let summaryHtml = `<p><strong>Template:</strong> ${tpl.name}</p>`;
+
+  if (report.pageSize) {
+    const { width, height } = report.pageSize;
+    summaryHtml += `<p><strong>Size (pts):</strong> ${width} × ${height}</p>`;
+  }
+
+  if (report.hasIllegalNames || report.hasIllegalValues) {
+    summaryHtml += `
+      <p style="font-weight:bold; color:#c00;">
+        ⚠️ Template has fields with invalid characters. See list below.
+      </p>
+    `;
+  } else {
+    summaryHtml += `
+      <p style="font-weight:bold; color:#080;">
+        ✅ Template passed validation. All fields safe.
+      </p>
+    `;
+  }
+
+  if (!report.fields.length) {
+    outputEl.innerHTML = summaryHtml + "<p>No form fields found in this template.</p>";
     return;
   }
 
-  // Build clean text lines
-  let lines = [];
+  const listHtml = `
+    <ul>
+      ${report.fields.map(f => {
+        const nameSafe = f.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const nameIssues = f.illegalInName.length
+          ? ` — Illegal in name: ${f.illegalInName.map(i => i.char).join(", ")}`
+          : "";
+        const valIssues = f.illegalInValue.length
+          ? ` — Illegal in default text: ${f.illegalInValue.map(i => i.char).join(", ")}`
+          : "";
+        return `<li><strong>${nameSafe}</strong>${nameIssues}${valIssues}</li>`;
+      }).join("")}
+    </ul>
+  `;
 
-  // 1️⃣ Template name
-  lines.push(`Template: ${tpl.name}`);
-
-  // 2️⃣ PDF size (if available)
-  if (report.pageSize) {
-    const { width, height } = report.pageSize;
-    lines.push(`Size (pts): ${width} × ${height}`);
-  }
-
-  // 3️⃣ Summary line
-  if (report.hasIllegalNames || report.hasIllegalValues) {
-    lines.push("⚠️ Template has fields with illegal characters.");
-  } else {
-    lines.push("✅ Template passed validation. All fields safe.");
-  }
-
-  lines.push(""); // blank line
-
-  // 4️⃣ List of field names
-  (report.fields || []).forEach(f => {
-    lines.push(f.name);
-  });
-
-  // Collapse multiple blank lines
-  const textOutput = lines
-    .join("\n")
-    .replace(/\n{2,}/g, "\n\n");
-
-  // Write clean output
-  outputEl.innerText = textOutput;
+  outputEl.innerHTML = summaryHtml + listHtml;
 });
 
 // ———————————————————————————
@@ -1251,41 +1235,114 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
 
 
 // Load existing saved schedules
-
-// Use the selected schedule
+// —————————————————————————————————
+// Load the selected saved schedule
+// —————————————————————————————————
 
 document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-	const list = window.SCHEDULE_LIST || [];
-	const idx = window.selectedScheduleIndex;
+  const list = window.SCHEDULE_LIST || [];
+  const idx = window.selectedScheduleIndex;
 
-	if (list.length === 0 || idx == null || !list[idx]) {
-		alert("Select a schedule first.");
-		return;
-	}
+  if (!list.length || idx == null || !list[idx]) {
+    alert("Select a schedule first.");
+    return;
+  }
 
-	const raw = list[idx].rawText;
-	if (!raw) {
-		alert("Selected schedule is empty.");
-		return;
-	}
+  const selected = list[idx];
+  const raw = selected.rawText || "";
 
-	const rawArea = document.getElementById("rawInput");
-	rawArea.value = raw;
+  if (!raw) {
+    alert("Selected schedule is empty.");
+    return;
+  }
 
-	const parsed = window.ScheduleStore.importSchedule({
-		rawText: raw,
-		source: "paste", // or "saved", "single-game", etc
-		autoSelect: true // optional, selects games by default
-	});
-	const statusEl = document.getElementById("scheduleStatus");
+  // populate textarea so user sees it
+  const rawArea = document.getElementById("rawInput");
+  if (rawArea) {
+    rawArea.value = raw;
+  }
 
-	if (parsed && parsed.length) {
-		statusEl.textContent = `🔍 Extracted ${parsed.length} games`;
-	} else {
-		statusEl.textContent = `⚠️ No games extracted from schedule.`;
-	}
+  // import & parse schedule with shared store
+  const games = ScheduleStore.importSchedule({
+    rawText: raw,
+    parserKey: rawArea.getAttribute("data-parser-key") || "generic",
+    name: selected.name,
+    source: "saved",
+    save: false
+  });
+
+  // update status
+  const statusEl = document.getElementById("scheduleStatus");
+  if (games && games.length) {
+    statusEl.textContent = `🔍 Extracted ${games.length} games from "${selected.name}"`;
+  } else {
+    statusEl.textContent = "⚠️ No games extracted from schedule.";
+  }
+
+  // update UI
+  if (typeof refreshScheduleCarousel === "function") {
+    refreshScheduleCarousel();
+  }
+  if (typeof renderPreviewCards === "function") {
+    renderPreviewCards();
+  }
 });
+// Use the selected schedule
 
+// —————————————————————————————————
+// Load the selected saved schedule & refresh previews
+// —————————————————————————————————
+document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const list = window.SCHEDULE_LIST || [];
+  const idx = window.selectedScheduleIndex;
+
+  if (!list.length || idx == null || !list[idx]) {
+    alert("Select a schedule first.");
+    return;
+  }
+
+  const selected = list[idx];
+  const raw = selected.rawText || "";
+
+  if (!raw) {
+    alert("Selected schedule is empty.");
+    return;
+  }
+
+  const rawArea = document.getElementById("rawInput");
+  if (rawArea) rawArea.value = raw;
+
+  // Parse games
+  const games = ScheduleStore.importSchedule({
+    rawText: raw,
+    parserKey: rawArea.getAttribute("data-parser-key") || "generic",
+    name: selected.name,
+    source: "saved",
+    save: false,
+  });
+
+  window.GAME_LIST = games;
+
+  // ✅ Auto‑select first team
+  const firstGame = games[0];
+  const teamName = firstGame?.home?.name || firstGame?.away?.name;
+
+  if (teamName) {
+    window.CURRENT_TEAM = teamName;
+    console.log("🎯 Auto‑selected team:", teamName);
+  } else {
+    window.CURRENT_TEAM = null;
+    console.warn("⚠️ No team auto‑selected");
+  }
+
+  if (typeof updateStatusLines === "function") updateStatusLines();
+  if (typeof renderPreviewCards === "function") renderPreviewCards();
+
+  const statusEl = document.getElementById("scheduleStatus");
+  if (statusEl) {
+    statusEl.textContent = `✅ Loaded "${selected.name}" — ${games.length} games | Current team: ${teamName || "None"}`;
+  }
+});
 // Delete the selected schedule
 
 document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {

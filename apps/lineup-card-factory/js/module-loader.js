@@ -1,14 +1,13 @@
-/* ============================================================
+/* ============================================================================
    ES MODULE LOADER — Lineup Card Factory
    Loads modules and then boots the UI once DOM is ready.
-============================================================ */
+============================================================================ */
 
 console.log("✅ module-loader.js starting…");
 
 // —————————————————————————————
 // Core helpers
 // —————————————————————————————
-
 import "./dom-helpers.js";
 console.log("✅ dom-helpers loaded");
 
@@ -18,7 +17,6 @@ console.log("✅ parser-standardizer loaded");
 // —————————————————————————————
 // Parsers
 // —————————————————————————————
-
 import "./parser.js";
 console.log("✅ parser.js loaded");
 
@@ -52,7 +50,6 @@ console.log("✅ parser-generic-mapper loaded");
 // —————————————————————————————
 // UI modules
 // —————————————————————————————
-
 import "./mapping-ui.js";
 console.log("✅ mapping-ui loaded");
 
@@ -65,49 +62,64 @@ console.log("✅ bulk-edit loaded");
 // —————————————————————————————
 // Main app
 // —————————————————————————————
-
 import "./lineup-card-factory.js";
 console.log("✅ lineup-card-factory.js loaded");
 
 // UI Shared .js
-
-console.log("✅ constants.js loaded");
 import "../../shared/schedule-store.js";
 console.log("✅ schedule-store.js loaded");
+
 import "../../shared/team-store.js";
-console.log("✅  team-store.jsloaded");
+console.log("✅ team-store.js loaded");
+
 import "../../shared/carousel-ui.js";
 console.log("✅ carousel-ui.js loaded");
-import { refreshImportCarousel } from "../../shared/carousel-ui.js";
-console.log("✅  refreshImportCarousel function loaded");
 
+import { refreshImportCarousel } from "../../shared/carousel-ui.js";
+console.log("✅ refreshImportCarousel function loaded");
+
+function initializeUI() {
+  if (typeof loadSavedSchedules === "function") {
+    loadSavedSchedules();
+  }
+  if (typeof refreshScheduleCarousel === "function") {
+    refreshScheduleCarousel();
+  }
+  if (typeof updateScheduleStatus === "function") {
+    updateScheduleStatus();
+  }
+  if (typeof refreshImportCarousel === "function") {
+    refreshImportCarousel();
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeUI, { once: true });
+} else {
+  initializeUI();
+}
 // —————————————————————————————
 // ONE SINGLE BOOTSTRAP
 // —————————————————————————————
-
 function bootLineupCardFactory() {
-	console.log("✅ DOM ready — booting Lineup Card Factory…");
+  console.log("✅ DOM ready — booting Lineup Card Factory…");
 
-	// Initialize collapsibles
-	if (typeof initCollapsibles === "function") {
-		initCollapsibles();
-	} else {
-		console.warn("⚠️ initCollapsibles() not found");
-	}
+  if (typeof initCollapsibles === "function") {
+    initCollapsibles();
+  } else {
+    console.warn("⚠️ initCollapsibles() not found");
+  }
 
-	// Initialize UI
-	if (typeof initUI === "function") {
-		initUI();
-	} else {
-		console.warn("⚠️ initUI() not found");
-	}
+  if (typeof initUI === "function") {
+    initUI();
+  } else {
+    console.warn("⚠️ initUI() not found");
+  }
 }
 
 // Only call once when DOM is ready
 if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", bootLineupCardFactory, {
-		once: true
-	});
+  document.addEventListener("DOMContentLoaded", bootLineupCardFactory, { once: true });
 } else {
-	bootLineupCardFactory();
+  bootLineupCardFactory();
 }

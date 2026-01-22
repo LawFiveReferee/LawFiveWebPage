@@ -73,63 +73,30 @@
 
 
 <!-- ============================================================
-     2. Schedule Import / Carousel
-============================================================ -->
-<!-- ============================================================
      IMPORT SCHEDULE CAROUSEL
 ============================================================ -->
-<section class="collapsible-panel" id="section‑import">
+<section class="collapsible-panel" id="section-import">
   <button class="collapsible-header">
     <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">Import Schedule / Select Parser</span>
+    <span class="collapsible-title">Parse Schedules / Import Games</span>
   </button>
 
   <div class="collapsible-body">
 
-    <div class="shared‑carousel">
-      <button id="carouselPrev" class="carousel‑nav">⟨</button>
-      <div id="carouselViewport" class="carousel‑viewport"></div>
-      <button id="carouselNext" class="carousel‑nav">⟩</button>
+    <div class="shared-carousel">
+      <button id="carouselPrev" class="carousel-nav">⟨</button>
+      <div id="carouselViewport" class="carousel-viewport"></div>
+      <button id="carouselNext" class="carousel-nav">⟩</button>
     </div>
 
-    <div id="importStatus" class="status‑line">Choose a schedule or parser to begin.</div>
-  <textarea id="rawInput" class="import-textarea"
-  placeholder="Paste schedule text here"></textarea>
+    <div id="importStatus" class="status-line">Choose a schedule or parser to begin.</div>
 
-  </div>
-</section>
-
-<section class="collapsible-panel" id="section-2">
-  <button class="collapsible-header">
-    <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">2. Select / Import Schedule</span>
-  </button>
-  <p class="section-subtitle" id="status-section-2">Choose or import a schedule.</p>
-
-  <div class="collapsible-body">
-
-    <!-- carousel -->
-    <div class="schedule-carousel">
-      <button id="schedulePrev" class="carousel-nav">⟨</button>
-      <div id="scheduleCarouselViewport" class="carousel-viewport"></div>
-      <button id="scheduleNext" class="carousel-nav">⟩</button>
-    </div>
-
-    <!-- action row -->
-    <div class="schedule-buttons">
-      <button id="loadScheduleBtn" class="btn">Use Selected Schedule</button>
-      <button id="saveScheduleBtn" class="btn secondary">Save Schedule</button>
-<button id="deleteScheduleBtn" class="btn danger">Delete Selected Schedule</button>
-    </div>
-
-    <!-- optional raw paste -->
     <textarea id="rawInput" class="import-textarea"
-      placeholder="Paste schedule text here (optional)"></textarea>
-
-    <div class="schedule-feedback status-line" id="scheduleStatus">No schedule loaded.</div>
+      placeholder="Paste schedule text here"></textarea>
 
   </div>
 </section>
+
 <!-- Shared Parser Editor Modal -->
 <div id="parserManagerModal" class="modal-backdrop hidden">
   <div class="modal-content">
@@ -151,8 +118,6 @@
     </div>
   </div>
 </div>
-
-
   <!-- ============================================================
        3. SELECT & FILTER GAMES
   ============================================================ -->
