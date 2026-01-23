@@ -28,50 +28,45 @@
   <!-- ============================================================
        1. TEAM INFO & ROSTER
   ============================================================ -->
-  <section class="collapsible-panel" id="section-1-team">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">1. Paste / Edit Team Info & Roster</span>
-    </button>
-    <p class="section-subtitle" id="status-section-1-team">Load or create a team.</p>
-    <div class="collapsible-body">
+<section class="collapsible-panel" id="section-1-team">
+  <button class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">1. Paste / Edit Team Info & Roster</span>
+  </button>
+  <p class="section-subtitle" id="status-section-1-team">Load or create a team.</p>
+	<div class="collapsible-body">
 
-      <!-- Team selector -->
-      <div class="team-selector-row">
-        <label for="teamSelect">Select Team:</label>
-        <select id="teamSelect"></select>
-        <button id="newTeamBtn" class="btn">New Team</button>
-        <button id="cloneTeamBtn" class="secondary">Clone Team</button>
-        <button id="deleteTeamBtn" class="secondary">Delete Team</button>
-      </div>
+		<!-- Team selector -->
+		<div class="team-selector-row">
+		  <label for="teamSelect">Select Team:</label>
+		  <select id="teamSelect"></select>
+		  <button id="newTeamBtn" class="btn">New Team</button>
+		  <button id="cloneTeamBtn" class="secondary">Clone Team</button>
+		  <button id="deleteTeamBtn" class="secondary">Delete Team</button>
+		</div>
 
-      <!-- Team fields -->
-      <div class="team-fields-grid">
-        <input id="teamId" placeholder="Team ID (match schedule text)" class="macos-input">
-        <input id="teamNumber" placeholder="Team Number" class="macos-input">
-        <input id="teamName" placeholder="Team Name" class="macos-input">
-        <input id="teamCoach" placeholder="Team Coach" class="macos-input">
-        <input id="teamRegion" placeholder="Team Region" class="macos-input">
-        <input id="teamAsstCoach" placeholder="Assistant Coach" class="macos-input">
-        <input id="teamAgeDiv" placeholder="Age/Division" class="macos-input">
-        <input id="teamColors" placeholder="Team Colors" class="macos-input">
-      </div>
-
-      <!-- Roster input -->
-      <textarea id="rosterInput" class="import-textarea"
-        placeholder="Paste player roster: Number <tab> Player Name"></textarea>
-
-      <div class="roster-buttons">
-        <button id="parseRosterBtn" class="btn">Parse Roster</button>
-        <button id="clearRosterBtn" class="secondary">Clear Roster</button>
-        <button id="saveTeamBtn" class="btn">Save Team</button>
-      </div>
-
-      <div id="rosterTableContainer"></div>
-    </div>
-  </section>
-
-
+		<!-- Team fields -->
+		<div class="team-fields-grid">
+			<label for="teamId">Team ID</label>  <input id="teamId" class="macos-input">
+			<label for="teamAgeDiv">Age / Division</label>  <input id="teamAgeDiv" class="macos-input">
+			<label for="teamRegion">Team Region</label>  <input id="teamRegion" class="macos-input">
+			<label for="teamNumber">Team Number</label>  <input id="teamNumber" class="macos-input">
+			<label for="teamName">Team Name</label>  <input id="teamName" class="macos-input">
+			<label for="teamCoach">Team Coach</label>  <input id="teamCoach" class="macos-input">
+			<label for="teamAsstCoach">Assistant Coach</label>  <input id="teamAsstCoach" class="macos-input">
+			<label for="teamColors">Team Colors</label>  <input id="teamColors" class="macos-input">
+		</div>
+		<!-- Roster paste/parse -->
+		<div id="rosterTableContainer"></div>
+		<div class="roster-buttons">
+			<button id="parseRosterBtn" class="btn">Parse Roster</button>
+			<button id="clearRosterBtn" class="secondary">Clear Roster</button>
+			<button id="saveTeamBtn" class="btn">Save Team</button>
+		</div>
+		<textarea id="rosterInput" class="import-textarea"
+		placeholder="Paste player roster: Number <tab> Player Name"></textarea>
+	</div>
+</section>
 <!-- ============================================================
      IMPORT SCHEDULE CAROUSEL
 ============================================================ -->

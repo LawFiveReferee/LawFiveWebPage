@@ -159,12 +159,23 @@ function initCollapsibles() {
 
 	console.log("✅ Collapsibles initialized:", panels.length);
 }
-
 window.initCollapsibles = initCollapsibles;
 
 /* ============================================================
    TEAM FUNCTIONS
 ============================================================ */
+function loadTeamsFromStorage() {
+  const raw = localStorage.getItem("lineupCardFactoryTeams");
+  try {
+    window.TEAM_LIST = JSON.parse(raw) || [];
+  } catch {
+    window.TEAM_LIST = [];
+  }
+}
+
+function saveTeamsToStorage() {
+  localStorage.setItem("lineupCardFactoryTeams", JSON.stringify(window.TEAM_LIST));
+}
 
 function populateTeamSelect() {
 	const sel = document.getElementById("teamSelect");
@@ -628,7 +639,6 @@ function enterEditModeInline(card, team, game) {
 		});
 	});
 }
-
 function renderPreviewCards() {
   const container = document.getElementById("previewCardContainer");
   console.log("🔄 renderPreviewCards() called…");
@@ -641,92 +651,69 @@ function renderPreviewCards() {
 
   container.innerHTML = "";
 
-  const list = window.GAME_LIST || [];
-  list.forEach((g, idx) => {
-    const div = document.createElement("div");
-    div.textContent = `Game ${idx + 1}: ${g.raw}`;
-    container.appendChild(div);
-  });
-}
+  const games = window.GAME_LIST || [];
+  games.forEach((g, idx) => {
+    const card = document.createElement("div");
+    card.className = "lineup-card";
 
-/*
-function renderPreviewCards() {
+    card.innerHTML = `
+      <div class="card-header">
+        <strong>Game ${idx + 1}</strong>
+        <div class="card-buttons">
+          <button class="btn edit-btn" data-id="${g.id}">Edit</button>
+          <button class="btn pdf-btn" data-id="${g.id}">PDF</button>
+        </div>
+      </div>
 
-  console.log("🔄 renderPreviewCards() called…");
-  console.log("📋 GAME_LIST:", window.GAME_LIST);
+      <div class="card-body">
+        <div><strong>Date:</strong> ${g.date}</div>
+        <div><strong>Time:</strong> ${g.time}</div>
+        <div><strong>Home:</strong> ${g.homeTeam}</div>
+        <div><strong>Away:</strong> ${g.awayTeam}</div>
+        <div><strong>Location:</strong> ${g.location}</div>
+        <div><strong>Raw:</strong> ${g.raw}</div>
+      </div>
+    `;
 
-  const container = document.getElementById("previewContainer");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const team = getCurrentTeam();
-  if (!team) {
-    container.innerHTML = "<p>Select a team to preview cards.</p>";
-    return;
-  }
-
-  if (!Array.isArray(window.GAME_LIST) || window.GAME_LIST.length === 0) {
-    container.innerHTML = "<p>No schedule extracted yet.</p>";
-    return;
-  }
-
-  console.log("✅ team:", team.teamName, team.teamId);
-
-  // Build a responsive grid
-  const grid = document.createElement("div");
-  grid.className = "lineup-card-grid";
-  container.appendChild(grid);
-
-  // Roster only card first
-  grid.appendChild(createCardElement(team, null));
-
-  const tid   = String(team.teamId || "").toLowerCase();
-  const tnum  = String(team.teamNumber || "").toLowerCase();
-  const tname = String(team.teamName || "").toLowerCase();
-
-  let matchCount = 0;
-
-  window.GAME_LIST.forEach((g, i) => {
-    if (!g.selected) return;
-
-    // Normalize home/away values from raw fields:
-    const homeVals = [
-      String(g.home_team || ""),
-      String(g.homeTeamRaw || ""),
-      String(g.gameHomeTeam || "")
-    ].map(x => x.toLowerCase());
-
-    const awayVals = [
-      String(g.away_team || ""),
-      String(g.awayTeamRaw || ""),
-      String(g.gameAwayTeam || "")
-    ].map(x => x.toLowerCase());
-
-    // Check for match against team ID/number/name:
-    const isHome = homeVals.some(val => val && (val === tid || val === tnum || val.includes(tname)));
-    const isAway = awayVals.some(val => val && (val === tid || val === tnum || val.includes(tname)));
-
-    if (isHome || isAway) {
-      console.log(`✅ game #${i} matches team`, g);
-      grid.appendChild(createCardElement(team, g));
-      matchCount++;
-    } else {
-      console.log(`❌ game #${i} does NOT match team`, g);
-    }
+    container.appendChild(card);
   });
 
-  if (matchCount === 0) {
-    console.warn("⚠️ No matching games found for this team.");
-    grid.insertAdjacentHTML("beforeend", "<p>No matching games found for this team.</p>");
-  } else {
-    console.log(`🎯 Total matches: ${matchCount}`);
-  }
+  initCardButtons();
 }
-*/
 window.renderPreviewCards = renderPreviewCards;
 
+function initCardButtons() {
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", evt => {
+      const gameId = evt.target.dataset.id;
+      openEditModal(gameId);
+    });
+  });
 
+  document.querySelectorAll(".pdf-btn").forEach(btn => {
+    btn.addEventListener("click", evt => {
+      const gameId = evt.target.dataset.id;
+      exportGameToPDF(gameId);
+    });
+  });
+}
+
+function openEditModal(gameId) {
+  const game = window.GAME_LIST.find(g => g.id === gameId);
+  if (!game) return;
+
+  // show modal and populate fields
+  console.log("🔧 Edit game:", game);
+  // TODO — build edit UI
+}
+
+function exportGameToPDF(gameId) {
+  const game = window.GAME_LIST.find(g => g.id === gameId);
+  if (!game) return;
+
+  console.log("📄 Exporting to PDF:", game);
+  // TODO — hook into your existing PDF system
+}
 
 function enterEditMode(team, game) {
 	const modal = document.getElementById("lineupEditModal");
@@ -1405,24 +1392,6 @@ window.initUI = function initUI() {
 		}
 	});
 
-	// Team form buttons
-	document.getElementById("newTeamBtn")?.addEventListener("click", () => {
-		window.CURRENT_TEAM = null;
-		clearTeamFields();
-		populateTeamSelect();
-	});
-	document.getElementById("cloneTeamBtn")?.addEventListener("click", cloneCurrentTeam);
-	document.getElementById("deleteTeamBtn")?.addEventListener("click", deleteCurrentTeam);
-	document.getElementById("saveTeamBtn")?.addEventListener("click", saveCurrentTeam);
-
-	// Roster buttons
-	document.getElementById("parseRosterBtn")?.addEventListener("click", () => {
-		parseRoster(document.getElementById("rosterInput")?.value || "");
-	});
-	document.getElementById("clearRosterBtn")?.addEventListener("click", () => {
-		window.ROSTER_LIST = [];
-		renderRosterTable();
-	});
 	// Load saved schedules
 	const savedSchedules =
 		JSON.parse(localStorage.getItem("savedSchedules") || "[]") || [];

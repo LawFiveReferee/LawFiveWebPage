@@ -1752,3 +1752,114 @@ footer {
   font-size: 0.8em;
   padding: 0.3em 0.6em;
 }
+.preview-card {
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-family: sans-serif;
+  color: #333;
+}
+#lineup-card-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lineup-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 14px;
+  width: calc(33% - 16px); /* 3 across on wide screens */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-body > div {
+  margin: 4px 0;
+}
+
+.card-buttons .btn {
+  margin-left: 4px;
+  font-size: 0.9em;
+}
+
+.team-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+.team-fields-grid label {
+  color: black;
+  font-weight: bold;
+  text-align: right;
+  justify-self: end;
+  margin-right: 0.5rem;
+}
+
+.team-fields-grid label::after {
+  content: ":";
+}
+
+/* Grid layout for labels + inputs */
+.team-fields-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.5rem; /* reduced space between label and input */
+  row-gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+/* Label styling */
+.team-fields-grid label {
+  color: black;
+  font-weight: bold;
+  text-align: right;
+  justify-self: end;
+}
+
+.team-fields-grid label::after {
+  content: ":";
+}
+
+/* Buttons margin below */
+.roster-buttons {
+  margin-bottom: 1.5rem;
+}
+
+/* Roster table styling */
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.roster-table td {
+  padding: 0.25rem;
+}
+
+.roster-table td:first-child {
+  width: 3rem; /* shrink player number column */
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.roster-table td:last-child input {
+  width: 100%;
+}
+
+/* Optional: make roster table inputs consistent */
+.roster-table input {
+  width: 100%;
+  box-sizing: border-box;
+}
