@@ -1,3 +1,4 @@
+
 /* ============================================================
    Lineup Card Factory — lineup-card-factory.js
 ============================================================ */
@@ -11,8 +12,7 @@ console.log("Lineup Card Factory loaded…");
    GLOBAL STATE
 ============================================================ */
 
-window.TEAM_LIST = [];
-window.CURRENT_TEAM = null;
+
 window.GAME_LIST = [];
 window.TEMPLATE_LIST = [];
 window.selectedTemplateIndex = 0;
@@ -67,33 +67,7 @@ function saveTeamsToStorage() {
 		console.error("Failed saving teams:", e);
 	}
 }
-function loadTeamsFromStorage() {
-	try {
-		const raw = localStorage.getItem("lineupCardFactoryTeams");
-		const parsed = raw ? JSON.parse(raw) : [];
 
-		if (!Array.isArray(parsed)) {
-			window.TEAM_LIST = [];
-			return;
-		}
-
-		window.TEAM_LIST = parsed.map(t => ({
-			teamId: t.teamId || "",
-			teamNumber: t.teamNumber || "",
-			teamName: t.teamName || "",
-			teamCoach: t.teamCoach || "",
-			teamRegion: t.teamRegion || "",
-			teamAsstCoach: t.teamAsstCoach || "",
-			teamAgeDiv: t.teamAgeDiv || "",
-			teamColors: t.teamColors || "",
-			roster: Array.isArray(t.roster) ? t.roster : []
-		}));
-
-	} catch (err) {
-		console.error("Error loading saved teams:", err);
-		window.TEAM_LIST = [];
-	}
-}
 
 
 /* ============================================================
@@ -161,186 +135,7 @@ function initCollapsibles() {
 }
 window.initCollapsibles = initCollapsibles;
 
-/* ============================================================
-   TEAM FUNCTIONS
-============================================================ */
-function loadTeamsFromStorage() {
-  const raw = localStorage.getItem("lineupCardFactoryTeams");
-  try {
-    window.TEAM_LIST = JSON.parse(raw) || [];
-  } catch {
-    window.TEAM_LIST = [];
-  }
-}
 
-function saveTeamsToStorage() {
-  localStorage.setItem("lineupCardFactoryTeams", JSON.stringify(window.TEAM_LIST));
-}
-
-function populateTeamSelect() {
-	const sel = document.getElementById("teamSelect");
-	if (!sel) return;
-
-	sel.innerHTML = "";
-
-	window.TEAM_LIST.forEach((t, i) => {
-		const opt = document.createElement("option");
-		opt.value = String(i);
-		opt.textContent = t.teamName || `Team ${i + 1}`;
-		sel.appendChild(opt);
-	});
-
-	if (
-		Number.isInteger(window.CURRENT_TEAM) &&
-		window.CURRENT_TEAM >= 0 &&
-		window.CURRENT_TEAM < window.TEAM_LIST.length
-	) {
-		sel.value = String(window.CURRENT_TEAM);
-	}
-}
-
-function selectTeam(index) {
-	index = Number(index);
-
-	if (
-		!Number.isInteger(index) ||
-		index < 0 ||
-		index >= window.TEAM_LIST.length
-	) {
-		console.warn("Invalid team index:", index);
-		return;
-	}
-
-	window.CURRENT_TEAM = index;
-	localStorage.setItem(
-		"lineupCardFactoryCurrentTeam",
-		String(index)
-	);
-
-	renderCurrentTeamUI();
-	updateStatusLines();
-}
-
-window.selectTeam = selectTeam;
-
-function getCurrentTeam() {
-	const idx = window.CURRENT_TEAM;
-	if (
-		!Number.isInteger(idx) ||
-		idx < 0 ||
-		idx >= window.TEAM_LIST.length
-	) {
-		return null;
-	}
-	return window.TEAM_LIST[idx];
-}
-
-function renderCurrentTeamUI() {
-	const team = getCurrentTeam();
-	const status = document.getElementById("status-section-1-team");
-
-	if (!team) {
-		if (status) status.textContent = "No team selected.";
-		clearTeamFields();
-		window.ROSTER_LIST = [];
-		renderRosterTable();
-		return;
-	}
-
-	document.getElementById("teamId").value = team.teamId;
-	document.getElementById("teamNumber").value = team.teamNumber;
-	document.getElementById("teamName").value = team.teamName;
-	document.getElementById("teamCoach").value = team.teamCoach;
-	document.getElementById("teamRegion").value = team.teamRegion;
-	document.getElementById("teamAsstCoach").value = team.teamAsstCoach;
-	document.getElementById("teamAgeDiv").value = team.teamAgeDiv;
-	document.getElementById("teamColors").value = team.teamColors;
-
-	window.ROSTER_LIST = Array.isArray(team.roster) ?
-		team.roster :
-		[];
-
-	if (status) {
-		status.textContent =
-			`Editing team: ${team.teamName || "(unnamed)"}`;
-	}
-
-	renderRosterTable();
-}
-
-function clearTeamFields() {
-	[
-		"teamId",
-		"teamNumber",
-		"teamName",
-		"teamCoach",
-		"teamRegion",
-		"teamAsstCoach",
-		"teamAgeDiv",
-		"teamColors"
-	].forEach(id => {
-		const el = document.getElementById(id);
-		if (el) el.value = "";
-	});
-
-	window.ROSTER_LIST = [];
-}
-
-function saveCurrentTeam() {
-	const team = {
-		teamId: document.getElementById("teamId")?.value.trim() || "",
-		teamNumber: document.getElementById("teamNumber")?.value.trim() || "",
-		teamName: document.getElementById("teamName")?.value.trim() || "",
-		teamCoach: document.getElementById("teamCoach")?.value.trim() || "",
-		teamRegion: document.getElementById("teamRegion")?.value.trim() || "",
-		teamAsstCoach: document.getElementById("teamAsstCoach")?.value.trim() || "",
-		teamAgeDiv: document.getElementById("teamAgeDiv")?.value.trim() || "",
-		teamColors: document.getElementById("teamColors")?.value.trim() || "",
-		roster: Array.isArray(window.ROSTER_LIST) ?
-			window.ROSTER_LIST :
-			[]
-	};
-
-	if (!Number.isInteger(window.CURRENT_TEAM)) {
-		window.TEAM_LIST.push(team);
-		window.CURRENT_TEAM = window.TEAM_LIST.length - 1;
-	} else {
-		window.TEAM_LIST[window.CURRENT_TEAM] = team;
-	}
-
-	saveTeamsToStorage();
-	populateTeamSelect();
-	renderCurrentTeamUI();
-}
-
-window.saveCurrentTeam = saveCurrentTeam;
-
-function deleteCurrentTeam() {
-	if (!Number.isInteger(window.CURRENT_TEAM)) return;
-	if (!confirm("Delete this team?")) return;
-
-	window.TEAM_LIST.splice(window.CURRENT_TEAM, 1);
-	window.CURRENT_TEAM = null;
-
-	saveTeamsToStorage();
-	populateTeamSelect();
-	renderCurrentTeamUI();
-}
-
-function cloneCurrentTeam() {
-	const team = getCurrentTeam();
-	if (!team) return;
-
-	const clone = JSON.parse(JSON.stringify(team));
-	clone.teamName += " (clone)";
-
-	window.TEAM_LIST.push(clone);
-	window.CURRENT_TEAM = window.TEAM_LIST.length - 1;
-
-	saveTeamsToStorage();
-	populateTeamSelect();
-	renderCurrentTeamUI();
-}
 
 /* ============================================================
    ROSTER
@@ -799,87 +594,6 @@ function enterEditMode(team, game) {
 window.enterEditMode = enterEditMode;
 
 
-/**
- * Create a single PDF byte array for one lineup card
- * @param {Object} team
- * @param {Object|null} game
- */
-
-window.createPdfForLineup = async function (team, game) {
-  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
-  if (!tpl) {
-    throw new Error("No template selected.");
-  }
-
-  // Load the PDF
-  const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
-    .then((r) => r.arrayBuffer());
-
-  const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
-  const form = pdfDoc.getForm();
-
-  // Helper to set field only if exists
-  function setField(name, value) {
-    try {
-      const field = form.getTextField(name);
-      if (field) field.setText(value ?? "");
-      console.log(`✅ Set field "${name}" = "${value}"`);
-    } catch (err) {
-      console.warn(`⚠️ Field "${name}" not found or not writable`);
-    }
-  }
-
-  // --- TEAM info ---
-  setField("TeamName", team.teamName || "");
-  setField("AgeDiv", team.teamAgeDiv || "");
-  setField("TeamColors", team.teamColors || "");
-  setField("TeamCoach", team.teamCoach || "");
-  setField("TeamAsstCoach", team.teamAsstCoach || "");
-
-  // --- ROSTER (up to 15 in your template) ---
-  const roster = game?.customRoster || team.roster || [];
-
-  for (let i = 0; i < 15; i++) {
-    const p = roster[i] || { number: "", name: "" };
-    setField(`Player${i + 1}_Name`, p.name || "");
-    setField(`Player${i + 1}_Number`, p.number || "");
-  }
-
-  if (game) {
-    // --- GAME fields ---
-    setField("GameDate", game.gameDate || "");
-    setField("GameTime", game.gameTime || "");
-    setField("GameLocation", game.gameLocation || "");
-
-    // --- Home / Visitor X marks and IDs ---
-
-    const homeRaw = (game.homeTeamRaw || "").trim();
-    const awayRaw = (game.awayTeamRaw || "").trim();
-    const teamId    = (team.teamId || "").trim();
-
-    // Is our team the home team?
-    const isHome = String(homeRaw).toLowerCase() === String(teamId).toLowerCase();
-
-    // Mark X for the correct side
-    setField("HomeX", isHome ? "X" : "");
-    setField("VisitorX", isHome ? "" : "X");
-
-    // Populate IDs
-    // If we are home: HomeID = our teamId, VisitorID = opponent
-    // If we are away: VisitorID = our teamId, HomeID = opponent
-    if (isHome) {
-      setField("HomeID", teamId);
-      setField("VisitorID", awayRaw);
-    } else {
-      setField("HomeID", homeRaw);
-      setField("VisitorID", teamId);
-    }
-  }
-
-  // Flatten the form so the text is embedded
-  form.flatten();
-  return await pdfDoc.save();
-};
 
 // Expose globally so card PDF button can call it
 window.createPdfForLineup = createPdfForLineup;
@@ -1589,3 +1303,151 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
 	localStorage.setItem("savedSchedules", JSON.stringify(stored));
 	alert(`Schedule "${sel.name}" saved.`);
 });
+
+
+/**
+ * Create a single PDF byte array for one lineup card
+ * @param {Object} team
+ * @param {Object|null} game
+ */
+
+window.createPdfForLineup = async function (team, game) {
+  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+  if (!tpl) {
+    throw new Error("No template selected.");
+  }
+
+  // Load the PDF
+  const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
+    .then((r) => r.arrayBuffer());
+
+  const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+  const form = pdfDoc.getForm();
+
+  // Helper to set field only if exists
+  function setField(name, value) {
+    try {
+      const field = form.getTextField(name);
+      if (field) field.setText(value ?? "");
+      console.log(`✅ Set field "${name}" = "${value}"`);
+    } catch (err) {
+      console.warn(`⚠️ Field "${name}" not found or not writable`);
+    }
+  }
+
+  // --- TEAM info ---
+  setField("TeamName", team.teamName || "");
+  setField("AgeDiv", team.teamAgeDiv || "");
+  setField("TeamColors", team.teamColors || "");
+  setField("TeamCoach", team.teamCoach || "");
+  setField("TeamAsstCoach", team.teamAsstCoach || "");
+
+  // --- ROSTER (up to 15 in your template) ---
+  const roster = game?.customRoster || team.roster || [];
+
+  for (let i = 0; i < 15; i++) {
+    const p = roster[i] || { number: "", name: "" };
+    setField(`Player${i + 1}_Name`, p.name || "");
+    setField(`Player${i + 1}_Number`, p.number || "");
+  }
+
+  if (game) {
+    // --- GAME fields ---
+    setField("GameDate", game.gameDate || "");
+    setField("GameTime", game.gameTime || "");
+    setField("GameLocation", game.gameLocation || "");
+
+    // --- Home / Visitor X marks and IDs ---
+
+    const homeRaw = (game.homeTeamRaw || "").trim();
+    const awayRaw = (game.awayTeamRaw || "").trim();
+    const teamId    = (team.teamId || "").trim();
+
+    // Is our team the home team?
+    const isHome = String(homeRaw).toLowerCase() === String(teamId).toLowerCase();
+
+    // Mark X for the correct side
+    setField("HomeX", isHome ? "X" : "");
+    setField("VisitorX", isHome ? "" : "X");
+
+    // Populate IDs
+    // If we are home: HomeID = our teamId, VisitorID = opponent
+    // If we are away: VisitorID = our teamId, HomeID = opponent
+    if (isHome) {
+      setField("HomeID", teamId);
+      setField("VisitorID", awayRaw);
+    } else {
+      setField("HomeID", homeRaw);
+      setField("VisitorID", teamId);
+    }
+  }
+
+  // Flatten the form so the text is embedded
+  form.flatten();
+  return await pdfDoc.save();
+};
+
+// Expose globally so card PDF button can call it
+
+
+window.createPdfForLineup = async function (team, game) {
+  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+  if (!tpl) throw new Error("No template selected.");
+
+  const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
+    .then((r) => r.arrayBuffer());
+
+  const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+  const form = pdfDoc.getForm();
+
+  function setField(name, value) {
+    try {
+      const field = form.getTextField(name);
+      if (field) {
+        field.setText(value || "");
+        console.log(`✅ Set field "${name}" =`, `"${value}"`);
+      } else {
+        console.warn(`⚠️ Field "${name}" not found`);
+      }
+    } catch (err) {
+      console.warn(`⚠️ Field "${name}" not found or not writable`);
+    }
+  }
+
+  // --- Game Info ---
+  if (game) {
+    setField("GameDate", game.gameDate);
+    setField("GameTime", game.gameTime);
+    setField("GameLocation", game.gameLocation);
+    setField("AgeDiv", game.ageDiv);
+
+    // Determine if team is home or away
+    const isHome = team.teamId === game.homeTeamRaw;
+    const opponentId = isHome ? game.awayTeamRaw : game.homeTeamRaw;
+
+    setField("HomeX", isHome ? "X" : "");
+    setField("VisitorX", isHome ? "" : "X");
+
+    setField("HomeID", isHome ? team.teamId : opponentId);
+    setField("VisitorID", isHome ? opponentId : team.teamId);
+  }
+
+  // --- Team Info ---
+  setField("TeamName", team.teamName);
+  setField("TeamColors", team.teamColors);
+  setField("TeamCoach", team.teamCoach);
+  setField("TeamAsstCoach", team.teamAsstCoach);
+  setField("TeamID", team.teamId);
+  setField("AgeDiv", team.ageDiv); // backup in case it's not in game
+
+  // --- Roster (up to 15) ---
+  const roster = game?.customRoster || team.roster || [];
+  for (let i = 0; i < 15; i++) {
+    const p = roster[i] || { number: "", name: "" };
+    setField(`Player${i + 1}_Name`, p.name);
+    setField(`Player${i + 1}_Number`, p.number);
+  }
+
+  form.flatten();
+  return await pdfDoc.save();
+};
