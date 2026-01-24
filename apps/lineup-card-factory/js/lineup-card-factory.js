@@ -595,9 +595,7 @@ window.enterEditMode = enterEditMode;
 
 
 
-// Expose globally so card PDF button can call it
-window.createPdfForLineup = createPdfForLineup;
-async function generatePDFs() {
+ async function generatePDFs() {
 	const team = getCurrentTeam();
 	if (!team) {
 		alert("Select a team first.");
@@ -1071,7 +1069,7 @@ window.initUI = function initUI() {
 	console.log("🧠 Loaded teams:", window.TEAM_LIST);
 
 	// Populate the dropdown
-	populateTeamSelect();
+	initTeamSelectorUI();
 
 	// Try to restore previous selection
 	const storedIdxRaw = localStorage.getItem("lineupCardFactoryCurrentTeam");
@@ -1175,7 +1173,7 @@ window.addEventListener("scheduleImported", (ev) => {
 if (!Array.isArray(window.TEAM_LIST) || window.TEAM_LIST.length === 0) {
   console.log("🧠 Loading teams from localStorage...");
   loadTeamsFromStorage();
-  populateTeamSelect();
+  initTeamSelectorUI();
 }
 
 // ✅ Select team 0 if none selected

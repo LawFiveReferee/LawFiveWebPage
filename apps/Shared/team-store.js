@@ -103,7 +103,7 @@ function saveTeamsToStorage() {
 // 🔻 Add this at the very end of team-store.js:
 document.addEventListener("DOMContentLoaded", () => {
   loadTeamsFromStorage();
-  populateTeamSelect();
+  initTeamSelectorUI();
 
   const teamSelect = document.getElementById("teamSelect");
   if (teamSelect) {
@@ -138,3 +138,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("status-section-1-team").textContent = "New team in progress...";
   });
 });
+function loadTeamsFromStorage() {
+  const raw = localStorage.getItem("lineupCardFactoryTeams");
+  try {
+    window.TEAM_LIST = JSON.parse(raw) || [];
+  } catch (err) {
+    console.error("❌ Failed to parse saved teams:", err);
+    window.TEAM_LIST = [];
+  }
+}
+
+window.loadTeamsFromStorage = loadTeamsFromStorage;
