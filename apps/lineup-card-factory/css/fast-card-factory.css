@@ -2027,3 +2027,93 @@ roster-table {
   border-radius: 4px;
   box-sizing: border-box;
 }
+.remove-player-btn {
+  margin-right: 6px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+.remove-player-btn:hover {
+  background-color: #ddd;
+}
+.roster-row.dragging {
+  opacity: 0.5;
+  background: #f0f8ff;
+}
+
+.roster-row.dragover {
+  outline: 2px dashed #1e90ff;
+}
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+  font-size: 18px;
+  padding: 0 6px;
+  color: #666;
+}
+
+.remove-player-btn {
+  margin-right: 6px;
+  background: #faeaea;
+  border: 1px solid #d66;
+  color: #800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal.hidden {
+  display: none;
+}
+.modal-content {
+  background: white;
+  padding: 1.5em;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 600px;
+}
+#tsvInput {
+  width: 100%;
+  height: 200px;
+  margin-bottom: 1em;
+}
+.modal-buttons {
+  display: flex;
+  gap: 1em;
+  justify-content: flex-end;
+}
+#importSheet {
+  background: #fff;
+  padding: 1em;
+  border: 1px solid #ccc;
+  margin-top: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#importSheet textarea {
+  width: 100%;
+  height: 160px;
+  margin-top: 0.5em;
+  font-family: monospace;
+}

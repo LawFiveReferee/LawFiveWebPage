@@ -25,6 +25,8 @@ window.ROSTER_LIST = [];
 
 const { parseAndImport } = window.ScheduleImport || {};
 
+
+// ⏏️ Load schedule button
 document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   const list = window.SCHEDULE_LIST || [];
   const idx = window.selectedScheduleIndex;
@@ -44,7 +46,7 @@ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
 
   window.GAME_LIST = games;
 
-  // auto‑select a team if desired
+  // Auto-select a team if desired
   if (games.length > 0) {
     const firstGame = games[0];
     window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
@@ -53,6 +55,71 @@ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   renderPreviewCards();
   updateStatusLines();
 });
+
+// 🧹 Clear existing listeners so we donʼt double‑add
+const oldBtn = document.getElementById("addPlayerBtn");
+if (oldBtn) {
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+}
+
+// ➕ Add player button
+
+document.getElementById("addPlayerBtn")?.addEventListener("click", () => {
+  console.log("➕ Add Player clicked");
+
+  // First sync current UI roster so we donʼt lose edits
+  const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(row => ({
+    number: row.querySelector(".roster-number-input")?.value.trim() || "",
+    name:   row.querySelector(".roster-name-input")?.value.trim() || ""
+  }));
+  window.ROSTER_LIST = currentRoster;
+
+  // Now add exactly ONE new player
+  window.ROSTER_LIST.push({ number: "", name: "" });
+
+  // Render
+  window.renderRosterTable(window.ROSTER_LIST);
+
+  // Focus the new rowʼs number field
+  const lastIndex = window.ROSTER_LIST.length - 1;
+  const input = document.querySelector(`.roster-number-input[data-index="${lastIndex}"]`);
+  if (input) input.focus();
+});
+
+/* ============================================================
+  sorting roster
+============================================================ */
+
+
+document.getElementById("sortRosterBtn")?.addEventListener("click", () => {
+  // First read current UI values so edits aren’t lost
+  const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(r => ({
+    number: r.querySelector(".roster-number-input")?.value.trim() || "",
+    name:   r.querySelector(".roster-name-input")?.value.trim() || ""
+  }));
+
+  // Sort roster
+  currentRoster.sort((a, b) => {
+    const na = parseInt(a.number, 10);
+    const nb = parseInt(b.number, 10);
+
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    if (!isNaN(na)) return -1;
+    if (!isNaN(nb)) return 1;
+    return 0;
+  });
+
+  // Update global and rerender
+  window.ROSTER_LIST = currentRoster;
+  window.renderRosterTable(currentRoster);
+
+  // Focus still optional
+  const lastInput = document.querySelector(`.roster-number-input[data-index="${currentRoster.length - 1}"]`);
+  if (lastInput) lastInput.focus();
+});
+
+
 /* ============================================================
    STORAGE HELPERS
 ============================================================ */
@@ -144,25 +211,6 @@ function parseRoster(raw) {
 	});
 
 	renderRosterTable();
-}
-
-function renderRosterTable(roster = [], container = document.getElementById("rosterTableContainer")) {
-  if (!container) return;
-  container.innerHTML = "";
-
-  const table = document.createElement("table");
-  table.className = "roster-table";
-
-  roster.forEach(p => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${p.playerNumber || ""}</td>
-      <td>${p.playerName || ""}</td>
-    `;
-    table.appendChild(row);
-  });
-
-  container.appendChild(table);
 }
 
 
@@ -1033,10 +1081,13 @@ window.initUI = function initUI() {
 	});
 
 	// Load teams from storage
-	loadTeamsFromStorage();
+// load teams into the shared store
+
+// populate the team selector dropdown
+window.TeamStore.loadTeamsFromStorage();
+window.initTeamDropdown(); // must match the global assignment above
+
 console.log("🧠 Loaded teams:", window.TeamStore.getAllTeams());
-	// Populate the dropdown
-	initTeamSelectorUI();
 
 	// Try to restore previous selection
 	const storedIdxRaw = localStorage.getItem("lineupCardFactoryCurrentTeam");
