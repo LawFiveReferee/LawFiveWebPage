@@ -1863,3 +1863,167 @@ footer {
   width: 100%;
   box-sizing: border-box;
 }
+/* Roster table container */
+#rosterTableContainer {
+  background-color: #fff;  /* white background */
+  color: #000;              /* black text */
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Ensure the table rows/cells have visible text */
+#rosterTableContainer table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#rosterTableContainer table td,
+#rosterTableContainer table th {
+  color: #000;              /* black text */
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+}
+/* Remove borders from the outer container */
+#rosterTableContainer {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Style the roster table itself */
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+  background: none;
+}
+
+/* Remove row spacing/padding and border */
+.roster-table tr {
+  border: none;
+  background: none;
+}
+
+/* Make each cell look clean */
+.roster-table td {
+  border: none;
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+
+/* Style the editable inputs */
+.roster-table input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  box-sizing: border-box;
+  appearance: none; /* remove browser-specific styles */
+}
+
+/* Optional: remove input border and use underline instead */
+.roster-table input[type="text"]:focus {
+  outline: none;
+  border-color: #007BFF;
+}
+.roster-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.roster-table td {
+  padding: 2px;
+  border: none;
+}
+
+.roster-number-input,
+.roster-name-input {
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  background: white;
+}
+roster-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: none;
+}
+
+.roster-table td {
+  border: none;
+  padding: 4px;
+}
+
+.roster-number-input,
+.roster-name-input {
+  width: 100%;
+  border: 1px solid transparent; /* optional: make transparent for no box */
+  padding: 6px 8px;
+  font-size: 14px;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+#rosterTableContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.roster-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.roster-cell {
+  flex: 1;
+}
+
+.roster-number-cell {
+  flex: 0 0 60px; /* a fixed width for numbers */
+}
+
+.roster-number-input,
+.roster-name-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: white;
+}
+/* Roster row layout */
+.roster-row {
+  display: flex;
+  gap: 8px; /* small gap between number and name */
+  align-items: center;
+}
+
+/* Number input should be narrow (2 digits) */
+.roster-number-input {
+  width: 4ch;     /* width for ~2 digits + padding */
+  min-width: 4ch; /* prevent shrinking */
+  padding: 6px 8px; /* nice vertical and horizontal padding */
+  font-size: 14px;
+  text-align: center; /* center the digits */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Name input fills the rest of the row */
+.roster-name-input {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
