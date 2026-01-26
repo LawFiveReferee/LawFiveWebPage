@@ -65,12 +65,24 @@ function addOrUpdateTeam(team) {
 }
 
 function deleteCurrentTeam() {
-  const team = getCurrentTeam();
-  if (!team) return;
+  if (!Number.isInteger(window.CURRENT_TEAM)) return;
+  if (!confirm("Delete this team?")) return;
 
-  _teams = _teams.filter(t => t.teamId !== team.teamId);
+  const idx = window.CURRENT_TEAM;
+
+  window.TEAM_LIST.splice(idx, 1);
+
+  // choose new index
+  if (window.TEAM_LIST.length > 0) {
+    const newIndex = idx > 0 ? idx - 1 : 0;
+    window.CURRENT_TEAM = newIndex;
+  } else {
+    window.CURRENT_TEAM = null;
+  }
+
   saveTeamsToStorage();
-  _currentTeamId = null;
+  populateTeamSelect();
+  renderCurrentTeamUI();
 }
 
 // create a unique clone ID
@@ -94,28 +106,90 @@ function cloneCurrentTeam() {
 // ----------------------------------------
 
 function parseTSV(tsv) {
-  const lines = tsv.trim().split(/\r?\n/);
-  const team = {};
+  const lines = tsv.trim().split(/\r?\n/).filter(l => l.trim() !== "");
   const roster = [];
+  const team = {};
 
-  lines.forEach((line, i) => {
-    const cells = line.split("\t").map(s => s.trim());
-    if (i === 0) {
-      // first row = team info
-      [
-        team.teamId,
-        team.teamName,
-        team.teamCoach,
-        team.teamRegion,
-        team.teamAsstCoach,
-        team.teamNumber,
-        team.teamAgeDiv,
-        team.teamColors
-      ] = cells;
-    } else if (cells.length >= 2) {
-      roster.push({ number: cells[0], name: cells[1] });
+  if (lines.length === 0) {
+    return { team: {}, roster: [] };
+  }
+
+  // Look at first line to see if it contains headers
+  const firstCells = lines[0].split("\t").map(c => c.trim().toLowerCase());
+
+  const teamHeaders = [
+    "team id", "age / division", "age/division", "age div",
+    "team region", "region", "team number", "team #",
+    "team name", "coach", "team coach",
+    "assistant coach", "asst coach", "colors", "team colors"
+  ];
+
+  const isHeader = firstCells.every(cell =>
+    teamHeaders.includes(cell)
+  );
+
+  let dataStartIndex = 0;
+  let headerMap = null;
+
+  if (isHeader) {
+    // Map column name → index
+    headerMap = {};
+    firstCells.forEach((label, idx) => {
+      headerMap[label] = idx;
+    });
+    dataStartIndex = 1;
+  }
+
+  // If header row exists, parse team fields from it; else parse from first data row
+  function getField(cells, fieldNames) {
+    if (!headerMap) return null;
+    for (const name of fieldNames) {
+      const key = Object.keys(headerMap).find(h => h === name.toLowerCase());
+      if (key !== undefined) {
+        return cells[headerMap[key]] || "";
+      }
     }
-  });
+    return null;
+  }
+
+  for (let i = dataStartIndex; i < lines.length; i++) {
+    const cells = lines[i].split("\t").map(c => c.trim());
+
+    // First data row → team fields if we haven’t set them yet
+    if (i === dataStartIndex) {
+      if (headerMap) {
+        // Header‑based extraction
+        team.teamId        = getField(cells, ["Team ID"]) || "";
+        team.teamAgeDiv    = getField(cells, ["Age / Division","AgeDiv"]) || "";
+        team.teamRegion    = getField(cells, ["Team Region","Region"]) || "";
+        team.teamNumber    = getField(cells, ["Team Number","Team #"]) || "";
+        team.teamName      = getField(cells, ["Team Name"]) || "";
+        team.teamCoach     = getField(cells, ["Team Coach","Coach"]) || "";
+        team.teamAsstCoach = getField(cells, ["Assistant Coach","Asst Coach"]) || "";
+        team.teamColors    = getField(cells, ["Team Colors","Colors"]) || "";
+      } else if (cells.length >= 8) {
+        // No header — assume the standard ordered line
+        team.teamId        = cells[0] || "";
+        team.teamAgeDiv    = cells[1] || "";
+        team.teamRegion    = cells[2] || "";
+        team.teamNumber    = cells[3] || "";
+        team.teamName      = cells[4] || "";
+        team.teamCoach     = cells[5] || "";
+        team.teamAsstCoach = cells[6] || "";
+        team.teamColors    = cells[7] || "";
+      }
+      // After extracting team fields, continue to next line
+      continue;
+    }
+
+    // Roster lines — need at least two fields (number + name)
+    if (cells.length >= 2) {
+      roster.push({
+        number: cells[0] || "",
+        name:   cells[1] || ""
+      });
+    }
+  }
 
   return { team, roster };
 }
@@ -214,8 +288,12 @@ function clearTeamFields() {
 
 function renderCurrentTeamUI() {
   const team = getCurrentTeam();
+  const status = document.getElementById("status-section‑1‑team");
+
   if (!team) {
+    if (status) status.textContent = "No team selected — create or load a team.";
     clearTeamFields();
+    renderRosterTable([]);
     return;
   }
 
@@ -228,8 +306,20 @@ function renderCurrentTeamUI() {
   document.getElementById("teamAgeDiv").value    = team.teamAgeDiv || "";
   document.getElementById("teamColors").value    = team.teamColors || "";
 
-  renderRosterTable(team.roster || []);
+  window.ROSTER_LIST = team.roster || [];
+  renderRosterTable(window.ROSTER_LIST);
+
+	 if (status) {
+	  const label =
+		team.teamName?.trim() ||
+		team.teamId?.trim() ||
+		"(unnamed team)";
+
+	  status.textContent =
+		`${label} — Currently selected. Expand to change, view or edit teams.`;
+	}
 }
+window.renderCurrentTeamUI = renderCurrentTeamUI;
 
 function initTeamSelectorUI() {
   const sel = document.getElementById("teamSelect");
@@ -288,17 +378,18 @@ window.initTeamDropdown = initTeamDropdown;
 // ----------------------------------------
 
 function saveCurrentTeam() {
+  // Pull values from UI into ROSTER_LIST
   syncRosterFromUI();
 
   const team = {
-    teamId: document.getElementById("teamId").value.trim(),
-    teamNumber: document.getElementById("teamNumber").value.trim(),
-    teamName: document.getElementById("teamName").value.trim(),
-    teamCoach: document.getElementById("teamCoach").value.trim(),
-    teamRegion: document.getElementById("teamRegion").value.trim(),
-    teamAsstCoach: document.getElementById("teamAsstCoach").value.trim(),
-    teamAgeDiv: document.getElementById("teamAgeDiv").value.trim(),
-    teamColors: document.getElementById("teamColors").value.trim(),
+    teamId: document.getElementById("teamId")?.value.trim(),
+    teamNumber: document.getElementById("teamNumber")?.value.trim(),
+    teamName: document.getElementById("teamName")?.value.trim(),
+    teamCoach: document.getElementById("teamCoach")?.value.trim(),
+    teamRegion: document.getElementById("teamRegion")?.value.trim(),
+    teamAsstCoach: document.getElementById("teamAsstCoach")?.value.trim(),
+    teamAgeDiv: document.getElementById("teamAgeDiv")?.value.trim(),
+    teamColors: document.getElementById("teamColors")?.value.trim(),
     roster: window.ROSTER_LIST
   };
 
@@ -307,14 +398,10 @@ function saveCurrentTeam() {
     return;
   }
 
-  const existing = getTeamById(team.teamId);
-  if (existing && existing !== getCurrentTeam()) {
-    alert("Team ID must be unique");
-    return;
-  }
+  // Save via TeamStore
+  window.TeamStore.addOrUpdateTeam(team);
 
-  addOrUpdateTeam(team);
-  initTeamSelectorUI();
+  alert(`Team "${team.teamName || team.teamId}" saved.`);
 }
 
 // ----------------------------------------
@@ -322,41 +409,164 @@ function saveCurrentTeam() {
 // ----------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("openImportModalBtn")?.addEventListener("click", () => {
-    document.getElementById("importModal").classList.remove("hidden");
-    document.getElementById("tsvInput").value = "";
+  window.TeamStore.loadTeamsFromStorage();
+  window.initTeamDropdown && window.initTeamDropdown();
+
+document.getElementById("parseRosterBtn")?.addEventListener("click", () => {
+  // Sync what’s in the roster input area into the UI roster list
+  const textarea = document.getElementById("rosterInput");
+  if (!textarea) return;
+  const lines = textarea.value
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+  const parsed = lines.map(line => {
+    const parts = line.split(/\t| {2,}/);
+    return { number: parts[0] || "", name: parts.slice(1).join(" ").trim() };
   });
-
-  document.getElementById("closeImportModalBtn")?.addEventListener("click", () => {
-    document.getElementById("importModal").classList.add("hidden");
-  });
-
-  document.getElementById("importTsvBtn")?.addEventListener("click", () => {
-    const text = document.getElementById("tsvInput").value.trim();
-    if (!text) {
-      alert("Paste TSV to import");
-      return;
-    }
-    const { team, roster } = parseTSV(text);
-    if (!team.teamId) {
-      alert("No valid team found in TSV");
-      return;
-    }
-    document.getElementById("importModal").classList.add("hidden");
-
-    window.ROSTER_LIST = roster;
-    document.getElementById("teamId").value        = team.teamId || "";
-    document.getElementById("teamNumber").value    = team.teamNumber || "";
-    document.getElementById("teamName").value      = team.teamName || "";
-    document.getElementById("teamCoach").value     = team.teamCoach || "";
-    document.getElementById("teamRegion").value    = team.teamRegion || "";
-    document.getElementById("teamAsstCoach").value = team.teamAsstCoach || "";
-    document.getElementById("teamAgeDiv").value    = team.teamAgeDiv || "";
-    document.getElementById("teamColors").value    = team.teamColors || "";
-
-    renderRosterTable(roster);
-  });
+  window.ROSTER_LIST = parsed;
+  renderRosterTable(parsed);
 });
+
+  // --- SAVE TEAM ---
+  document.getElementById("saveTeamBtn")?.addEventListener("click", () => {
+    saveCurrentTeam();
+    initTeamSelectorUI(); // refresh dropdown
+  });
+
+  // --- DELETE TEAM ---
+document.getElementById("deleteTeamBtn")?.addEventListener("click", () => {
+
+  const currentTeam = window.TeamStore.getCurrentTeam();
+  if (!currentTeam) {
+    alert("No team selected to delete.");
+    return;
+  }
+
+  if (!confirm(`Delete team "${currentTeam.teamName || currentTeam.teamId}"?`)) {
+    return;
+  }
+
+  // Remove the current team
+  window.TeamStore.deleteCurrentTeam();
+
+  // Get remaining teams
+  const remaining = window.TeamStore.getAllTeams();
+
+  // Decide what should be selected next
+  let nextTeam = null;
+  if (remaining.length > 0) {
+    // Try to find the index of the deleted team in the old list
+    // (TeamStore doesn’t track indexes, so just pick first)
+    nextTeam = remaining[0];
+    window.TeamStore.selectTeamById(nextTeam.teamId);
+  } else {
+    // No teams left
+    window.TeamStore.selectTeamById(null);
+  }
+
+  // Update dropdown UI
+  if (window.initTeamDropdown) window.initTeamDropdown();
+
+  // Update form
+  if (nextTeam) {
+    window.renderCurrentTeamUI();
+  } else {
+    // Clear the form if nothing left
+    clearTeamFields();
+  }
+});
+
+  // --- CLONE TEAM ---
+  document.getElementById("cloneTeamBtn")?.addEventListener("click", () => {
+    window.TeamStore.cloneCurrentTeam();
+    initTeamSelectorUI();
+  });
+
+  // --- NEW TEAM ---
+  document.getElementById("newTeamBtn")?.addEventListener("click", () => {
+    // clear internal current team so save creates a new one
+    window.TeamStore.selectTeamById(null);
+
+    // clear UI
+    clearTeamFields();
+
+    // add a "New Team" placeholder option if it isn't there
+    const sel = document.getElementById("teamSelect");
+    if (sel) {
+      let placeholder = sel.querySelector('option[value="new"]');
+      if (!placeholder) {
+        placeholder = document.createElement("option");
+        placeholder.value = "new";
+        placeholder.textContent = "🔹 New Team";
+        sel.insertBefore(placeholder, sel.firstChild);
+      }
+      sel.value = "new";
+    }
+  });
+	  // 🔘 Open Import Modal
+	document.getElementById("openImportModalBtn")?.addEventListener("click", () => {
+	  document.getElementById("importModal").classList.remove("hidden");
+	  document.getElementById("tsvInput").value = "";
+	});
+
+	// ❌ Close Modal
+	document.getElementById("closeImportModalBtn")?.addEventListener("click", () => {
+	  document.getElementById("importModal").classList.add("hidden");
+	});
+
+	// ✅ Import TSV
+document.getElementById("importTsvBtn")?.addEventListener("click", () => {
+  const text = document.getElementById("tsvInput").value.trim();
+  if (!text) {
+    alert("Paste TSV to import");
+    return;
+  }
+
+  const { team, roster } = parseTSV(text);
+  if (!team.teamId) {
+    alert("No valid team in TSV");
+    return;
+  }
+
+  // Set as new/ imported team
+  _currentTeamId = null;
+  window.ROSTER_LIST = roster;
+
+  // Populate fields
+  document.getElementById("teamId").value        = team.teamId || "";
+  document.getElementById("teamNumber").value    = team.teamNumber || "";
+  document.getElementById("teamName").value      = team.teamName || "";
+  document.getElementById("teamCoach").value     = team.teamCoach || "";
+  document.getElementById("teamRegion").value    = team.teamRegion || "";
+  document.getElementById("teamAsstCoach").value = team.teamAsstCoach || "";
+  document.getElementById("teamAgeDiv").value    = team.teamAgeDiv || "";
+  document.getElementById("teamColors").value    = team.teamColors || "";
+
+  renderRosterTable(roster);
+
+  // === Update the dropdown to show "Imported Team" ===
+  const sel = document.getElementById("teamSelect");
+  if (sel) {
+    // Remove existing "imported" or "new" placeholder if present
+    const oldPlaceholder = sel.querySelector('option[value="new"]');
+    if (oldPlaceholder) oldPlaceholder.remove();
+
+    // Add a fresh placeholder at the top
+    const placeholder = document.createElement("option");
+    placeholder.value = "new";
+    placeholder.textContent = `🔹 Imported Team`;
+    sel.insertBefore(placeholder, sel.firstChild);
+
+    sel.value = "new";
+  }
+
+  document.getElementById("importModal").classList.add("hidden");
+  document.getElementById("status-section-1-team").textContent =
+    `Imported team "${team.teamName || team.teamId}" — ready to save`;
+});
+});
+
 
 // ----------------------------------------
 // EXPOSE

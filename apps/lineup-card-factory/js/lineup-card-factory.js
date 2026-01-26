@@ -1085,7 +1085,32 @@ window.initUI = function initUI() {
 
 // populate the team selector dropdown
 window.TeamStore.loadTeamsFromStorage();
-window.initTeamDropdown(); // must match the global assignment above
+
+if (window.initTeamDropdown) window.initTeamDropdown();
+
+let team = window.TeamStore.getCurrentTeam();
+if (team) {
+  renderCurrentTeamUI();
+} else {
+  const all = window.TeamStore.getAllTeams();
+  if (all.length > 0) {
+    window.TeamStore.selectTeamById(all[0].teamId);
+    if (window.initTeamDropdown) window.initTeamDropdown();
+    renderCurrentTeamUI();
+    team = window.TeamStore.getCurrentTeam(); // update after selection
+  }
+}
+
+// ✅ Update collapsed section status
+const status = document.getElementById("status-section-1-team");
+if (status) {
+  if (team) {
+    const label = team.teamName?.trim() || team.teamId?.trim() || "(unnamed team)";
+    status.textContent = `${label} — Currently selected. Expand to change, view or edit teams.`;
+  } else {
+    status.textContent = "No team selected — create or load a team.";
+  }
+}
 
 console.log("🧠 Loaded teams:", window.TeamStore.getAllTeams());
 

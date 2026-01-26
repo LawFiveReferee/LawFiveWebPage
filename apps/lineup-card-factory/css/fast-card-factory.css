@@ -2117,3 +2117,17 @@ roster-table {
   margin-top: 0.5em;
   font-family: monospace;
 }
+.tsv-hint {
+  font-size: 0.85em;
+  margin-top: 0.5em;
+  color: #666;
+  display: block;
+  line-height: 1.4;
+}
+.tsv-hint code {
+  display: block;
+  background: #f9f9f9;
+  padding: 0.5em;
+  white-space: pre;
+  font-family: monospace;
+}
