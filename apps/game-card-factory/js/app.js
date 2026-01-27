@@ -870,23 +870,20 @@ if (parseBtn) {
 	updateStatusLines?.();
 
 	// Prompt to save schedule
-	if (confirm("Save this schedule for later?")) {
-		const defaultName = raw.split(/\r?\n/)[0]?.trim() || "";
-		const name = prompt("Enter a name for this schedule:", defaultName);
-		if (name && name.trim()) {
-			window.ScheduleStore.addOrUpdateSchedule({
-				name: name.trim(),
-				parserKey: window.selectedParserKey || "",
-				rawText: raw,
-				parsedGames: games
-			});
-			window.refreshScheduleDropdown?.();
-			alert(`Schedule "${name.trim()}" saved.`);
-		} else {
-			alert("Schedule not saved (name required).");
-		}
+	if (Array.isArray(parsed) && parsed.length > 0) {
+	  const defaultName = rawOriginal.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
+	  const name = prompt("Enter a name for this schedule:", defaultName);
+	  if (name && name.trim()) {
+		window.ScheduleStore.addOrUpdateSchedule({
+		  name: name.trim(),
+		  parserKey: selectedParserKey,
+		  rawText: rawOriginal,
+		  parsedGames: parsed
+		});
+		window.refreshScheduleDropdown?.();
+		alert(`Schedule "${name.trim()}" saved.`);
+	  }
 	}
-
 	// Auto‑select first team if none selected
 	const currentTeam = window.TeamStore?.getCurrentTeam?.();
 	const allTeams = window.TeamStore?.getAllTeams?.() || [];
@@ -937,31 +934,45 @@ document.getElementById("renameScheduleBtn")?.addEventListener("click", () => {
 
 // — Schedule Parse —
 document.getElementById("parseBtn")?.addEventListener("click", () => {
-  const raw = document.getElementById("rawInput")?.value || "";
+  const rawInputEl = document.getElementById("rawInput");
+  const raw = rawInputEl?.value.trim() || "";
+
+  if (!raw) {
+    alert("Paste schedule text first.");
+    return;
+  }
+
   const games = window.ScheduleStore.importSchedule({
     rawText: raw,
     source: "paste",
     autoSelect: true
   });
 
-  if (!Array.isArray(games) || games.length === 0) return;
-
-  // ✅ Prompt to save
-  if (confirm("Save this schedule for later?")) {
-    const name = prompt("Enter a name for this schedule:");
-    if (name) {
-      window.ScheduleStore.saveSchedule({
-        name: name.trim(),
-        rawText: raw,
-        parserKey: window.currentParserKey || "unknown"
-      });
-      console.log("✅ Schedule saved:", name);
-    }
+  if (!Array.isArray(games) || games.length === 0) {
+    alert("No games parsed.");
+    return;
   }
 
-  renderCards?.();
-  updateStatusLines?.();
+  // ✅ Prompt user to save
+  const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
+  const name = prompt("Enter a name for this schedule:", defaultName);
+
+  if (name && name.trim()) {
+    window.ScheduleStore.addOrUpdateSchedule({
+      name: name.trim(),
+      parserKey: window.selectedParserKey || "generic",
+      rawText: raw,
+      parsedGames: games
+    });
+    window.refreshScheduleDropdown?.();
+    alert(`Schedule "${name.trim()}" saved.`);
+  }
+
+  renderCards();
+  updateStatusLines();
+  updateSelectedCountUI();
 });
+
 
 	/* ----------------------------
 	   CLEAR BUTTON
@@ -1554,78 +1565,7 @@ document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
   window.refreshScheduleDropdown?.();
 });
 
- document.addEventListener("DOMContentLoaded", () => {
 
-  // — Rename Schedule —
-  document.getElementById("renameScheduleBtn")?.addEventListener("click", () => {
-    const sel = document.getElementById("scheduleSelect");
-    const oldName = sel?.value;
-    if (!oldName) return alert("Select a schedule first.");
-
-    const newName = prompt("Enter a new name:", oldName);
-    if (!newName || newName.trim() === "" || newName === oldName) return;
-
-    const schedule = window.ScheduleStore.getScheduleByName(oldName);
-    if (!schedule) return;
-
-    window.ScheduleStore.deleteScheduleByName(oldName);
-    schedule.name = newName.trim();
-    window.ScheduleStore.addOrUpdateSchedule(schedule);
-
-    window.refreshScheduleDropdown?.();
-    sel.value = newName.trim();
-  });
-
-  // — Define Mapping Button —
-  const btn = document.getElementById("openMappingPanelBtn");
-  if (!btn) {
-    console.error("Define Mapping button not found in DOM");
-    return;
-  }
-
-  btn.addEventListener("click", () => {
-    console.log("Define Mapping clicked");
-
-    const rawInputElem = document.getElementById("rawInput");
-    const rawText = rawInputElem ? rawInputElem.value : "";
-
-    if (!rawText) {
-      console.warn("No schedule text found (rawInput empty)");
-      return;
-    }
-
-    // extract header row
-    const firstLine = (rawText.split("\n")[0] || "").trim();
-    const headers = firstLine
-      ? firstLine.split(/\t|\| |,/).map(h => h.trim())
-      : [];
-
-    console.log("Headers:", headers);
-
-    if (typeof window.openGenericMappingUI === "function") {
-      window.openGenericMappingUI(headers, "user-mapper", rawText);
-    } else {
-      console.error("openGenericMappingUI() not available");
-    }
-  });
-
-  // — Game Count UI —
-  function updateGameCountUI() {
-    const allGames = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-    const total = allGames.length;
-    const selected = allGames.filter(g => g.selected).length;
-
-    document.querySelectorAll(".total-game-count").forEach(el => {
-      el.textContent = total;
-    });
-    document.querySelectorAll(".selected-game-count").forEach(el => {
-      el.textContent = selected;
-    });
-  }
-
-  // expose if used elsewhere
-  window.updateGameCountUI = updateGameCountUI;
-});
 
 // ----------------------------
 // FILTER LOGIC (OUTSIDE DOM READY)
