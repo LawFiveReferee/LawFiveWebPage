@@ -1462,3 +1462,25 @@ footer {
     100% 100%;
   background-repeat: no-repeat;
 }
+.saved-schedules-section {
+  margin: 0.5em 0 1em;
+}
+.saved-schedules-controls {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+#scheduleSelect {
+  flex: 1;
+}
+.saved-schedules-section {
+  margin: 0.5em 0;
+}
+.saved-schedules-controls {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+#scheduleSelect {
+  flex: 1;
+}

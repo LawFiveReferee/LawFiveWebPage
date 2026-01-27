@@ -1072,7 +1072,7 @@ loadSavedSchedules();
 window.initUI = function initUI() {
 	console.log("🟢 initUI() starting…");
 
-	// Initialize collapsibles first
+	// Initialize collapsibles first (if needed)
 	// initCollapsibles();
 
 	// Load templates
@@ -1080,138 +1080,202 @@ window.initUI = function initUI() {
 		refreshTemplateCarousel();
 	});
 
-	// Load teams from storage
-// load teams into the shared store
+	// — TEAM SELECTOR INITIALIZATION — //
 
-// populate the team selector dropdown
-window.TeamStore.loadTeamsFromStorage();
+	// Load teams into the shared TeamStore
+	window.TeamStore.loadTeamsFromStorage();
 
-if (window.initTeamDropdown) window.initTeamDropdown();
+	// Populate the team selector dropdown
+	if (window.initTeamDropdown) window.initTeamDropdown();
 
-let team = window.TeamStore.getCurrentTeam();
-if (team) {
-  renderCurrentTeamUI();
-} else {
-  const all = window.TeamStore.getAllTeams();
-  if (all.length > 0) {
-    window.TeamStore.selectTeamById(all[0].teamId);
-    if (window.initTeamDropdown) window.initTeamDropdown();
-    renderCurrentTeamUI();
-    team = window.TeamStore.getCurrentTeam(); // update after selection
-  }
-}
-
-// ✅ Update collapsed section status
-const status = document.getElementById("status-section-1-team");
-if (status) {
-  if (team) {
-    const label = team.teamName?.trim() || team.teamId?.trim() || "(unnamed team)";
-    status.textContent = `${label} — Currently selected. Expand to change, view or edit teams.`;
-  } else {
-    status.textContent = "No team selected — create or load a team.";
-  }
-}
-
-console.log("🧠 Loaded teams:", window.TeamStore.getAllTeams());
-
-	// Try to restore previous selection
-	const storedIdxRaw = localStorage.getItem("lineupCardFactoryCurrentTeam");
-	let restoredIndex = null;
-
-
-	// If we have a team index, *select* it via selectTeam()
-	if (restoredIndex !== null) {
-		console.log("🧠 initUI -> selecting team index:", restoredIndex);
-		selectTeam(restoredIndex);
+	let team = window.TeamStore.getCurrentTeam();
+	if (team) {
+		renderCurrentTeamUI();
+	} else {
+		const all = window.TeamStore.getAllTeams();
+		if (all.length > 0) {
+			window.TeamStore.selectTeamById(all[0].teamId);
+			if (window.initTeamDropdown) window.initTeamDropdown();
+			renderCurrentTeamUI();
+			team = window.TeamStore.getCurrentTeam(); // update after selection
+		}
 	}
 
-	// Log final state
-	console.log("🧠 After initUI, CURRENT_TEAM =", window.CURRENT_TEAM);
+	// Update collapsed section status
+	const status = document.getElementById("status-section-1-team");
+	if (status) {
+		if (team) {
+			const label = team.teamName?.trim() || team.teamId?.trim() || "(unnamed team)";
+			status.textContent =
+				`${label} — Currently selected. Expand to change, view or edit teams.`;
+		} else {
+			status.textContent = "No team selected — create or load a team.";
+		}
+	}
+
+	console.log("🧠 Loaded teams:", window.TeamStore.getAllTeams());
 
 	// Team selector change handler
 	document.getElementById("teamSelect")?.addEventListener("change", (e) => {
-		const idx = parseInt(e.target.value, 10);
-		if (!isNaN(idx)) {
-			selectTeam(idx);
+		const newId = e.target.value;
+		if (newId) {
+			window.TeamStore.selectTeamById(newId);
+			renderCurrentTeamUI();
 		}
 	});
 
-	// Load saved schedules
-	const savedSchedules =
-		JSON.parse(localStorage.getItem("savedSchedules") || "[]") || [];
+	// — SAVED SCHEDULES INITIALIZATION — //
 
-	savedSchedules.forEach(s => addSchedule(s.name, s.rawText));
+	// Refresh dropdown from ScheduleStore
+	window.refreshScheduleDropdown?.();
 
-	// Optional: add sample schedules
-	addSchedule(
-		"Sample AYSO",
-		`Home\tAway\tDate\tTime\tLocation\nTeam1\tTeam2\tSat, Jan 10, 2026\t10:00 AM\tField1`
-	);
-	// Schedule parse
+	// Load Schedule dropdown handlers
+	document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+		const sel = document.getElementById("scheduleSelect");
+		const name = sel?.value;
+		if (!name) return alert("Select a saved schedule first.");
+
+		const schedule = window.ScheduleStore.getScheduleByName(name);
+		if (!schedule) return alert("Schedule not found.");
+
+		// Populate raw text
+		document.getElementById("rawInput").value = schedule.rawText;
+
+		// Restore parser selection if possible
+		if (schedule.parserKey && typeof selectParserByKey === "function") {
+			selectParserByKey(schedule.parserKey);
+		}
+
+		// Apply parsed games
+		window.GAME_LIST = schedule.parsedGames || [];
+
+		// Update UI
+		renderPreviewCards();
+		updateStatusLines?.();
+
+		document.getElementById("status-section-1").textContent =
+			`Loaded schedule: ${name}`;
+	});
+
+	document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
+		const sel = document.getElementById("scheduleSelect");
+		const name = sel?.value;
+		if (!name) return alert("Select a schedule first.");
+		if (!confirm(`Delete schedule "${name}"?`)) return;
+
+		window.ScheduleStore.deleteScheduleByName(name);
+		window.refreshScheduleDropdown?.();
+	});
+
+	document.getElementById("renameScheduleBtn")?.addEventListener("click", () => {
+		const sel = document.getElementById("scheduleSelect");
+		const oldName = sel?.value;
+		if (!oldName) return alert("Select a schedule first.");
+
+		const newName = prompt("Enter a new name:", oldName);
+		if (!newName || newName.trim() === "" || newName === oldName) return;
+
+		const schedule = window.ScheduleStore.getScheduleByName(oldName);
+		if (!schedule) return;
+
+		window.ScheduleStore.deleteScheduleByName(oldName);
+		schedule.name = newName.trim();
+		window.ScheduleStore.addOrUpdateSchedule(schedule);
+
+		window.refreshScheduleDropdown?.();
+		document.getElementById("scheduleSelect").value = newName.trim();
+	});
+
+	// — SCHEDULE PARSE HANDLER (with ONE save prompt) — //
+
 	document.getElementById("parseBtn")?.addEventListener("click", () => {
-		const raw = document.getElementById("rawInput")?.value || "";
-		const parsed = window.ScheduleStore.importSchedule({
+		const rawInputEl = document.getElementById("rawInput");
+		const raw = rawInputEl?.value.trim() || "";
+
+		if (!raw) {
+			alert("Paste schedule text first.");
+			return;
+		}
+
+		const games = window.ScheduleStore.importSchedule({
 			rawText: raw,
-			source: "paste", // or "saved", "single-game", etc
-			autoSelect: true // optional, selects games by default
+			source: "paste",
+			autoSelect: true
 		});
 
-		if (parsed && parsed.length) {
+		if (!Array.isArray(games) || games.length === 0) {
+			return;
+		}
 
-			// ✅ If no team is currently selected, pick the first
-			if (window.CURRENT_TEAM === null && TeamStore.getCurrentTeam() > 0) {
-				console.log("🟢 No team selected — auto‑selecting first team");
-				selectTeam(0); // sets CURRENT_TEAM and updates UI state
+		renderPreviewCards();
+		updateStatusLines?.();
+
+		// Prompt to save schedule
+		if (confirm("Save this schedule for later?")) {
+			const defaultName = raw.split(/\r?\n/)[0]?.trim() || "";
+			const name = prompt("Enter a name for this schedule:", defaultName);
+			if (name && name.trim()) {
+				window.ScheduleStore.addOrUpdateSchedule({
+					name: name.trim(),
+					parserKey: window.selectedParserKey || "",
+					rawText: raw,
+					parsedGames: games
+				});
+				window.refreshScheduleDropdown?.();
+				alert(`Schedule "${name.trim()}" saved.`);
+			} else {
+				alert("Schedule not saved (name required).");
 			}
+		}
 
-			renderPreviewCards();
+		// Auto‑select first team if none selected
+		const currentTeam = window.TeamStore?.getCurrentTeam?.();
+		const allTeams = window.TeamStore?.getAllTeams?.() || [];
+		if (!currentTeam && allTeams.length > 0) {
+			console.log("🟢 No team selected — auto‑selecting first team");
+			window.TeamStore.selectTeamById(allTeams[0].teamId);
+			renderCurrentTeamUI();
 		}
 	});
 
+	// — CLEAR SCHEDULE textarea — //
 	document.getElementById("clearScheduleBtn")?.addEventListener("click", () => {
 		document.getElementById("rawInput").value = "";
 		window.GAME_LIST = [];
-		updateStatusLines();
+		updateStatusLines?.();
 		renderPreviewCards();
 	});
 
-	// Filter
+	// — FILTER HANDLERS — //
 	document.getElementById("applyFilterBtn")?.addEventListener("click", applyFilter);
 	document.getElementById("clearFilterBtn")?.addEventListener("click", () => {
 		document.getElementById("filterInput").value = "";
 		applyFilter();
 	});
+
+	// — PDF / GENERATOR HANDLER — //
 	document.getElementById("generateBtn")?.addEventListener("click", generatePDFs);
 
-	// 🔽 Add these below existing event listeners
+	// — TEMPLATE CAROUSEL CONTROLS — //
 	document.getElementById("prevTemplate")?.addEventListener("click", () => {
 		if (!window.TEMPLATE_LIST.length) return;
 		window.selectedTemplateIndex = (window.selectedTemplateIndex + window.TEMPLATE_LIST.length - 1) % window.TEMPLATE_LIST.length;
 		refreshTemplateCarousel();
 	});
-
 	document.getElementById("nextTemplate")?.addEventListener("click", () => {
 		if (!window.TEMPLATE_LIST.length) return;
 		window.selectedTemplateIndex = (window.selectedTemplateIndex + 1) % window.TEMPLATE_LIST.length;
 		refreshTemplateCarousel();
 	});
 
-	// Template loading
+	// — FINAL REFRESHES — //
 	loadTemplates().then(refreshTemplateCarousel);
 	refreshImportCarousel();
-window.addEventListener("scheduleImported", (ev) => {
-  // Refresh the preview cards using the new GAME_LIST
-  // ✅ Ensure teams are loaded
 
-// ✅ Select team 0 if none selected
-
-if (typeof renderPreviewCards === "function") {
-    renderPreviewCards();
-  }
-  if (typeof updateStatusLines === "function") {
-    updateStatusLines();
-  }
-});
+	window.addEventListener("scheduleImported", (ev) => {
+		if (typeof renderPreviewCards === "function") renderPreviewCards();
+		if (typeof updateStatusLines === "function") updateStatusLines();
+	});
 };
 
 // ———————————————

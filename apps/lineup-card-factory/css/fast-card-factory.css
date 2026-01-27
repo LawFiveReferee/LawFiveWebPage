@@ -2131,3 +2131,14 @@ roster-table {
   white-space: pre;
   font-family: monospace;
 }
+.saved-schedules-section {
+  margin: 0.5em 0;
+}
+.saved-schedules-controls {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+#scheduleSelect {
+  flex: 1;
+}
