@@ -1566,7 +1566,6 @@ document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
 });
 
 
-
 // ----------------------------
 // FILTER LOGIC (OUTSIDE DOM READY)
 // ----------------------------
