@@ -996,7 +996,7 @@ document.getElementById("parseBtn")?.addEventListener("click", () => {
 		});
 	}
 }
-
+}
 window.initParsingControls = initParsingControls;
 
 /* ============================================================
