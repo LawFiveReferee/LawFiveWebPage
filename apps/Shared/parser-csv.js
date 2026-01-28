@@ -52,3 +52,20 @@ export function parseCSV(raw) {
 }
 
 window.parseCSV = parseCSV;
+
+/* ============================================================
+   CSV / SPREADSHEET PARSER
+============================================================ */
+
+// parse-CSV.js
+
+function parsecsvschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "csv",
+  name: "CSV Schedule",
+  parse: parsescsvschedule
+});

@@ -144,3 +144,20 @@ function loadMapping(key) {
 }
 
 window.parseGenericMapped = parseGenericMapped;
+
+/* ============================================================
+   Load mapping profile from localStorage
+============================================================ */
+
+// parse-generic-mapper.js
+
+function parsegenericmapperschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "generic-mapper",
+  name: "Generic Schedule Mapper",
+  parse: parsegeneric-mapperschedule
+});

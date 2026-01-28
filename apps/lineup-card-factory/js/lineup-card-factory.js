@@ -1,9 +1,8 @@
-
 /* ============================================================
    Lineup Card Factory — lineup-card-factory.js
 ============================================================ */
 import("../../shared/pdf-utils.js").then(module => {
-  window.validatePdfTemplate = module.validatePdfTemplate;
+	window.validatePdfTemplate = module.validatePdfTemplate;
 });
 
 console.log("Lineup Card Factory loaded…");
@@ -23,68 +22,73 @@ window.ROSTER_LIST = [];
 ============================================================ */
 
 
-const { parseAndImport } = window.ScheduleImport || {};
+const {
+	parseAndImport
+} = window.ScheduleImport || {};
 
 
 // ⏏️ Load schedule button
 document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const list = window.SCHEDULE_LIST || [];
-  const idx = window.selectedScheduleIndex;
-  if (!list.length || idx == null || !list[idx]) {
-    alert("Select a schedule first.");
-    return;
-  }
+	const list = window.SCHEDULE_LIST || [];
+	const idx = window.selectedScheduleIndex;
+	if (!list.length || idx == null || !list[idx]) {
+		alert("Select a schedule first.");
+		return;
+	}
 
-  const sel = list[idx];
-  const games = parseAndImport({
-    rawText: sel.rawText,
-    parserKey: sel.parserKey || "generic",
-    save: false,
-    name: sel.name,
-    source: "saved"
-  });
+	const sel = list[idx];
+	const games = parseAndImport({
+		rawText: sel.rawText,
+		parserKey: sel.parserKey || "generic",
+		save: false,
+		name: sel.name,
+		source: "saved"
+	});
 
-  window.GAME_LIST = games;
+	window.GAME_LIST = games;
 
-  // Auto-select a team if desired
-  if (games.length > 0) {
-    const firstGame = games[0];
-    window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
-  }
+	// Auto-select a team if desired
+	if (games.length > 0) {
+		const firstGame = games[0];
+		window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
+	}
 
-  renderPreviewCards();
-  updateStatusLines();
+	renderPreviewCards();
+	updateStatusLines();
 });
 
 // 🧹 Clear existing listeners so we donʼt double‑add
 const oldBtn = document.getElementById("addPlayerBtn");
 if (oldBtn) {
-  const newBtn = oldBtn.cloneNode(true);
-  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+	const newBtn = oldBtn.cloneNode(true);
+	oldBtn.parentNode.replaceChild(newBtn, oldBtn);
 }
 
 // ➕ Add player button
 
 document.getElementById("addPlayerBtn")?.addEventListener("click", () => {
-  console.log("➕ Add Player clicked");
+	console.log("➕ Add Player clicked");
 
-  // First sync current UI roster so we donʼt lose edits
-  const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(row => ({
-    number: row.querySelector(".roster-number-input")?.value.trim() || "",
-    name:   row.querySelector(".roster-name-input")?.value.trim() || ""
-  }));
-  window.ROSTER_LIST = currentRoster;
+	// First sync current UI roster so we donʼt lose edits
+	const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(row => ({
+		number: row.querySelector(".roster-number-input")?.value.trim() || "",
+		name: row.querySelector(".roster-name-input")?.value.trim() || ""
+	}));
+	window.ROSTER_LIST = currentRoster;
 
-  // Now add exactly ONE new player
-  window.ROSTER_LIST.push({ number: "", name: "" });
+	// Now add exactly ONE new player
+	window.ROSTER_LIST.push({
+		number: "",
+		name: ""
+	});
 
-  // Render
-  window.renderRosterTable(window.ROSTER_LIST);
+	// Render
+	window.renderRosterTable(window.ROSTER_LIST);
 
-  // Focus the new rowʼs number field
-  const lastIndex = window.ROSTER_LIST.length - 1;
-  const input = document.querySelector(`.roster-number-input[data-index="${lastIndex}"]`);
-  if (input) input.focus();
+	// Focus the new rowʼs number field
+	const lastIndex = window.ROSTER_LIST.length - 1;
+	const input = document.querySelector(`.roster-number-input[data-index="${lastIndex}"]`);
+	if (input) input.focus();
 });
 
 /* ============================================================
@@ -93,30 +97,30 @@ document.getElementById("addPlayerBtn")?.addEventListener("click", () => {
 
 
 document.getElementById("sortRosterBtn")?.addEventListener("click", () => {
-  // First read current UI values so edits aren’t lost
-  const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(r => ({
-    number: r.querySelector(".roster-number-input")?.value.trim() || "",
-    name:   r.querySelector(".roster-name-input")?.value.trim() || ""
-  }));
+	// First read current UI values so edits aren’t lost
+	const currentRoster = Array.from(document.querySelectorAll(".roster-row")).map(r => ({
+		number: r.querySelector(".roster-number-input")?.value.trim() || "",
+		name: r.querySelector(".roster-name-input")?.value.trim() || ""
+	}));
 
-  // Sort roster
-  currentRoster.sort((a, b) => {
-    const na = parseInt(a.number, 10);
-    const nb = parseInt(b.number, 10);
+	// Sort roster
+	currentRoster.sort((a, b) => {
+		const na = parseInt(a.number, 10);
+		const nb = parseInt(b.number, 10);
 
-    if (!isNaN(na) && !isNaN(nb)) return na - nb;
-    if (!isNaN(na)) return -1;
-    if (!isNaN(nb)) return 1;
-    return 0;
-  });
+		if (!isNaN(na) && !isNaN(nb)) return na - nb;
+		if (!isNaN(na)) return -1;
+		if (!isNaN(nb)) return 1;
+		return 0;
+	});
 
-  // Update global and rerender
-  window.ROSTER_LIST = currentRoster;
-  window.renderRosterTable(currentRoster);
+	// Update global and rerender
+	window.ROSTER_LIST = currentRoster;
+	window.renderRosterTable(currentRoster);
 
-  // Focus still optional
-  const lastInput = document.querySelector(`.roster-number-input[data-index="${currentRoster.length - 1}"]`);
-  if (lastInput) lastInput.focus();
+	// Focus still optional
+	const lastInput = document.querySelector(`.roster-number-input[data-index="${currentRoster.length - 1}"]`);
+	if (lastInput) lastInput.focus();
 });
 
 
@@ -265,142 +269,144 @@ function updateStatusLines() {
 
 
 function createCardElement(team, game) {
-  const card = document.createElement("div");
-  card.className = "lineup-card";
+	const card = document.createElement("div");
+	card.className = "lineup-card";
 
-  // — TITLE —
-  const title = document.createElement("h3");
-  title.textContent = game
-    ? `${team.teamName}`
-    : `${team.teamName} — Roster`;
-  card.appendChild(title);
+	// — TITLE —
+	const title = document.createElement("h3");
+	title.textContent = game ?
+		`${team.teamName}` :
+		`${team.teamName} — Roster`;
+	card.appendChild(title);
 
-  // — GAME INFO (if game provided) —
-  if (game) {
-    const homeId = game.home_team || game.homeTeamRaw || "";
-    const awayId = game.away_team || game.awayTeamRaw || "";
+	// — GAME INFO (if game provided) —
+	if (game) {
+		const homeId = game.home_team || game.homeTeamRaw || "";
+		const awayId = game.away_team || game.awayTeamRaw || "";
 
-    const matchup = document.createElement("p");
-    matchup.innerHTML = `<strong>Matchup:</strong> ${homeId} – ${awayId}`;
-    card.appendChild(matchup);
+		const matchup = document.createElement("p");
+		matchup.innerHTML = `<strong>Matchup:</strong> ${homeId} – ${awayId}`;
+		card.appendChild(matchup);
 
-    const isHome = String(homeId || "").toLowerCase() === String(team.teamId || "").toLowerCase();
-    const opponentVal = isHome ? awayId : homeId;
+		const isHome = String(homeId || "").toLowerCase() === String(team.teamId || "").toLowerCase();
+		const opponentVal = isHome ? awayId : homeId;
 
-    const opponentLine = document.createElement("p");
-    opponentLine.innerHTML = `<strong>Opponent:</strong> ${opponentVal}`;
-    card.appendChild(opponentLine);
+		const opponentLine = document.createElement("p");
+		opponentLine.innerHTML = `<strong>Opponent:</strong> ${opponentVal}`;
+		card.appendChild(opponentLine);
 
-    // Age/Division
-    const ageDivVal = game.ageDiv || game.age_division || "";
-    if (ageDivVal) {
-      const ageEl = document.createElement("p");
-      ageEl.innerHTML = `<strong>Age/Div:</strong> ${ageDivVal}`;
-      card.appendChild(ageEl);
-    }
+		// Age/Division
+		const ageDivVal = game.ageDiv || game.age_division || "";
+		if (ageDivVal) {
+			const ageEl = document.createElement("p");
+			ageEl.innerHTML = `<strong>Age/Div:</strong> ${ageDivVal}`;
+			card.appendChild(ageEl);
+		}
 
-    // Date
-    const dateVal = game.gameDate || "";
-    if (dateVal) {
-      const dateEl = document.createElement("p");
-      dateEl.innerHTML = `<strong>Date:</strong> ${dateVal}`;
-      card.appendChild(dateEl);
-    }
+		// Date
+		const dateVal = game.gameDate || "";
+		if (dateVal) {
+			const dateEl = document.createElement("p");
+			dateEl.innerHTML = `<strong>Date:</strong> ${dateVal}`;
+			card.appendChild(dateEl);
+		}
 
-    // Time
-    const timeVal = game.gameTime || "";
-    if (timeVal) {
-      const timeEl = document.createElement("p");
-      timeEl.innerHTML = `<strong>Time:</strong> ${timeVal}`;
-      card.appendChild(timeEl);
-    }
+		// Time
+		const timeVal = game.gameTime || "";
+		if (timeVal) {
+			const timeEl = document.createElement("p");
+			timeEl.innerHTML = `<strong>Time:</strong> ${timeVal}`;
+			card.appendChild(timeEl);
+		}
 
-    // Location
-    const locationVal = game.gameLocation || "";
-    if (locationVal) {
-      const locEl = document.createElement("p");
-      locEl.innerHTML = `<strong>Location:</strong> ${locationVal}`;
-      card.appendChild(locEl);
-    }
-  }
+		// Location
+		const locationVal = game.gameLocation || "";
+		if (locationVal) {
+			const locEl = document.createElement("p");
+			locEl.innerHTML = `<strong>Location:</strong> ${locationVal}`;
+			card.appendChild(locEl);
+		}
+	}
 
-  // — TEAM INFO —
-  if (team.teamCoach) {
-    const coachEl = document.createElement("p");
-    coachEl.innerHTML = `<strong>Coach:</strong> ${team.teamCoach}`;
-    card.appendChild(coachEl);
-  }
+	// — TEAM INFO —
+	if (team.teamCoach) {
+		const coachEl = document.createElement("p");
+		coachEl.innerHTML = `<strong>Coach:</strong> ${team.teamCoach}`;
+		card.appendChild(coachEl);
+	}
 
-  if (team.teamAsstCoach) {
-    const asstEl = document.createElement("p");
-    asstEl.innerHTML = `<strong>Asst. Coach:</strong> ${team.teamAsstCoach}`;
-    card.appendChild(asstEl);
-  }
+	if (team.teamAsstCoach) {
+		const asstEl = document.createElement("p");
+		asstEl.innerHTML = `<strong>Asst. Coach:</strong> ${team.teamAsstCoach}`;
+		card.appendChild(asstEl);
+	}
 
-  if (team.teamColors) {
-    const colorEl = document.createElement("p");
-    colorEl.innerHTML = `<strong>Colors:</strong> ${team.teamColors}`;
-    card.appendChild(colorEl);
-  }
+	if (team.teamColors) {
+		const colorEl = document.createElement("p");
+		colorEl.innerHTML = `<strong>Colors:</strong> ${team.teamColors}`;
+		card.appendChild(colorEl);
+	}
 
-  // — BUTTON ROW (Edit + PDF) —
-  const btnRow = document.createElement("div");
-  btnRow.className = "card-button-row";
+	// — BUTTON ROW (Edit + PDF) —
+	const btnRow = document.createElement("div");
+	btnRow.className = "card-button-row";
 
-  const editBtn = document.createElement("button");
-  editBtn.textContent = "Edit";
-  editBtn.className = "btn";
-  editBtn.addEventListener("click", () => enterInlineEditMode(card, team, game));
-  btnRow.appendChild(editBtn);
-
-
-
- const pdfBtn = document.createElement("button");
-pdfBtn.textContent = "PDF";
-pdfBtn.className = "btn secondary";
-pdfBtn.addEventListener("click", async () => {
-  try {
-    // Compute opponent for filename
-    const homeId = game?.home_team || game?.homeTeamRaw || "";
-    const awayId = game?.away_team || game?.awayTeamRaw || "";
-    const isHomeTeam = game && String(homeId).toLowerCase() === String(team.teamId).toLowerCase();
-    const opponentName = isHomeTeam ? awayId : homeId || "Opponent";
-
-    const bytes = await window.createPdfForLineup(team, game);
-    const filename = game
-      ? `${team.teamName}-vs-${opponentName}.pdf`
-      : `${team.teamName}-Roster.pdf`;
-
-    saveAs(new Blob([bytes], { type: "application/pdf" }), filename);
-  } catch (err) {
-    console.error("PDF generation error:", err);
-    alert("Error generating PDF — see console.");
-  }
-});
-btnRow.appendChild(pdfBtn);
+	const editBtn = document.createElement("button");
+	editBtn.textContent = "Edit";
+	editBtn.className = "btn";
+	editBtn.addEventListener("click", () => enterInlineEditMode(card, team, game));
+	btnRow.appendChild(editBtn);
 
 
 
-  card.appendChild(btnRow);
+	const pdfBtn = document.createElement("button");
+	pdfBtn.textContent = "PDF";
+	pdfBtn.className = "btn secondary";
+	pdfBtn.addEventListener("click", async () => {
+		try {
+			// Compute opponent for filename
+			const homeId = game?.home_team || game?.homeTeamRaw || "";
+			const awayId = game?.away_team || game?.awayTeamRaw || "";
+			const isHomeTeam = game && String(homeId).toLowerCase() === String(team.teamId).toLowerCase();
+			const opponentName = isHomeTeam ? awayId : homeId || "Opponent";
 
-  // — ROSTER LIST —
-  const rosterHeader = document.createElement("h4");
-  rosterHeader.textContent = "Roster";
-  card.appendChild(rosterHeader);
+			const bytes = await window.createPdfForLineup(team, game);
+			const filename = game ?
+				`${team.teamName}-vs-${opponentName}.pdf` :
+				`${team.teamName}-Roster.pdf`;
 
-  const rosterList = document.createElement("ul");
-  rosterList.className = "roster-list";
-  const roster = game?.customRoster || team.roster || [];
+			saveAs(new Blob([bytes], {
+				type: "application/pdf"
+			}), filename);
+		} catch (err) {
+			console.error("PDF generation error:", err);
+			alert("Error generating PDF — see console.");
+		}
+	});
+	btnRow.appendChild(pdfBtn);
 
-  roster.forEach(player => {
-    const item = document.createElement("li");
-    item.textContent = `${player.number || ""} ${player.name || ""}`.trim();
-    rosterList.appendChild(item);
-  });
 
-  card.appendChild(rosterList);
 
-  return card;
+	card.appendChild(btnRow);
+
+	// — ROSTER LIST —
+	const rosterHeader = document.createElement("h4");
+	rosterHeader.textContent = "Roster";
+	card.appendChild(rosterHeader);
+
+	const rosterList = document.createElement("ul");
+	rosterList.className = "roster-list";
+	const roster = game?.customRoster || team.roster || [];
+
+	roster.forEach(player => {
+		const item = document.createElement("li");
+		item.textContent = `${player.number || ""} ${player.name || ""}`.trim();
+		rosterList.appendChild(item);
+	});
+
+	card.appendChild(rosterList);
+
+	return card;
 }
 
 
@@ -450,24 +456,25 @@ function enterEditModeInline(card, team, game) {
 		});
 	});
 }
+
 function renderPreviewCards() {
-  const container = document.getElementById("previewCardContainer");
-  console.log("🔄 renderPreviewCards() called…");
-  console.log("📋 GAME_LIST:", window.GAME_LIST);
+	const container = document.getElementById("previewCardContainer");
+	console.log("🔄 renderPreviewCards() called…");
+	console.log("📋 GAME_LIST:", window.GAME_LIST);
 
-  if (!container) {
-    console.warn("⚠️ previewCardContainer not found in DOM");
-    return;
-  }
+	if (!container) {
+		console.warn("⚠️ previewCardContainer not found in DOM");
+		return;
+	}
 
-  container.innerHTML = "";
+	container.innerHTML = "";
 
-  const games = window.GAME_LIST || [];
-  games.forEach((g, idx) => {
-    const card = document.createElement("div");
-    card.className = "lineup-card";
+	const games = window.GAME_LIST || [];
+	games.forEach((g, idx) => {
+		const card = document.createElement("div");
+		card.className = "lineup-card";
 
-    card.innerHTML = `
+		card.innerHTML = `
       <div class="card-header">
         <strong>Game ${idx + 1}</strong>
         <div class="card-buttons">
@@ -486,44 +493,44 @@ function renderPreviewCards() {
       </div>
     `;
 
-    container.appendChild(card);
-  });
+		container.appendChild(card);
+	});
 
-  initCardButtons();
+	initCardButtons();
 }
 window.renderPreviewCards = renderPreviewCards;
 
 function initCardButtons() {
-  document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", evt => {
-      const gameId = evt.target.dataset.id;
-      openEditModal(gameId);
-    });
-  });
+	document.querySelectorAll(".edit-btn").forEach(btn => {
+		btn.addEventListener("click", evt => {
+			const gameId = evt.target.dataset.id;
+			openEditModal(gameId);
+		});
+	});
 
-  document.querySelectorAll(".pdf-btn").forEach(btn => {
-    btn.addEventListener("click", evt => {
-      const gameId = evt.target.dataset.id;
-      exportGameToPDF(gameId);
-    });
-  });
+	document.querySelectorAll(".pdf-btn").forEach(btn => {
+		btn.addEventListener("click", evt => {
+			const gameId = evt.target.dataset.id;
+			exportGameToPDF(gameId);
+		});
+	});
 }
 
 function openEditModal(gameId) {
-  const game = window.GAME_LIST.find(g => g.id === gameId);
-  if (!game) return;
+	const game = window.GAME_LIST.find(g => g.id === gameId);
+	if (!game) return;
 
-  // show modal and populate fields
-  console.log("🔧 Edit game:", game);
-  // TODO — build edit UI
+	// show modal and populate fields
+	console.log("🔧 Edit game:", game);
+	// TODO — build edit UI
 }
 
 function exportGameToPDF(gameId) {
-  const game = window.GAME_LIST.find(g => g.id === gameId);
-  if (!game) return;
+	const game = window.GAME_LIST.find(g => g.id === gameId);
+	if (!game) return;
 
-  console.log("📄 Exporting to PDF:", game);
-  // TODO — hook into your existing PDF system
+	console.log("📄 Exporting to PDF:", game);
+	// TODO — hook into your existing PDF system
 }
 
 function enterEditMode(team, game) {
@@ -611,7 +618,7 @@ window.enterEditMode = enterEditMode;
 
 
 
- async function generatePDFs() {
+async function generatePDFs() {
 	const team = window.TeamStore.getCurrentTeam();
 	if (!team) {
 		alert("Select a team first.");
@@ -661,66 +668,69 @@ window.enterEditMode = enterEditMode;
 }
 window.generatePDFs = generatePDFs;
 
-window.createPdfForLineup = async function (team, game) {
-  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
-  if (!tpl) throw new Error("No template selected.");
+window.createPdfForLineup = async function(team, game) {
+	const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+	if (!tpl) throw new Error("No template selected.");
 
-  const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
-    .then((r) => r.arrayBuffer());
+	const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
+		.then((r) => r.arrayBuffer());
 
-  const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
-  const form = pdfDoc.getForm();
+	const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+	const form = pdfDoc.getForm();
 
-  function setField(name, value) {
-    try {
-      const field = form.getTextField(name);
-      if (field) {
-        field.setText(value || "");
-        console.log(`✅ Set field "${name}" =`, `"${value}"`);
-      } else {
-        console.warn(`⚠️ Field "${name}" not found`);
-      }
-    } catch (err) {
-      console.warn(`⚠️ Field "${name}" not found or not writable`);
-    }
-  }
+	function setField(name, value) {
+		try {
+			const field = form.getTextField(name);
+			if (field) {
+				field.setText(value || "");
+				console.log(`✅ Set field "${name}" =`, `"${value}"`);
+			} else {
+				console.warn(`⚠️ Field "${name}" not found`);
+			}
+		} catch (err) {
+			console.warn(`⚠️ Field "${name}" not found or not writable`);
+		}
+	}
 
-  // --- Game Info ---
-  if (game) {
-    setField("GameDate", game.gameDate);
-    setField("GameTime", game.gameTime);
-    setField("GameLocation", game.gameLocation);
-    setField("AgeDiv", game.ageDiv);
+	// --- Game Info ---
+	if (game) {
+		setField("GameDate", game.gameDate);
+		setField("GameTime", game.gameTime);
+		setField("GameLocation", game.gameLocation);
+		setField("AgeDiv", game.ageDiv);
 
-    // Determine if team is home or away
-    const isHome = team.teamId === game.homeTeamRaw;
-    const opponentId = isHome ? game.awayTeamRaw : game.homeTeamRaw;
+		// Determine if team is home or away
+		const isHome = team.teamId === game.homeTeamRaw;
+		const opponentId = isHome ? game.awayTeamRaw : game.homeTeamRaw;
 
-    setField("HomeX", isHome ? "X" : "");
-    setField("VisitorX", isHome ? "" : "X");
+		setField("HomeX", isHome ? "X" : "");
+		setField("VisitorX", isHome ? "" : "X");
 
-    setField("HomeID", isHome ? team.teamId : opponentId);
-    setField("VisitorID", isHome ? opponentId : team.teamId);
-  }
+		setField("HomeID", isHome ? team.teamId : opponentId);
+		setField("VisitorID", isHome ? opponentId : team.teamId);
+	}
 
-  // --- Team Info ---
-  setField("TeamName", team.teamName);
-  setField("TeamColors", team.teamColors);
-  setField("TeamCoach", team.teamCoach);
-  setField("TeamAsstCoach", team.teamAsstCoach);
-  setField("TeamID", team.teamId);
-  setField("AgeDiv", team.ageDiv); // backup in case it's not in game
+	// --- Team Info ---
+	setField("TeamName", team.teamName);
+	setField("TeamColors", team.teamColors);
+	setField("TeamCoach", team.teamCoach);
+	setField("TeamAsstCoach", team.teamAsstCoach);
+	setField("TeamID", team.teamId);
+	setField("AgeDiv", team.ageDiv); // backup in case it's not in game
 
-  // --- Roster (up to 15) ---
-  const roster = game?.customRoster || team.roster || [];
-  for (let i = 0; i < 15; i++) {
-    const p = roster[i] || { number: "", name: "" };
-    setField(`Player${i + 1}_Name`, p.name);
-    setField(`Player${i + 1}_Number`, p.number);
-  }
+	// --- Roster (up to 15) ---
+	const roster = game?.customRoster || team.roster || [];
+	for (let i = 0; i < 15; i++) {
+		const p = roster[i] || {
+			number: "",
+			name: ""
+		};
+		setField(`Player${i + 1}_Name`, p.name);
+		setField(`Player${i + 1}_Number`, p.number);
+	}
 
-  form.flatten();
-  return await pdfDoc.save();
+	form.flatten();
+	return await pdfDoc.save();
 };
 async function generateAllLineupPDFs() {
 	const team = getCurrentTeam();
@@ -734,8 +744,7 @@ async function generateAllLineupPDFs() {
 	const selectedGames = Array.isArray(window.GAME_LIST) ?
 		window.GAME_LIST.filter(g => g.selected &&
 			(String(g.home_team || "").toLowerCase().includes(teamIdLower) ||
-				String(g.away_team || "").toLowerCase().includes(teamIdLower))) :
-		[];
+				String(g.away_team || "").toLowerCase().includes(teamIdLower))) : [];
 
 	// Always include roster‑only card
 	const items = [{
@@ -833,50 +842,53 @@ function refreshTemplateCarousel() {
 
 
 document.getElementById("inspectTemplateBtn")?.addEventListener("click", async () => {
-  console.log("🔍 Inspect Template Fields clicked");
+	console.log("🔍 Inspect Template Fields clicked");
 
-  const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
-  const outputEl = document.getElementById("templateValidationOutput");
+	const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
+	const outputEl = document.getElementById("templateValidationOutput");
 
-  if (!tpl) {
-    outputEl.innerHTML = "<p style='color:red;'>No template selected.</p>";
-    return;
-  }
+	if (!tpl) {
+		outputEl.innerHTML = "<p style='color:red;'>No template selected.</p>";
+		return;
+	}
 
-  const url = `./templates/${tpl.pdf}?v=${Date.now()}`;
+	const url = `./templates/${tpl.pdf}?v=${Date.now()}`;
 
-  const report = await window.validatePdfTemplate(url);
+	const report = await window.validatePdfTemplate(url);
 
-  console.log("📄 Validation report:", report);
+	console.log("📄 Validation report:", report);
 
-  // Build a summary at the top
-  let summaryHtml = `<p><strong>Template:</strong> ${tpl.name}</p>`;
+	// Build a summary at the top
+	let summaryHtml = `<p><strong>Template:</strong> ${tpl.name}</p>`;
 
-  if (report.pageSize) {
-    const { width, height } = report.pageSize;
-    summaryHtml += `<p><strong>Size (pts):</strong> ${width} × ${height}</p>`;
-  }
+	if (report.pageSize) {
+		const {
+			width,
+			height
+		} = report.pageSize;
+		summaryHtml += `<p><strong>Size (pts):</strong> ${width} × ${height}</p>`;
+	}
 
-  if (report.hasIllegalNames || report.hasIllegalValues) {
-    summaryHtml += `
+	if (report.hasIllegalNames || report.hasIllegalValues) {
+		summaryHtml += `
       <p style="font-weight:bold; color:#c00;">
         ⚠️ Template has fields with invalid characters. See list below.
       </p>
     `;
-  } else {
-    summaryHtml += `
+	} else {
+		summaryHtml += `
       <p style="font-weight:bold; color:#080;">
         ✅ Template passed validation. All fields safe.
       </p>
     `;
-  }
+	}
 
-  if (!report.fields.length) {
-    outputEl.innerHTML = summaryHtml + "<p>No form fields found in this template.</p>";
-    return;
-  }
+	if (!report.fields.length) {
+		outputEl.innerHTML = summaryHtml + "<p>No form fields found in this template.</p>";
+		return;
+	}
 
-  const listHtml = `
+	const listHtml = `
     <ul>
       ${report.fields.map(f => {
         const nameSafe = f.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -891,7 +903,7 @@ document.getElementById("inspectTemplateBtn")?.addEventListener("click", async (
     </ul>
   `;
 
-  outputEl.innerHTML = summaryHtml + listHtml;
+	outputEl.innerHTML = summaryHtml + listHtml;
 });
 
 // ———————————————————————————
@@ -1071,7 +1083,7 @@ loadSavedSchedules();
 ============================================================ */
 window.initUI = function initUI() {
 	console.log("🟢 initUI() starting…");
-
+	window.initSharedScheduleUIv2?.();
 	// Initialize collapsibles first (if needed)
 	// initCollapsibles();
 
@@ -1187,57 +1199,44 @@ window.initUI = function initUI() {
 	});
 
 	// — SCHEDULE PARSE HANDLER (with ONE save prompt) — //
-
 	document.getElementById("parseBtn")?.addEventListener("click", () => {
-		const rawInputEl = document.getElementById("rawInput");
-		const raw = rawInputEl?.value.trim() || "";
+	  const rawInputEl = document.getElementById("rawInput");
+	  const raw = rawInputEl?.value.trim() || "";
 
-		if (!raw) {
-			alert("Paste schedule text first.");
-			return;
-		}
+	  if (!raw) {
+		alert("Paste schedule text first.");
+		return;
+	  }
 
-		const games = window.ScheduleStore.importSchedule({
-			rawText: raw,
-			source: "paste",
-			autoSelect: true
-		});
+	  const games = window.ScheduleStore.importSchedule({
+		rawText: raw,
+		source: "paste",
+		autoSelect: true
+	  });
 
-		if (!Array.isArray(games) || games.length === 0) {
-			return;
-		}
+	  if (!Array.isArray(games) || games.length === 0) {
+		return;
+	  }
 
-		renderPreviewCards();
-		updateStatusLines?.();
+	  renderPreviewCards();
+	  updateStatusLines?.();
 
-		// Prompt to save schedule
-		if (confirm("Save this schedule for later?")) {
-			const defaultName = raw.split(/\r?\n/)[0]?.trim() || "";
-			const name = prompt("Enter a name for this schedule:", defaultName);
-			if (name && name.trim()) {
-				window.ScheduleStore.addOrUpdateSchedule({
-					name: name.trim(),
-					parserKey: window.selectedParserKey || "",
-					rawText: raw,
-					parsedGames: games
-				});
-				window.refreshScheduleDropdown?.();
-				alert(`Schedule "${name.trim()}" saved.`);
-			} else {
-				alert("Schedule not saved (name required).");
-			}
-		}
+	  // ✅ Replace inline prompt with modal
+	  const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
+	  window.showSaveScheduleModal(defaultName);
 
-		// Auto‑select first team if none selected
-		const currentTeam = window.TeamStore?.getCurrentTeam?.();
-		const allTeams = window.TeamStore?.getAllTeams?.() || [];
-		if (!currentTeam && allTeams.length > 0) {
-			console.log("🟢 No team selected — auto‑selecting first team");
-			window.TeamStore.selectTeamById(allTeams[0].teamId);
-			renderCurrentTeamUI();
-		}
+	  // ✅ Auto‑select first team if none selected
+	  const currentTeam = window.TeamStore?.getCurrentTeam?.();
+	  const allTeams = window.TeamStore?.getAllTeams?.() || [];
+	  if (!currentTeam && allTeams.length > 0) {
+		console.log("🟢 No team selected — auto‑selecting first team");
+		window.TeamStore.selectTeamById(allTeams[0].teamId);
+		renderCurrentTeamUI();
+	  }
 	});
 
+	// after rendering team and parsing controls
+	window.initSharedScheduleUI?.();
 	// — CLEAR SCHEDULE textarea — //
 	document.getElementById("clearScheduleBtn")?.addEventListener("click", () => {
 		document.getElementById("rawInput").value = "";
@@ -1293,54 +1292,54 @@ window.selectedScheduleIndex = window.SCHEDULE_LIST.length > 0 ? 0 : null;
 
 
 window.enterInlineEditMode = function(cardElement, team, game) {
-  const modal = document.getElementById("lineupEditModal");
-  const body = document.getElementById("lineupEditModalBody");
-  if (!modal || !body) return;
+	const modal = document.getElementById("lineupEditModal");
+	const body = document.getElementById("lineupEditModalBody");
+	if (!modal || !body) return;
 
-  // Clear previous
-  body.innerHTML = "";
+	// Clear previous
+	body.innerHTML = "";
 
-  // Team fields (only if game is null — otherwise show game fields too)
-  if (!game) {
-    body.innerHTML += `
+	// Team fields (only if game is null — otherwise show game fields too)
+	if (!game) {
+		body.innerHTML += `
       <div class="edit-row"><label>Team Name</label><input id="editTeamName" type="text" value="${team.teamName || ''}"></div>
       <div class="edit-row"><label>Coach</label><input id="editTeamCoach" type="text" value="${team.teamCoach || ''}"></div>
       <div class="edit-row"><label>Asst Coach</label><input id="editTeamAsst" type="text" value="${team.teamAsstCoach || ''}"></div>
       <div class="edit-row"><label>Colors</label><input id="editTeamColors" type="text" value="${team.teamColors || ''}"></div>
     `;
-  }
+	}
 
-  // Game fields
-  if (game) {
-    body.innerHTML += `
+	// Game fields
+	if (game) {
+		body.innerHTML += `
       <div class="edit-row"><label>Date</label><input id="editGameDate" type="text" value="${game.gameDate || ''}"></div>
       <div class="edit-row"><label>Time</label><input id="editGameTime" type="text" value="${game.gameTime || ''}"></div>
       <div class="edit-row"><label>Location</label><input id="editGameLocation" type="text" value="${game.gameLocation || ''}"></div>
     `;
-  }
+	}
 
-  modal.classList.remove("hidden");
+	modal.classList.remove("hidden");
 
-  document.getElementById("saveLineupEditBtn").onclick = () => {
-    if (!game) {
-      team.teamName    = document.getElementById("editTeamName")?.value.trim();
-      team.teamCoach   = document.getElementById("editTeamCoach")?.value.trim();
-      team.teamAsstCoach = document.getElementById("editTeamAsst")?.value.trim();
-      team.teamColors    = document.getElementById("editTeamColors")?.value.trim();
-    } else {
-      game.gameDate     = document.getElementById("editGameDate")?.value.trim();
-      game.gameTime     = document.getElementById("editGameTime")?.value.trim();
-      game.gameLocation = document.getElementById("editGameLocation")?.value.trim();
-    }
-    modal.classList.add("hidden");
+	document.getElementById("saveLineupEditBtn").onclick = () => {
+		if (!game) {
+			team.teamName = document.getElementById("editTeamName")?.value.trim();
+			team.teamCoach = document.getElementById("editTeamCoach")?.value.trim();
+			team.teamAsstCoach = document.getElementById("editTeamAsst")?.value.trim();
+			team.teamColors = document.getElementById("editTeamColors")?.value.trim();
+		} else {
+			game.gameDate = document.getElementById("editGameDate")?.value.trim();
+			game.gameTime = document.getElementById("editGameTime")?.value.trim();
+			game.gameLocation = document.getElementById("editGameLocation")?.value.trim();
+		}
+		modal.classList.add("hidden");
 
-    // Refresh preview
-    if (typeof renderPreviewCards === "function") renderPreviewCards();
-  };
+		// Refresh preview
+		if (typeof renderPreviewCards === "function") renderPreviewCards();
+	};
 
-  document.getElementById("cancelLineupEditBtn").onclick = () => {
-    modal.classList.add("hidden");
-  };
+	document.getElementById("cancelLineupEditBtn").onclick = () => {
+		modal.classList.add("hidden");
+	};
 };
 
 
@@ -1397,5 +1396,3 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
  */
 
 // Expose globally so card PDF button can call it
-
-

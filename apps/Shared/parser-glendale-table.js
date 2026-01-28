@@ -157,3 +157,21 @@ function cleanGlendaleField(s) {
 
 // Expose to global so app.js can find it via parser-list.json
 window.parseGlendaleTable = parseGlendaleTable;
+
+
+/* ============================================================
+  Glendale table / SPREADSHEET PARSER
+============================================================ */
+
+// parse-glendale table.js
+
+function parseglendaletableschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "glendaletable",
+  name: "Glendale table Schedule",
+  parse: parsesglendaletableschedule
+});

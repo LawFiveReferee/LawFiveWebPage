@@ -157,6 +157,10 @@
       <div class="left-buttons">
         <button id="parseBtn" class="btn">Extract Games</button>
         <button id="clearBtn" class="secondary">Clear</button>
+        <label for="parserSelect">Parser:</label>
+		<select id="parserSelect" class="parser-select">
+		  <!-- options populated by JS -->
+		</select>
       </div>
       <span id="parseStatus" class="parse-status"></span>
     </div>
@@ -529,5 +533,17 @@
 <script type="module" src="js/module-loader.js"></script>
 <script data-goatcounter="https://law5ref.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
+        <!-- Schedule Save Modal -->
+<div id="scheduleSaveModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Save Schedule</h3>
+    <input id="scheduleNameInput" placeholder="Schedule name" />
+    <div class="modal-buttons">
+      <button id="confirmSaveScheduleBtn" class="btn">Save</button>
+      <button id="cancelSaveScheduleBtn" class="secondary">Cancel</button>
+    </div>
+    <p id="scheduleSaveError" class="error-text hidden"></p>
+  </div>
+</div>
 </body>
 </html>

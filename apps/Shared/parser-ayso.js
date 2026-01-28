@@ -46,3 +46,21 @@ export function parseAYSO(raw) {
 }
 
 window.parseAYSO = parseAYSO;
+
+
+/* ============================================================
+   ayso playoffs / SPREADSHEET PARSER
+============================================================ */
+
+// parse-ayso playoffs.js
+
+function parsesaysoplayoffsschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "ayso playoffs",
+  name: "AYSO Playoffs Schedule",
+  parse: parsesaysoplayoffsschedule
+});

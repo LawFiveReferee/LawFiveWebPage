@@ -380,3 +380,21 @@ export {
 	parseArbiterCsvSchedule
 };
 window.parseArbiterCsvSchedule = parseArbiterCsvSchedule;
+
+
+/* ============================================================
+   arbiter CSV / SPREADSHEET PARSER
+============================================================ */
+
+// parse-arbitercsv.js
+
+function parsearbiter csvschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "arbitercsv",
+  name: "arbiter CSV Schedule",
+  parse: parsesarbitercsvschedule
+});

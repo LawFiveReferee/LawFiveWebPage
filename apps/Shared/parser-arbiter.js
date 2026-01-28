@@ -150,3 +150,21 @@ export function parseArbiter(raw) {
 }
 
 window.parseArbiter = parseArbiter;
+
+
+/* ============================================================
+   arbiter / SPREADSHEET PARSER
+============================================================ */
+
+// parse-arbiter.js
+
+function parsearbiterschedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "arbiter",
+  name: "Arbiter Schedule",
+  parse: parsesarbiterschedule
+});

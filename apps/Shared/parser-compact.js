@@ -46,3 +46,20 @@ export function parseCompact(raw) {
 }
 
 window.parseCompact = parseCompact;
+
+/* ============================================================
+   compact / SPREADSHEET PARSER
+============================================================ */
+
+// parse-compact.js
+
+function parseCompactSchedule(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "compact",
+  name: "Compact Schedule",
+  parse: parsecompact
+});

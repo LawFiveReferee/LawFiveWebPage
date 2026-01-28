@@ -87,7 +87,10 @@
 				  <div id="carouselViewport" class="carousel-viewport"></div>
 				  <button id="carouselNext" class="carousel-nav">⟩</button>
 				</div>
-
+				<label for="parserSelect">Parser:</label>
+				<select id="parserSelect" class="parser-select">
+					<!-- options populated by JS -->
+				</select>
 				<div id="importStatus" class="status-line">Choose a schedule or parser to begin.</div>
 
 				<textarea id="rawInput" class="import-textarea"
@@ -321,6 +324,18 @@
 			  <button id="cancelLineupEditBtn" class="secondary">Cancel</button>
 			</div>
 		  </div>
+		</div>
+		<!-- Schedule Save Modal -->
+		<div id="scheduleSaveModal" class="modal hidden">
+			<div class="modal-content">
+				<h3>Save Schedule</h3>
+				<input id="scheduleNameInput" placeholder="Schedule name" />
+				<div class="modal-buttons">
+					<button id="confirmSaveScheduleBtn" class="btn">Save</button>
+					<button id="cancelSaveScheduleBtn" class="secondary">Cancel</button>
+				</div>
+				<p id="scheduleSaveError" class="error-text hidden"></p>
+			</div>
 		</div>
 	</body>
 </html>

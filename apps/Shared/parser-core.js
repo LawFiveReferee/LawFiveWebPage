@@ -130,4 +130,21 @@ window.loadParserList = async function loadParserList() {
   }
 };
 `
+/* ============================================================
+   Load mapping profile from localStorage
+============================================================ */
+
+// parser-core.js
+
+function parsecore(rawText) {
+  // your parsing logic here
+  return parsedGames;
+}
+
+ScheduleParser.registerParser({
+  key: "core",
+  name: "Core Parser",
+  parse: parsecore
+});
+
 ``

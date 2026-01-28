@@ -1,135 +1,145 @@
-// ✅ Correct module version
+// ================================
+// Game Card Factory — Module Loader
+// ================================
+
 console.log("✅ module-loader.js starting…");
 
-// Core helpers
+/* ====================================================
+   1) Shared Modules (load these before everything else)
+==================================================== */
+
+// Shared schedule parser + v2 store + shared schedule UI
+import "../../shared/schedule-parser.js";
+console.log("✅ shared/schedule-parser.js loaded");
+
+import "../../shared/schedule-store-v2.js";
+console.log("✅ shared/schedule-store-v2.js loaded");
+
+import "../../shared/schedule-ui-v2.js";
+console.log("✅ shared/schedule-ui-v2.js loaded");
+
+// Shared team store (used in both factories)
+import "../../shared/team-store.js";
+console.log("✅ shared/team-store.js loaded");
+
+// Shared parser store (if still used for game parsers)
+import "../../shared/parser-store.js";
+console.log("✅ shared/parser-store.js loaded");
+
+// Shared UI support modules
+import "../../shared/carousel-ui.js";
+console.log("✅ shared/carousel-ui.js loaded");
+
+import { refreshImportCarousel } from "../../shared/carousel-ui.js";
+console.log("✅ refreshImportCarousel function loaded");
+
+/* ====================================================
+   2) Core Helpers
+==================================================== */
+
 import "./dom-helpers.js";
-console.log("✅ dom-helpers loaded");
+console.log("✅ dom-helpers.js loaded");
 
 import "./parser-standardizer.js";
-console.log("✅ parser-standardizer loaded");
+console.log("✅ parser-standardizer.js loaded");
 
-// Parsers
+/* ====================================================
+   3) Game Card Parsers
+==================================================== */
+
 import "./parser.js";
 console.log("✅ parser.js loaded");
 
 import "./parser-ayso.js";
-console.log("✅ parser-ayso loaded");
+console.log("✅ parser-ayso.js loaded");
 
 import "./parser-arbiter.js";
-console.log("✅ parser-arbiter loaded");
+console.log("✅ parser-arbiter.js loaded");
 
 import "./parser-csv.js";
-console.log("✅ parser-csv loaded");
+console.log("✅ parser-csv.js loaded");
 
 import "./parser-compact.js";
-console.log("✅ parser-compact loaded");
+console.log("✅ parser-compact.js loaded");
 
 import "./parser-arbiter-email.js";
-console.log("✅ parser-arbiter-email loaded");
+console.log("✅ parser-arbiter-email.js loaded");
 
 import "./parser-glendale-table.js";
-console.log("✅ parser-glendale-table loaded");
+console.log("✅ parser-glendale-table.js loaded");
 
 import "./parser-arbiter-csv-schedule.js";
-console.log("✅ parser-arbiter-csv-schedule loaded");
+console.log("✅ parser-arbiter-csv-schedule.js loaded");
 
 import "./parser-ayso-playoffs.js";
-console.log("✅ parser-ayso-playoffs loaded");
+console.log("✅ parser-ayso-playoffs.js loaded");
 
 import "./parser-generic-mapper.js";
-console.log("✅ parser-generic-mapper loaded");
+console.log("✅ parser-generic-mapper.js loaded");
 
-// UI modules
+/* ====================================================
+   4) UI Modules
+==================================================== */
+
 import "./mapping-ui.js";
-console.log("✅ mapping-ui loaded");
+console.log("✅ mapping-ui.js loaded");
 
 import "./filter-rules.js";
-console.log("✅ filter-rules loaded");
+console.log("✅ filter-rules.js loaded");
 
 import "./bulk-edit.js";
-console.log("✅ bulk-edit loaded");
+console.log("✅ bulk-edit.js loaded");
 
-// UI Shared .js
+/* ====================================================
+   5) Main App Script
+==================================================== */
 
-console.log("✅ constants.js loaded");
-
-import "../../shared/schedule-store.js";
-console.log("✅ schedule-store.js loaded");
-
-import "../../shared/team-store.js";
-console.log("✅  team-store.jsloaded");
-
-
-import "../../shared/schedule-import.js";
-console.log("✅ schedule-import.js loaded");
-
-import "../../shared/carousel-ui.js";
-console.log("✅ carousel-ui.js loaded");
-
-import "../../shared/parser-store.js";
-console.log("✅ parser-store.js loaded");
-
-import "../../shared/parser-ui.js";
-console.log("✅ parser-ui.js loaded");
-
-
-// Main app last
 import "./app.js";
 console.log("✅ app.js loaded via module-loader");
 
-// Boot ONLY when DOM is ready (so collapsible panels exist)
+/* ====================================================
+   6) DOM Ready / Boot Logic
+==================================================== */
+
 function bootWhenReady() {
   if (window.__GCF_BOOTED__) return;
   window.__GCF_BOOTED__ = true;
 
-  if (typeof window.bootGameCardFactory === "function") {
-    window.bootGameCardFactory();
+  // 1) Populate parser dropdown from shared parser registry
+  if (typeof populateParserSelect === "function") {
+    populateParserSelect();
+  } else {
+    console.warn("⚠️ populateParserSelect() not found");
   }
 
-  // ✅ NEW: Mapping panel open/save/cancel handlers
+  // 2) Initialize shared schedule UI v2
+  if (typeof initSharedScheduleUIv2 === "function") {
+    initSharedScheduleUIv2();
+  } else {
+    console.warn("⚠️ initSharedScheduleUIv2() not found");
+  }
 
-const openBtn = document.getElementById("openGenericMapping");
-if (openBtn) {
-  openBtn.addEventListener("click", () => {
-    const rawInput = document.getElementById("rawInput")?.value || "";
-    const headers = (rawInput.split("\n")[0] || "")
-      .split(/[\t|,]/)
-      .map(x => x.trim());
-    const profileKey = "user-defined";
+  // 3) Now boot the factory app
+  if (typeof window.bootGameCardFactory === "function") {
+    window.bootGameCardFactory();
+  } else {
+    console.warn("⚠️ bootGameCardFactory() not found");
+  }
 
-    if (typeof window.openGenericMappingUI === "function") {
-      window.openGenericMappingUI(headers, profileKey, rawInput);
-    } else {
-      console.error("❌ openGenericMappingUI() is not available.");
-    }
-  });
-}
+  // 4) Legacy mapping panel – if you still use it (optional)
+  const openBtn = document.getElementById("openGenericMapping");
   const cancelBtn = document.getElementById("mappingCancelBtn");
   const saveBtn = document.getElementById("mappingSaveBtn");
-
   const panel = document.getElementById("genericMappingPanel");
 
-	// Open Mapping UI
-	if (openBtn && panel) {
-	  openBtn.addEventListener("click", () => {
-
-		// If Game Card Factory global helper exists
-		if (typeof window.openGenericMappingPanel === "function") {
-
-		  // Pass the parser output and raw input to open mapping controls
-		  // Note: Game Card Factory stores the parsed schedule text input in window.rawInput
-		  // and uses window.selectedParserIndex & window.PARSER_LIST.
-
-		  openGenericMappingPanel();
-
-		} else {
-		  console.warn("Mapping UI function openGenericMappingPanel() not found");
-		}
-
-		// Show panel
-		panel.classList.remove("hidden");
-	  });
-	}
+  if (openBtn && panel) {
+    openBtn.addEventListener("click", () => {
+      if (typeof window.openGenericMappingPanel === "function") {
+        openGenericMappingPanel();
+      }
+      panel.classList.remove("hidden");
+    });
+  }
 
   if (cancelBtn && panel) {
     cancelBtn.addEventListener("click", () => {
@@ -147,7 +157,7 @@ if (openBtn) {
   }
 }
 
-// DOM ready listener
+// Attach to DOMContentLoaded
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", bootWhenReady, { once: true });
 } else {
