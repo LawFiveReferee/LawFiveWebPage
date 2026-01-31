@@ -9,15 +9,7 @@
 
 console.log("App.js loaded");
 
-/* ============================================================
-   DOM helpers (safe even if dom-helpers.js also exists)
-============================================================ */
-function $(sel) {
-  return document.querySelector(sel);
-}
-function $all(sel) {
-  return Array.from(document.querySelectorAll(sel));
-}
+
 
 /* ============================================================
    GLOBAL STATE
@@ -36,63 +28,7 @@ window.GAME_LIST = [];
 window.selectedTemplateIndex = 0;
 window.TEMPLATE_LIST = [];
 
-/* ============================================================
-   UTILITY: Unique ID for games
-============================================================ */
-const makeGameId = () => {
-  if (window.crypto && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return "g-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-};
-window.makeGameId = makeGameId;
 
-/* ============================================================
-   UTILITY: Date / Time formatting
-============================================================ */
-function parseDateFlexible(raw) {
-  if (!raw) return null;
-
-  // MM/DD/YYYY
-  let m = raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
-
-  // YYYY-MM-DD
-  m = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
-
-  return null;
-}
-
-function formatGameDate(raw) {
-  if (!raw) return "";
-  const d = parseDateFlexible(raw);
-  if (!d || isNaN(d.getTime())) return raw;
-
-  const weekdays = [
-    "SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
-  const months = [
-    "Jan.","Feb.","March","April","May","June","July","Aug.","Sept.","Oct.","Nov.","Dec."
-  ];
-
-  return `${weekdays[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
-}
-
-function formatGameTime(raw) {
-	if (!raw) return "";
-	const m = raw.match(/(\d{1,2}):(\d{2})\s*([AaPp][Mm])/);
-	if (!m) return raw;
-
-	const hour = parseInt(m[1], 10);
-	const mins = m[2];
-	const ampm = m[3].toLowerCase();
-
-	if (mins === "00" && hour !== 12) return `${hour} ${ampm}`;
-	return `${hour}:${mins} ${ampm}`;
-}
-
-window.formatGameDate = formatGameDate;
-window.formatGameTime = formatGameTime;
 
 /* ============================================================
    Collapsibles (expand/collapse panels)
@@ -147,57 +83,17 @@ window.registerGenericMapperProfile = registerGenericMapperProfile;
  * Parse schedule text using selected parser,
  * populate global GAME_LIST, update UI and fill JSON textarea.
  */
-function handleParseSchedule() {
-  console.log("👟 handleParseSchedule triggered");
+ import { handleParseSchedule } from "../shared/util.js";
 
-  const rawInputEl = document.getElementById("rawInput");
-  const parserSelectEl = document.getElementById("parserSelect");
-  const displayEl = document.getElementById("currentScheduleDisplay");
-
-  const rawText = rawInputEl?.value?.trim();
-  if (!rawText) {
-    alert("⚠️ Paste schedule text first.");
-    return;
-  }
-
-  // Always get the current parser from the dropdown
-  const parserKey = parserSelectEl?.value;
-  window.selectedParserKey = parserKey;
-  localStorage.setItem("selectedScheduleParserKey", parserKey);
-  console.log("🛠 Parsing schedule using parser key:", parserKey);
-
-  // Run parser
-  const { games, errors } = ScheduleParser.parse(rawText, parserKey);
-
-  if (errors?.length) {
-    console.warn("⚠️ Parse warnings/errors:", errors);
-  }
-
-  if (!Array.isArray(games) || games.length === 0) {
-    console.error("❌ No games were parsed from the schedule.");
-    alert("No games were parsed — check the format or selected parser.");
-    return;
-  }
-
-  // Save globally and update status
-  window.GAME_LIST = games;
-  console.log(`✅ Parsed ${games.length} games using parser "${parserKey}".`);
-
-  // Populate JSON textarea
-  if (displayEl) {
-    displayEl.value = JSON.stringify(games, null, 2);
-    console.log("📝 Populated schedule textarea with parsed JSON.");
-  } else {
-    console.warn("⚠️ currentScheduleDisplay textarea not found.");
-  }
-
-  // Update UI
-  if (typeof renderCards === "function") renderCards();
-  if (typeof updateStatusLines === "function") updateStatusLines();
-  if (typeof updateSelectedCountUI === "function") updateSelectedCountUI();
-}
-window.handleParseSchedule = handleParseSchedule;
-
+document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
+  handleParseSchedule({
+    onAfterParse: () => {
+      renderCards();
+      updateStatusLines?.();
+      updateSelectedCountUI?.();
+    }
+  });
+});
 
 /* ============================================================
    Parser Carousel

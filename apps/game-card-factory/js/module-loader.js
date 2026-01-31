@@ -74,6 +74,8 @@ import "../../Shared/parser-generic-mapper.js";
 
 console.log("✅ GameCard parsers loaded");
 
+import "../../Shared/utils.js";
+
 // UI modules
 import "./mapping-ui.js";
 import "./filter-rules.js";

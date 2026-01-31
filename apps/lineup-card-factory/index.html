@@ -27,55 +27,68 @@
 <!-- ============================================================
 Colllaspible Sections
 ============================================================ -->
-<!-- ======================= -->
-<!-- 1. Schedule Import  -->
-<!-- ======================= -->
-<section class="collapsible-panel" id="section-import">
-  <button type="button" class="collapsible-header">
-    <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">1. Paste & Extract Raw Schedule</span>
-  </button>
+	<!-- ======================= -->
+	<!-- 1. Schedule Import -->
+	<!-- ======================= -->
+	<section class="collapsible-panel" id="section-schedule-import">
+	  <button type="button" class="collapsible-header">
+		<span class="collapsible-icon">+</span>
+		<span class="collapsible-title">1. Import & Extract Schedule</span>
+	  </button>
 
-  <p class="section-subtitle">Paste schedule text and extract game data.</p>
+	  <p class="section-subtitle">Paste a schedule and extract game data.</p>
 
-  <div class="collapsible-body">
-    <label for="rawInput">Schedule Text:</label>
-    <textarea id="rawInput" class="import-textarea" placeholder="Paste schedule text here…"></textarea>
+	  <div class="collapsible-body">
 
-    <div class="button-group">
-      <button id="parseScheduleBtn" class="btn">Extract Games</button>
-      <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
+		<!-- Parser Selector -->
+		<label for="parserSelect">Parser:</label>
+		<select id="parserSelect" class="parser-select"></select>
+
+		<!-- Paste Area -->
+		<label for="rawInput">Paste Schedule Text:</label>
+		<textarea id="rawInput" class="import-textarea" placeholder="Paste schedule text here…"></textarea>
+
+		<!-- Parse Buttons -->
+		<div class="button-group">
+		  <button id="parseScheduleBtn" class="btn">Extract Games</button>
+		  <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
+		</div>
+
+		<!-- Save Button -->
+		<div class="button-group">
+		  <button id="saveScheduleBtn" class="btn primary">Save Schedule</button>
+		</div>
+
+	  </div>
+	</section>
+  <!-- ============================ -->
+  <!-- 2. Saved Schedule -->
+  <!-- ============================ -->
+  <section class="collapsible-panel" id="section-schedule">
+    <button type="button" class="collapsible-header">
+      <span class="collapsible-icon">+</span>
+      <span class="collapsible-title">2. Load or Save Schedules</span>
+    </button>
+
+    <p class="section-subtitle">Manage saved schedule sets below.</p>
+    <div class="collapsible-body">
+
+      <label for="currentScheduleDisplay">Current Schedule:</label>
+      <textarea id="currentScheduleDisplay"
+		  style="width:66%; height:300px; font-family:monospace; font-size:14px;"
+		  readonly
+		  placeholder="Parsed games will appear here…"></textarea>
+
+      <div class="schedule-controls">
+        <label for="scheduleSelect">Saved Schedules:</label>
+        <select id="scheduleSelect"></select>
+
+        <button id="loadScheduleBtn" class="btn">Load</button>
+        <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
+        <button id="saveScheduleBtn" class="btn primary">Save</button>
+      </div>
     </div>
-  </div>
-</section>
-
-<!-- ======================================== -->
-<!-- 2. Saved Schedule  -->
-<!-- ======================================== -->
-
-<section class="collapsible-panel" id="section-schedule">
-  <button type="button" class="collapsible-header">
-    <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">2. Load or save Schedules</span>
-  </button>
-
-  <p class="section-subtitle">Manage saved schedule sets below.</p>
-
-  <div class="collapsible-body">
-    <label for="currentScheduleDisplay">Current Schedule:</label>
-    <textarea id="currentScheduleDisplay" class="import-textarea" readonly placeholder="Extracted schedule will appear here…"></textarea>
-
-    <div class="schedule-controls">
-      <label for="scheduleSelect">Saved Schedules:</label>
-      <select id="scheduleSelect"></select>
-
-      <button id="loadScheduleBtn" class="btn">Load</button>
-      <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-      <button id="saveScheduleBtn" class="btn primary">Save</button>
-    </div>
-  </div>
-</section>
-
+  </section>
 <!-- ============================================================
 1. TEAM INFO & ROSTER
 ============================================================ -->
