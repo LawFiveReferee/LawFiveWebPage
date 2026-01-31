@@ -13,105 +13,69 @@ console.log("App.js loaded");
    DOM helpers (safe even if dom-helpers.js also exists)
 ============================================================ */
 function $(sel) {
-	return document.querySelector(sel);
+  return document.querySelector(sel);
 }
-
 function $all(sel) {
-	return Array.from(document.querySelectorAll(sel));
+  return Array.from(document.querySelectorAll(sel));
 }
 
 /* ============================================================
-   GLOBAL-LIKE STATE (module-scoped, but exposed for debugging)
+   GLOBAL STATE
+   (expose only what actually matters for shared modules)
 ============================================================ */
-let PARSER_LIST = [];
-let selectedParserIndex = 0;
-let selectedParserKey = null;
+// Parser key for schedule import / parsing
+// Unified current game list for views & bulk edit UI
+// Parser key for schedule import / parsing
+window.selectedParserIndex = 0;
+window.selectedParserKey = null;
 
-let games = [];
-let TEMPLATE_LIST = [];
-let selectedTemplateIndex = 0;
+// Unified current game list for views & bulk edit UI
+window.GAME_LIST = [];
 
-window.PARSER_LIST = PARSER_LIST;
-window.selectedParserIndex = selectedParserIndex;
-window.selectedParserKey = selectedParserKey;
-window.games = games;
-window.TEMPLATE_LIST = TEMPLATE_LIST;
+// Templates (if used elsewhere)
+window.selectedTemplateIndex = 0;
+window.TEMPLATE_LIST = [];
 
 /* ============================================================
    UTILITY: Unique ID for games
 ============================================================ */
 const makeGameId = () => {
-	if (window.crypto && crypto.randomUUID) {
-		return crypto.randomUUID();
-	}
-	return "g-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  if (window.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "g-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 };
 window.makeGameId = makeGameId;
 
 /* ============================================================
-   Shared Schedule Import and parsing
-============================================================ */
-const allParsers = ParserStore.loadAllParsers();
-// Use `allParsers` to populate dropdowns, carousels, etc.
-
-const {
-	parseAndImport
-} = window.ScheduleImport || {};
-
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-	const list = window.SCHEDULE_LIST || [];
-	const idx = window.selectedScheduleIndex;
-	if (!list.length || idx == null || !list[idx]) {
-		alert("Select a schedule first.");
-		return;
-	}
-
-	const sel = list[idx];
-	const games = parseAndImport({
-		rawText: sel.rawText,
-		parserKey: sel.parserKey || "generic",
-		save: false,
-		name: sel.name,
-		source: "saved"
-	});
-
-	window.GAME_LIST = games;
-
-	// auto‑select a team if desired
-	if (games.length > 0) {
-		const firstGame = games[0];
-		window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
-	}
-
-	renderPreviewCards();
-	updateStatusLines();
-});
-/* ============================================================
    UTILITY: Date / Time formatting
 ============================================================ */
 function parseDateFlexible(raw) {
-	if (!raw) return null;
+  if (!raw) return null;
 
-	// MM/DD/YYYY
-	let m = raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-	if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
+  // MM/DD/YYYY
+  let m = raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
 
-	// YYYY-MM-DD
-	m = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
-	if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  // YYYY-MM-DD
+  m = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
 
-	return null;
+  return null;
 }
 
 function formatGameDate(raw) {
-	if (!raw) return "";
-	const d = parseDateFlexible(raw);
-	if (!d || isNaN(d.getTime())) return raw;
+  if (!raw) return "";
+  const d = parseDateFlexible(raw);
+  if (!d || isNaN(d.getTime())) return raw;
 
-	const weekdays = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
-	const months = ["Jan.", "Feb.", "March", "April", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
+  const weekdays = [
+    "SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+  const months = [
+    "Jan.","Feb.","March","April","May","June","July","Aug.","Sept.","Oct.","Nov.","Dec."
+  ];
 
-	return `${weekdays[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
+  return `${weekdays[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
 }
 
 function formatGameTime(raw) {
@@ -134,54 +98,6 @@ window.formatGameTime = formatGameTime;
    Collapsibles (expand/collapse panels)
 ============================================================ */
 
-function initCollapsibles() {
-	const panels = Array.from(document.querySelectorAll(".collapsible-panel"));
-
-	function initSection2FiltersOnce(panel) {
-		if (!panel || panel.id !== "section-2") return;
-		if (panel.dataset.filtersInitialized === "1") return;
-
-		panel.dataset.filtersInitialized = "1";
-
-		if (typeof window.initFilterControls === "function") {
-			window.initFilterControls();
-		} else {
-			console.warn("initFilterControls() not found (filter-rules.js not loaded yet).");
-		}
-	}
-
-	panels.forEach(panel => {
-		const header = panel.querySelector(".collapsible-header");
-		const icon = panel.querySelector(".collapsible-icon");
-		if (!header) return;
-
-		// Initial aria + icon state
-		const initiallyOpen = panel.classList.contains("open");
-		header.setAttribute("aria-expanded", initiallyOpen ? "true" : "false");
-		if (icon) icon.textContent = initiallyOpen ? "−" : "+";
-
-		// If Section 2 is already open on load, init immediately
-		if (initiallyOpen) {
-			initSection2FiltersOnce(panel);
-		}
-
-		header.addEventListener("click", (ev) => {
-			ev.preventDefault();
-
-			const isOpen = panel.classList.toggle("open");
-
-			if (icon) icon.textContent = isOpen ? "−" : "+";
-			header.setAttribute("aria-expanded", isOpen ? "true" : "false");
-
-			// First open of Section 2 triggers filter UI creation
-			if (isOpen) {
-				initSection2FiltersOnce(panel);
-			}
-		});
-	});
-}
-
-window.initCollapsibles = initCollapsibles;
 
 /* ============================================================
    Generic Mapper Profiles (saved extractors)
@@ -225,130 +141,66 @@ window.registerGenericMapperProfile = registerGenericMapperProfile;
 /* ============================================================
    Load parsers from JSON and bind to window functions
 ============================================================ */
-async function loadParserList() {
-	console.log("Loading parser-list.json…");
 
-	try {
-		const res = await fetch("js/parser-list.json", {
-			cache: "no-store"
-		});
-		if (!res.ok) throw new Error("HTTP " + res.status);
 
-		PARSER_LIST = await res.json();
-		if (!Array.isArray(PARSER_LIST) || PARSER_LIST.length === 0) {
-			PARSER_LIST = [];
-			selectedParserIndex = 0;
-			selectedParserKey = null;
-			console.error("parser-list.json invalid or empty.");
-			return;
-		}
-
-		// Attach parse functions
-		PARSER_LIST.forEach(p => {
-			const fnName = p.function;
-			const fn = fnName ? window[fnName] : null;
-			p.parseFn = (typeof fn === "function") ? fn : (() => []);
-			if (typeof fn !== "function") {
-				console.warn(`Parser function '${fnName}' not found on window.`);
-			}
-		});
-
-		// Append saved Generic Mapper profiles
-		const profiles = loadSavedGenericMapperProfiles();
-		profiles.forEach(p => {
-			PARSER_LIST.push({
-				key: "generic-mapper:" + p.key,
-				name: `User Defined Mapper (TSV/CSV): ${p.name}`,
-				description: "User-saved column mapping profile.",
-				parseFn: (raw) => window.parseGenericMapped(raw, p.key),
-				mappingProfileKey: p.key
-			});
-		});
-
-		// Restore previous selection
-		const storedKey = localStorage.getItem("fastCardFactoryParserKey");
-		if (storedKey) {
-			const idx = PARSER_LIST.findIndex(p => p.key === storedKey);
-			if (idx >= 0) {
-				selectedParserIndex = idx;
-				selectedParserKey = storedKey;
-			} else {
-				selectedParserIndex = 0;
-				selectedParserKey = PARSER_LIST[0].key;
-			}
-		} else {
-			selectedParserIndex = 0;
-			selectedParserKey = PARSER_LIST[0].key;
-		}
-
-	} catch (err) {
-		console.error("Failed to load parser-list.json:", err);
-		PARSER_LIST = [];
-		selectedParserIndex = 0;
-		selectedParserKey = null;
-	}
-
-	window.PARSER_LIST = PARSER_LIST;
-	window.selectedParserIndex = selectedParserIndex;
-	window.selectedParserKey = selectedParserKey;
-}
-
-window.loadParserList = loadParserList;
 
 /* ============================================================
    Parser Carousel
 ============================================================ */
+
+
 function refreshParserCarousel() {
-	const nameEl = document.getElementById("parserNameCarousel");
-	const descEl = document.getElementById("parserDescription");
-	const labelEl = document.getElementById("parserName");
+  const list = window.ParserStore?.getParserList?.() || [];
 
-	const editBtn = document.getElementById("editMappingBtn");
-	const deleteBtn = document.getElementById("deleteMappingProfileBtn");
+  const nameEl = document.getElementById("parserName");
+  const descEl = document.getElementById("parserDescription");
 
-	if (!PARSER_LIST.length) {
-		if (nameEl) nameEl.textContent = "(no parsers)";
-		if (descEl) descEl.textContent = "";
-		if (labelEl) labelEl.textContent = "(none)";
+  if (!list.length) {
+    if (nameEl) nameEl.textContent = "(No parsers available)";
+    if (descEl) descEl.textContent = "";
+    selectedParserIndex = 0;
+    selectedParserKey = null;
+    return;
+  }
 
-		if (editBtn) editBtn.classList.add("hidden");
-		if (deleteBtn) deleteBtn.classList.add("hidden");
-		return;
-	}
+  // Clamp index safely
+  if (
+    typeof selectedParserIndex !== "number" ||
+    selectedParserIndex < 0 ||
+    selectedParserIndex >= list.length
+  ) {
+    selectedParserIndex = 0;
+  }
 
-	const p = PARSER_LIST[selectedParserIndex];
+  const parser = list[selectedParserIndex];
+  if (!parser) return;
 
-	if (nameEl) nameEl.textContent = p.name || "";
-	if (descEl) descEl.textContent = p.description || "";
-	if (labelEl) labelEl.textContent = p.name || "";
+  selectedParserKey = parser.key;
 
-	// Persist selected extractor
-	try {
-		localStorage.setItem("fastCardFactoryParserKey", p.key);
-	} catch (_) {}
+  // Update visible UI
+  if (nameEl) {
+    nameEl.textContent = parser.name || parser.key || "(Unnamed parser)";
+  }
 
-	// --- Mapping buttons visibility ---
-	const isGenericMapper =
-		p.key === "generic-mapper" ||
-		(typeof p.key === "string" && p.key.startsWith("generic-mapper:"));
+  if (descEl) {
+    descEl.textContent = parser.description || "";
+  }
 
-	const isSavedMapper =
-		(typeof p.key === "string" && p.key.startsWith("generic-mapper:"));
+  // Attach parser key to raw input for import logic
+  const rawInputEl = document.getElementById("rawInput");
+  if (rawInputEl && parser.key) {
+    rawInputEl.setAttribute("data-parser-key", parser.key);
+  }
 
-	// Edit Mapping shows for base mapper and saved mapper profiles
-	if (editBtn) {
-		if (isGenericMapper) editBtn.classList.remove("hidden");
-		else editBtn.classList.add("hidden");
-	}
-
-	// Delete Mapper shows ONLY for saved mapper profiles (generic-mapper:...)
-	if (deleteBtn) {
-		if (isSavedMapper) deleteBtn.classList.remove("hidden");
-		else deleteBtn.classList.add("hidden");
-	}
+  // Update mapping / delete buttons if present
+  if (typeof window.updateMappingButtons === "function") {
+    window.updateMappingButtons();
+  }
 }
 
 window.refreshParserCarousel = refreshParserCarousel;
+
+
 
 function initParserCarouselControls() {
 	const prevBtn = $("#prevParser");
@@ -391,41 +243,30 @@ function initParserCarouselControls() {
 	}
 
 	function updateMappingButtons() {
-		if (!PARSER_LIST.length) return;
+		const list = window.ParserStore?.getParserList?.() || [];
+		if (!list.length) return;
 
-		const p = PARSER_LIST[selectedParserIndex];
+		const parser = list[selectedParserIndex];
+		if (!parser) return;
 
-		// Edit Mapping: show for base generic mapper AND saved mapper profiles
-		if (editBtn) {
-			if (isGenericMapperParser(p)) editBtn.classList.remove("hidden");
-			else editBtn.classList.add("hidden");
-		}
-
-		// Delete Mapper: show ONLY for saved mapper profiles (generic-mapper:xxxx)
-		if (deleteBtn) {
-			if (isCustomGenericProfile(p)) deleteBtn.classList.remove("hidden");
-			else deleteBtn.classList.add("hidden");
-		}
+		// You can add UI updates here if needed (e.g., enabling/disabling buttons)
 	}
-
-	// Expose so other code (refreshParserCarousel) can force a UI refresh
 	window.updateMappingButtons = updateMappingButtons;
 
 	function selectIndex(newIndex) {
-		if (!PARSER_LIST.length) return;
+		const parserList = window.ParserStore?.getParserList?.() || [];
+		if (!parserList.length) return;
 
-		selectedParserIndex = (newIndex + PARSER_LIST.length) % PARSER_LIST.length;
-		selectedParserKey = PARSER_LIST[selectedParserIndex].key;
-		// Update parser key on the raw input element
+		selectedParserIndex = (newIndex + parserList.length) % parserList.length;
+		selectedParserKey = parserList[selectedParserIndex].key;
+
 		const rawInputEl = document.getElementById("rawInput");
-		if (rawInputEl && PARSER_LIST[selectedParserIndex]) {
-			rawInputEl.setAttribute(
-				"data-parser-key",
-				PARSER_LIST[selectedParserIndex].key
-			);
+		if (rawInputEl && parserList[selectedParserIndex]) {
+			rawInputEl.setAttribute("data-parser-key", parserList[selectedParserIndex].key);
 		}
-		refreshParserCarousel(); // will call updateMappingButtons() too (see next patch)
-		updateMappingButtons();
+
+		refreshParserCarousel?.();
+		updateMappingButtons?.();
 	}
 
 	prevBtn.addEventListener("click", () => selectIndex(selectedParserIndex - 1));
@@ -433,40 +274,38 @@ function initParserCarouselControls() {
 
 	if (deleteBtn) {
 		deleteBtn.addEventListener("click", () => {
-			if (!PARSER_LIST.length) return;
+			const parserList = window.ParserStore?.getParserList?.() || [];
+			if (!parserList.length) return;
 
-			const p = PARSER_LIST[selectedParserIndex];
+			const p = parserList[selectedParserIndex];
 			if (!isCustomGenericProfile(p)) return;
 
 			const profileKey = getProfileKeyFromParser(p);
 			if (!profileKey) return;
 
 			const profileName = (p.name || "").replace(/^User Defined Mapper \(TSV\/CSV\):\s*/i, "") || profileKey;
-
 			const ok = confirm(`Delete saved mapper "${profileName}"?`);
 			if (!ok) return;
 
-			// Remove from localStorage
 			const profiles = loadGenericMapperProfiles();
 			const nextProfiles = profiles.filter(x => x && x.key !== profileKey);
 			saveGenericMapperProfiles(nextProfiles);
 
 			// Remove from in-memory list
-			const removeKey = "generic-mapper:" + profileKey;
-			const removedIndex = PARSER_LIST.findIndex(x => x.key === removeKey);
-			if (removedIndex >= 0) PARSER_LIST.splice(removedIndex, 1);
+			window.ParserStore?.removeParserByKey?.("generic-mapper:" + profileKey);
 
-			// Move selection safely
-			if (!PARSER_LIST.length) {
+			// Update selection
+			const updatedList = window.ParserStore?.getParserList?.() || [];
+			if (!updatedList.length) {
 				selectedParserIndex = 0;
 				selectedParserKey = null;
 			} else {
-				selectedParserIndex = Math.min(selectedParserIndex, PARSER_LIST.length - 1);
-				selectedParserKey = PARSER_LIST[selectedParserIndex].key;
+				selectedParserIndex = Math.min(selectedParserIndex, updatedList.length - 1);
+				selectedParserKey = updatedList[selectedParserIndex].key;
 			}
 
-			refreshParserCarousel();
-			updateMappingButtons();
+			refreshParserCarousel?.();
+			updateMappingButtons?.();
 
 			alert("Mapper deleted.");
 		});
@@ -476,7 +315,6 @@ function initParserCarouselControls() {
 	updateMappingButtons();
 }
 window.initParserCarouselControls = initParserCarouselControls;
-
 /* ============================================================
    Status Lines
 ============================================================ */
@@ -558,8 +396,7 @@ function deleteGameById(gameId) {
 function deleteSelectedGames() {
 	const before = games.length;
 	games = games.filter(g => !g.selected);
-	window.games = games; // keep other modules in sync (filter-rules.js uses window.games)
-
+	window.GAME_LIST = window.GAME_LIST || [];
 	const removed = before - games.length;
 	if (removed > 0) {
 		renderCards()
@@ -796,89 +633,115 @@ window.saveEditChanges = saveEditChanges;
    Parsing Controls (single, clean)
 ============================================================ */
 function initParsingControls() {
-  const parseBtn = $("#parseBtn");
-  const clearBtn = $("#clearBtn");
-  const rawEl = $("#rawInput");
-  const statusEl = $("#parseStatus");
+  const parseBtn = document.getElementById("parseScheduleBtn");
+  const rawEl = document.getElementById("rawInput");
+  const statusEl = document.getElementById("scheduleParseStatus");
+  const clearBtn = document.getElementById("clearBtn");
+  const displayEl = document.getElementById("currentScheduleDisplay");
+  const schedulePanel = document.getElementById("section-schedule");
+  const saveBtn = document.getElementById("saveScheduleBtn");
 
   if (!rawEl) return;
 
-  // — Save Schedule —
-  document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-    const rawInput = rawEl.value?.trim();
-    if (!rawInput) return alert("Nothing to save — paste or select a schedule first.");
-	showSaveScheduleModal(defaultName);
-    if (!name) return;
-    const parserKey = selectedParserKey || "generic";
-    const schedules = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
-    schedules.push({ name, rawText: rawInput, parserKey });
-    localStorage.setItem("savedSchedules", JSON.stringify(schedules));
-    alert("Saved.");
+  // — Parse and Extract Games —
+  	parseBtn?.addEventListener("click", () => {
+		const raw = rawEl.value?.trim();
+		if (!raw) return alert("Paste schedule text first.");
+
+		// Parse games using selected parser
+	   // Parse games using selected parser (ScheduleStoreV2)
+	const result = ScheduleStoreV2.importSchedule({
+	  rawText: raw,
+	  parserKey: window.selectedParserKey || "generic",
+	  autoSelect: true
+	});
+
+	// Normalize return (defensive)
+	const games = Array.isArray(result)
+	  ? result
+	  : result?.games || [];
+
+	if (!games.length) {
+	  throw new Error("No games were parsed from the schedule.");
+	}
+
+window.GAME_LIST = games;
+
+
+    if (!Array.isArray(games) || games.length === 0) {
+      alert("No games parsed.");
+      return;
+    }
+
+    window.GAME_LIST = games;
+    renderCards();
+    updateStatusLines();
+    updateSelectedCountUI();
+
+    // ✅ Show the extracted schedule in display field
+    if (displayEl) displayEl.value = raw;
+
+    // ✅ Expand the Save panel automatically
+    if (schedulePanel && !schedulePanel.classList.contains("expanded")) {
+      schedulePanel.classList.add("expanded");
+      schedulePanel.querySelector(".collapsible-body").style.display = "block";
+      schedulePanel.querySelector(".collapsible-icon").textContent = "−";
+    }
+
+    // ✅ Update parse status
+    if (statusEl) statusEl.textContent = `${games.length} games parsed.`;
   });
 
-  // — Edit Mapping —
-  const editMappingBtn = document.getElementById("editMappingBtn");
-  if (editMappingBtn) {
-    editMappingBtn.addEventListener("click", () => {
-      const raw = rawEl.value?.trimEnd() || "";
-      if (!raw) return alert("Paste schedule text first.");
+  // — Save Schedule —
+  saveBtn?.addEventListener("click", () => {
+    const rawInput = rawEl.value?.trim();
+    if (!rawInput) {
+      alert("Nothing to save — paste or select a schedule first.");
+      return;
+    }
 
-      const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
-      const lines = raw.split(/\r?\n/).filter(l => (l || "").trim().length > 0);
-      const headers = (lines[0] || "").split(delimiter).map(h => (h ?? "").trim());
+    const defaultName = rawInput.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
+    showSaveScheduleModal(defaultName, (name) => {
+      if (!name) return;
 
-      window.openGenericMappingUI(headers, "generic-default-profile", raw);
+      const parserKey = window.selectedParserKey || "generic";
+      const schedules = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
+      schedules.push({ name, rawText: rawInput, parserKey });
+      localStorage.setItem("savedSchedules", JSON.stringify(schedules));
+
+      alert(`Schedule "${name}" saved.`);
     });
-  }
-
-  // — Extract Games —
-  if (parseBtn) {
-    parseBtn.addEventListener("click", () => {
-      const raw = rawEl.value?.trim() || "";
-      if (!raw) {
-        alert("Paste schedule text first.");
-        return;
-      }
-
-      const games = window.ScheduleStore.importSchedule({
-        rawText: raw,
-        parserKey: selectedParserKey || "generic",
-        autoSelect: true
-      });
-
-      if (!Array.isArray(games) || games.length === 0) {
-        alert("No games parsed.");
-        return;
-      }
-
-      window.GAME_LIST = games;
-      renderCards();
-      updateStatusLines();
-      updateSelectedCountUI();
-
-		const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
-		showSaveScheduleModal(defaultName);
-    });
-  }
+  });
 
   // — Clear Button —
-  if (clearBtn) {
+  clearBtn?.addEventListener("click", () => {
+    if (!confirm("Clear ALL games?")) return;
+
+    window.GAME_LIST.length = 0;
+    rawEl.value = "";
+    displayEl.value = "";
+    if (statusEl) statusEl.textContent = "";
     clearBtn.disabled = true;
-    clearBtn.addEventListener("click", () => {
-      if (!confirm("Clear ALL games?")) return;
 
-      games.length = 0;
-      rawEl.value = "";
-      if (statusEl) statusEl.textContent = "";
-      clearBtn.disabled = true;
+    renderCards();
+    updateStatusLines();
+    updateSelectedCountUI();
+  });
 
-      renderCards();
-      updateStatusLines();
-      updateSelectedCountUI();
-    });
-  }
+  // — Edit Mapping Button —
+  document.getElementById("editMappingBtn")?.addEventListener("click", () => {
+    const raw = rawEl.value?.trim();
+    if (!raw) return alert("Paste schedule text first.");
+
+    const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const headers = (lines[0] || "").split(delimiter).map(h => h.trim());
+
+    window.openGenericMappingUI(headers, "generic-default-profile", raw);
+  });
 }
-	window.initParsingControls = initParsingControls;
+
+window.initParsingControls = initParsingControls;
 
 	/* ============================================================
 	   Template Carousel + PDF helpers (kept from your version)
@@ -909,25 +772,25 @@ function initParsingControls() {
 		}
 	}
 
-	function refreshTemplateCarousel() {
-		const status = $("#templateStatus");
-		if (!TEMPLATE_LIST.length) {
-			if (status) status.textContent = "No templates loaded yet.";
-			return;
-		}
-
-		const tpl = TEMPLATE_LIST[selectedTemplateIndex];
-
-		const img = $("#templateImage");
-		const nameEl = $("#templateName");
-
-		if (img) img.src = `./templates/${tpl.png}`;
-		if (nameEl) nameEl.textContent = tpl.name || "";
-
-		if (status) status.textContent = `Template ${selectedTemplateIndex + 1} of ${TEMPLATE_LIST.length}`;
-
-		localStorage.setItem("fastCardFactoryTemplateId", tpl.id);
+function refreshTemplateCarousel() {
+	const status = $("#templateStatus");
+	if (!TEMPLATE_LIST.length) {
+		if (status) status.textContent = "No templates loaded yet.";
+		return;
 	}
+
+	const tpl = TEMPLATE_LIST[selectedTemplateIndex];
+
+	const img = $("#templateImage");
+	const nameEl = $("#templateName");
+
+	if (img) img.src = `./templates/${tpl.png}`;
+	if (nameEl) nameEl.textContent = tpl.name || "";
+
+	if (status) status.textContent = `Template ${selectedTemplateIndex + 1} of ${TEMPLATE_LIST.length}`;
+
+	localStorage.setItem("fastCardFactoryTemplateId", tpl.id);
+}
 
 	function initCarouselControls() {
 		const prev = $("#prevTemplate");
@@ -1363,64 +1226,89 @@ function initParsingControls() {
 		}
 	};
 
-	/* ============================================================
-	   DOMContentLoaded — initialize in correct order
-	============================================================ */
-	/* ============================================================
-	   BOOT — called by module-loader.js after DOM ready
-	============================================================ */
-	async function bootGameCardFactory() {
-		window.initSharedScheduleUI?.();
-		try {
-			await loadParserList();
-			populateParserSelect();
-			initCollapsibles();
-			initParserCarouselControls();
-			refreshParserCarousel();
+/* ============================================================
+   BOOT — called by module-loader.js after DOM ready
+============================================================ */
+async function bootGameCardFactory() {
+  try {
+    // Parser dropdown
+    if (typeof populateParserSelect === "function") {
+      populateParserSelect();
+    }
 
-			// Initialize shared schedule UI v2
-			window.initSharedScheduleUIv2?.();
+    // Collapsibles + parser carousel
+    initCollapsibles();
+    initParserCarouselControls();
+    refreshParserCarousel();
 
-			initParsingControls();
+    // Parsing controls
+    initParsingControls();
 
-			await loadTemplates();
-			initCarouselControls();
-			refreshTemplateCarousel();
+    // Templates
+    await loadTemplates();
+    initCarouselControls();
+    refreshTemplateCarousel();
 
-			initPdfButtons();
+    // PDFs
+    initPdfButtons();
 
-			if (typeof window.initFilterControls === "function") {
-				window.initFilterControls();
-			}
+    // Filters & bulk edit
+    if (typeof window.initFilterControls === "function") {
+      window.initFilterControls();
+    }
+    if (typeof window.initBulkEditControls === "function") {
+      window.initBulkEditControls();
+    }
 
-			if (typeof window.initBulkEditControls === "function") {
-				window.initBulkEditControls();
-			}
-			updateSelectedCountUI();
+    updateSelectedCountUI();
+    updateStatusLines();
+  } catch (err) {
+    console.error("Boot failed:", err);
+  }
+  // —————————————————————————
+// Schedule Save Modal Logic
+// —————————————————————————
+const saveModal = document.getElementById("saveScheduleModal");
+const openSaveBtn = document.getElementById("saveScheduleBtn");
+const cancelSaveBtn = document.getElementById("saveScheduleCancelBtn");
 
-			updateStatusLines();
-		} catch (err) {
-			console.error("Boot failed:", err);
-		}
-	}
-	window.bootGameCardFactory = bootGameCardFactory;
-	// ————————————————
-	// MAPPING PANEL BUTTON SETUP
-	// ————————————————
+openSaveBtn?.addEventListener("click", () => {
+  saveModal?.classList.remove("hidden");
+});
 
+cancelSaveBtn?.addEventListener("click", () => {
+  saveModal?.classList.add("hidden");
+});
+}
+
+window.bootGameCardFactory = bootGameCardFactory;/* ============================================================
+   DOMContentLoaded — initialize after DOM ready
+============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
-  // ✅ Populate saved schedule dropdown
-  window.refreshScheduleDropdown?.();
+  bootGameCardFactory(); // Run the main boot logic
 
-  // ✅ Define Mapping button — attach listener
+  // ✅ Safe to call now that DOM is fully ready
+  if (typeof window.initSharedScheduleUIv2 === "function") {
+    window.initSharedScheduleUIv2();
+  }
+
+  // —————————————————————————
+  // MAPPING PANEL BUTTON SETUP
+  // —————————————————————————
   const mapBtn = document.getElementById("openMappingPanelBtn");
   if (mapBtn) {
     mapBtn.addEventListener("click", () => {
       const raw = document.getElementById("rawInput")?.value?.trim() || "";
       if (!raw) return alert("Paste schedule text first.");
 
-      const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
-      const headers = (raw.split(/\r?\n/)[0] || "").split(delimiter).map(h => h.trim());
+      const delimiter = raw.includes("\t")
+        ? "\t"
+        : raw.includes("|")
+        ? "|"
+        : ",";
+      const headers = (raw.split(/\r?\n/)[0] || "")
+        .split(delimiter)
+        .map(h => h.trim());
 
       if (typeof window.openGenericMappingUI === "function") {
         window.openGenericMappingUI(headers, "user-mapper", raw);
@@ -1430,49 +1318,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Load Saved Schedule
-  document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-    const sel = document.getElementById("scheduleSelect");
-    const name = sel?.value;
-    if (!name) return alert("Select a saved schedule first.");
-
-    const schedule = window.ScheduleStore.getScheduleByName(name);
-    if (!schedule) return alert("Schedule not found.");
-
-    // Restore raw text
-    document.getElementById("rawInput").value = schedule.rawText;
-
-    // Try to restore parser
-    if (schedule.parserKey && typeof selectParserByKey === "function") {
-      const ok = selectParserByKey(schedule.parserKey);
-      if (!ok) {
-        console.warn(`Parser "${schedule.parserKey}" not found — keeping current.`);
-      }
-    }
-
-    // Apply parsed games
-    window.GAME_LIST = schedule.parsedGames || [];
-
-    // Update UI
-    renderPreviewCards?.();
-    document.getElementById("status-section-1").textContent = `Loaded schedule: ${name}`;
-  });
-
-  // ✅ Delete Saved Schedule
-  document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
-    const sel = document.getElementById("scheduleSelect");
-    const name = sel?.value;
-    if (!name) return alert("Select a schedule first.");
-    if (!confirm(`Delete schedule "${name}"?`)) return;
-
-    window.ScheduleStore.deleteScheduleByName(name);
-    window.refreshScheduleDropdown?.();
-  });
-
-  // ✅ FILTER LOGIC
+  // —————————————————————————
+  // FILTERING
+  // —————————————————————————
   function applyFilter() {
     const keyword = document.getElementById("filterInput")?.value?.toLowerCase() || "";
-
     if (!Array.isArray(window.GAME_LIST)) return;
 
     window.GAME_LIST.forEach(game => {
@@ -1492,10 +1342,17 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSelectedCountUI();
   }
 
-  // Attach filter events
   document.getElementById("applyFilterBtn")?.addEventListener("click", applyFilter);
   document.getElementById("clearFilterBtn")?.addEventListener("click", () => {
     document.getElementById("filterInput").value = "";
     applyFilter();
   });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof initCollapsibles === "function") {
+    initCollapsibles();
+  } else {
+    console.warn("initCollapsibles not defined");
+  }
 });

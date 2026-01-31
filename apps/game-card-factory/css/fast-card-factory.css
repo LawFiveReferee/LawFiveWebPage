@@ -1523,3 +1523,189 @@ footer {
   margin-top: 0.5em;
   font-size: 0.9em;
 }
+.schedule-controls,
+.saved-schedule-controls {
+  margin: 0.5em 0;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+#importScheduleBtn,
+#parseScheduleBtn,
+#saveScheduleBtn,
+#loadScheduleBtn,
+#deleteScheduleBtn,
+#renameScheduleBtn {
+  margin-left: .5em;
+}
+
+#importScheduleBtn:disabled,
+#parseScheduleBtn:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+/* Bulk-edit panel spacing */
+.bulk-edit-section {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+/* Each row in bulk edit */
+.bulk-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Label part */
+.bulk-row > label {
+  flex: 0 0 140px; /* match other label widths */
+  font-weight: 500;
+  padding-right: 8px;
+}
+
+/* Controls to right of label */
+.bulk-row-controls {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* Standard input width for selects/text inputs */
+.bulk-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+/* Narrow inputs (for inline numeric entry) */
+.numeric-input {
+  width: 80px;
+  margin-left: 8px;
+}
+
+/* Optional: preset + custom spacing */
+.short-input {
+  width: 80px;
+  margin-right: 8px;
+}
+
+/* Hidden helper */
+.hidden {
+  display: none !important;
+}
+/* ===== Schedule Import / Save ===== */
+#scheduleSection {
+  margin-top: 20px;
+}
+
+.textarea {
+  width: 100%;
+  height: 150px;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.button-group {
+  margin-bottom: 12px;
+}
+
+.schedule-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-controls select {
+  min-width: 200px;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 16px;
+  width: 90%;
+  max-width: 380px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 12px rgba(0,0,0,0.3);
+}
+
+.modal-buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.hidden {
+  display: none !important;
+}
+/* === Improved Layout for Import & Save === */
+#importScheduleSection .import-panel,
+#importScheduleSection .schedule-controls {
+  margin-top: 16px;
+}
+
+#importScheduleSection .import-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  font-family: monospace;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+#importScheduleSection .button-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+#importScheduleSection .divider {
+  margin: 24px 0 8px;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+#importScheduleSection .parse-status {
+  font-size: 0.9em;
+  color: var(--gray);
+}
+
+#importScheduleSection h3 {
+  margin-top: 0;
+}
+
+#importScheduleSection .schedule-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.collapsible-body {
+  color: var(--textColor, #222); /* fallback if --textColor isn't defined */
+  background-color: #fff; /* optional: if needed for clarity */
+}
+.collapsible-body label {
+  color: var(--textColor, #222);
+}

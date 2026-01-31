@@ -154,3 +154,111 @@ function parseAndImport(rawText, parserKey = "generic") {
 window.ScheduleImport = {
   parseAndImport
 };
+
+export function setupScheduleParser({ parseBtnId, rawInputId }) {
+  const parseBtn = document.getElementById(parseBtnId);
+  const rawEl = document.getElementById(rawInputId);
+
+  if (!parseBtn || !rawEl) {
+    console.warn("Parser setup failed: missing DOM elements.");
+    return;
+  }
+
+  parseBtn.addEventListener("click", () => {
+    const raw = rawEl.value?.trim() || "";
+    if (!raw) {
+      alert("Paste schedule text first.");
+      return;
+    }
+
+    const parserKey = localStorage.getItem("selectedScheduleParserKey") || "generic";
+
+    const games = ScheduleStoreV2.importSchedule({
+      rawText: raw,
+      parserKey,
+      autoSelect: true
+    });
+
+    if (!Array.isArray(games) || games.length === 0) {
+      alert("No games parsed.");
+      return;
+    }
+
+    window.GAME_LIST = games;
+
+    // Update global UI
+    renderCards?.();
+    updateStatusLines?.();
+    updateSelectedCountUI?.();
+
+    // Update current schedule display if present
+    const schedDisplay = document.getElementById("currentScheduleDisplay");
+    if (schedDisplay) {
+      schedDisplay.value = JSON.stringify(games, null, 2);
+    }
+
+    // Prompt for save name based on first line of raw
+    const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
+    if (typeof showSaveScheduleModal === "function") {
+      showSaveScheduleModal(defaultName);
+    }
+  });
+}
+document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const sel = document.getElementById("scheduleSelect");
+  const name = sel?.value;
+  if (!name) return alert("Select a saved schedule first.");
+
+  const schedule = ScheduleStoreV2.getScheduleByName(name);
+  if (!schedule) return alert("Schedule not found.");
+
+  // Put rawText into textarea
+  document.getElementById("rawInput").value = schedule.rawText || "";
+
+  // Populate GAME_LIST
+  window.GAME_LIST = schedule.parsedGames || [];
+
+  // Update display area
+  document.getElementById("currentScheduleDisplay").value =
+    JSON.stringify(window.GAME_LIST, null, 2);
+
+  // Keep parser dropdown in sync
+  if (schedule.parserKey) {
+    localStorage.setItem("selectedScheduleParserKey", schedule.parserKey);
+    document.getElementById("parserSelect").value = schedule.parserKey;
+  }
+
+  renderCards?.();
+  updateStatusLines?.();
+});
+
+document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
+  // show the modal
+  const modal = document.getElementById("saveScheduleModal");
+  modal.classList.remove("hidden");
+
+  // clear input
+  document.getElementById("scheduleNameInput").value = "";
+});
+
+document.getElementById("saveScheduleCancelBtn")?.addEventListener("click", () => {
+  document.getElementById("saveScheduleModal")?.classList.add("hidden");
+});
+
+document.getElementById("saveScheduleConfirmBtn")?.addEventListener("click", () => {
+  const name = document.getElementById("scheduleNameInput")?.value.trim();
+  if (!name) return alert("Enter a name.");
+
+  const rawText = document.getElementById("rawInput")?.value || "";
+  const parserKey = localStorage.getItem("selectedScheduleParserKey") || "";
+  const parsedGames = Array.isArray(window.GAME_LIST)
+    ? window.GAME_LIST
+    : [];
+
+  ScheduleStoreV2.saveSchedule({
+    name, rawText, parserKey, parsedGames
+  });
+
+  refreshScheduleDropdown();
+  document.getElementById("saveScheduleModal")?.classList.add("hidden");
+});

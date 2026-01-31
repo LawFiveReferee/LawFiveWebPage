@@ -1,341 +1,345 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lineup Card Factory — Law 5 Referee</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lineup Card Factory — Law 5 Referee</title>
 
-  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="css/fast-card-factory.css">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="css/fast-card-factory.css">
 </head>
 
-	<body class="admin-page">
+<body class="admin-page">
 
-		<header>
-		  <h1>Law Five Referee — Lineup Card Factory</h1>
-		  <nav>
-			<a href="/index.html">Home</a>
-			<a href="/apps/game-card-factory/index.html">Game Card Factory</a>
-			<a href="/apps/lineup-card-factory/index.html">Lineup Card Factory</a>
-		  </nav>
-		</header>
+<header>
+<h1>Law Five Referee — Lineup Card Factory</h1>
+<nav>
+<a href="/index.html">Home</a>
+<a href="/apps/game-card-factory/index.html">Game Card Factory</a>
+<a href="/apps/lineup-card-factory/index.html">Lineup Card Factory</a>
+</nav>
+</header>
 
-		<div class="container">
+<div class="container">
 
-			  <h1>Lineup Card Factory</h1>
+<h1>Lineup Card Factory</h1>
+<!-- ============================================================
+Colllaspible Sections
+============================================================ -->
+<!-- ======================= -->
+<!-- 1. Schedule Import  -->
+<!-- ======================= -->
+<section class="collapsible-panel" id="section-import">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">1. Paste & Extract Raw Schedule</span>
+  </button>
 
-			  <!-- ============================================================
-				   1. TEAM INFO & ROSTER
-			  ============================================================ -->
-			<section class="collapsible-panel" id="section-1-team">
-			  <button class="collapsible-header">
-				<span class="collapsible-icon">+</span>
-				<span class="collapsible-title">1. Paste / Edit Team Info & Roster</span>
-			  </button>
-			  <p class="section-subtitle" id="status-section-1-team">Load or create a team.</p>
-				<div class="collapsible-body">
+  <p class="section-subtitle">Paste schedule text and extract game data.</p>
 
-					<!-- Team selector -->
-					<div class="team-selector-row">
-						<label for="teamSelect">Select Team:</label>
-						<select id="teamSelect"></select>
-						<button id="openImportModalBtn" class="btn">Import Team and Roster</button>
-						<button id="newTeamBtn" class="btn">New Team</button>
-						<button id="saveTeamBtn" class="btn">Save Team</button>
-						<button id="cloneTeamBtn" class="secondary">Clone Team</button>
-						<button id="deleteTeamBtn" class="secondary">Delete Team</button>
-					</div>
+  <div class="collapsible-body">
+    <label for="rawInput">Schedule Text:</label>
+    <textarea id="rawInput" class="import-textarea" placeholder="Paste schedule text here…"></textarea>
 
-					<!-- Team fields -->
-					<div class="team-fields-grid">
-						<label for="teamId">Team ID</label>  <input id="teamId" class="macos-input">
-						<label for="teamAgeDiv">Age / Division</label>  <input id="teamAgeDiv" class="macos-input">
-						<label for="teamRegion">Team Region</label>  <input id="teamRegion" class="macos-input">
-						<label for="teamNumber">Team Number</label>  <input id="teamNumber" class="macos-input">
-						<label for="teamName">Team Name</label>  <input id="teamName" class="macos-input">
-						<label for="teamCoach">Team Coach</label>  <input id="teamCoach" class="macos-input">
-						<label for="teamAsstCoach">Assistant Coach</label>  <input id="teamAsstCoach" class="macos-input">
-						<label for="teamColors">Team Colors</label>  <input id="teamColors" class="macos-input">
-					</div>
-					<!-- Roster paste/parse -->
-					<div id="rosterTableContainer"></div>
-					<div class="roster-buttons">
-						<button id="parseRosterBtn" class="btn">Parse Roster</button>
-						<button id="clearRosterBtn" class="secondary">Clear Roster</button>
-						<button id="addPlayerBtn" class="btn">Add Player</button>
-						<button id="sortRosterBtn" class="btn">Sort by #</button>
-						<button id="saveTeamBtn" class="btn">Save Team</button>
-					</div>
-					<textarea id="rosterInput" class="import-textarea"
-					placeholder="Paste player roster: Number <tab> Player Name"></textarea>
-				</div>
-			</section>
-			<!-- ============================================================
-				 IMPORT SCHEDULE CAROUSEL
-			============================================================ -->
-			<section class="collapsible-panel" id="section-import">
-			  <button class="collapsible-header">
-				<span class="collapsible-icon">+</span>
-				<span class="collapsible-title">Parse Schedules / Import Games</span>
-			  </button>
+    <div class="button-group">
+      <button id="parseScheduleBtn" class="btn">Extract Games</button>
+      <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
+    </div>
+  </div>
+</section>
 
-			  <div class="collapsible-body">
+<!-- ======================================== -->
+<!-- 2. Saved Schedule  -->
+<!-- ======================================== -->
 
-				<div class="shared-carousel">
-				  <button id="carouselPrev" class="carousel-nav">⟨</button>
-				  <div id="carouselViewport" class="carousel-viewport"></div>
-				  <button id="carouselNext" class="carousel-nav">⟩</button>
-				</div>
-				<label for="parserSelect">Parser:</label>
-				<select id="parserSelect" class="parser-select">
-					<!-- options populated by JS -->
-				</select>
-				<div id="importStatus" class="status-line">Choose a schedule or parser to begin.</div>
+<section class="collapsible-panel" id="section-schedule">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">2. Load or save Schedules</span>
+  </button>
 
-				<textarea id="rawInput" class="import-textarea"
-				  placeholder="Paste schedule text here"></textarea>
+  <p class="section-subtitle">Manage saved schedule sets below.</p>
 
-			  </div>
-			</section>
+  <div class="collapsible-body">
+    <label for="currentScheduleDisplay">Current Schedule:</label>
+    <textarea id="currentScheduleDisplay" class="import-textarea" readonly placeholder="Extracted schedule will appear here…"></textarea>
 
-			<!-- Shared Parser Editor Modal -->
-			<div id="parserManagerModal" class="modal-backdrop hidden">
-			  <div class="modal-content">
-				<h2 id="parserManagerTitle">Parser Editor</h2>
+    <div class="schedule-controls">
+      <label for="scheduleSelect">Saved Schedules:</label>
+      <select id="scheduleSelect"></select>
 
-				<label>Parser Name</label>
-				<input id="parserNameInput" type="text">
+      <button id="loadScheduleBtn" class="btn">Load</button>
+      <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
+      <button id="saveScheduleBtn" class="btn primary">Save</button>
+    </div>
+  </div>
+</section>
 
-				<label>Description</label>
-				<input id="parserDescInput" type="text">
+<!-- ============================================================
+1. TEAM INFO & ROSTER
+============================================================ -->
+<section class="collapsible-panel" id="section-1-team">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">3. Paste / Edit Team Info & Roster</span>
+</button>
+<p class="section-subtitle" id="status-section-1-team">Load or create a team.</p>
+<div class="collapsible-body">
 
-				<label>Rules / Code</label>
-				<textarea id="parserRulesInput" rows="8"
-						  placeholder="// Enter mapping rules or JS code"></textarea>
+<!-- Team selector -->
+<div class="team-selector-row">
+<label for="teamSelect">Select Team:</label>
+<select id="teamSelect"></select>
+<button id="openImportModalBtn" class="btn">Import Team and Roster</button>
+<button id="newTeamBtn" class="btn">New Team</button>
+<button id="saveTeamBtn" class="btn">Save Team</button>
+<button id="cloneTeamBtn" class="secondary">Clone Team</button>
+<button id="deleteTeamBtn" class="secondary">Delete Team</button>
+</div>
 
-				<div class="modal-buttons">
-				  <button id="saveParserBtn" class="btn">Save Parser</button>
-				  <button id="cancelParserBtn" class="btn secondary">Cancel</button>
-				</div>
-			  </div>
-			  <!-- Saved Schedules -->
-				<div class="saved-schedules-section">
-					<label for="scheduleSelect">Saved Schedules:</label>
-					<div class="saved-schedules-controls">
-						<select id="scheduleSelect"></select>
-						<button id="loadScheduleBtn" class="btn">Load</button>
-						<button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-						<button id="renameScheduleBtn" class="btn">Rename</button>
-					</div>
-				</div>
-			</div>
-			  <!-- ============================================================
-				   3. SELECT & FILTER GAMES
-			  ============================================================ -->
-			<section class="collapsible-panel" id="section-3">
-				<button class="collapsible-header">
-				  <span class="collapsible-icon">+</span>
-				  <span class="collapsible-title">3. Select & Filter Games</span>
-				</button>
-				<p class="section-subtitle" id="status-section-3">Filter games involving this team.</p>
-				<div class="collapsible-body">
-				  <input id="filterInput" class="macos-input" placeholder="Filter by opponent, date, etc">
-				  <div class="filter-buttons">
-					<button id="applyFilterBtn" class="btn">Apply Filter</button>
-					<button id="clearFilterBtn" class="secondary">Clear Filter</button>
-				  </div>
-				</div>
-			</section>
+<!-- Team fields -->
+<div class="team-fields-grid">
+<label for="teamId">Team ID</label>  <input id="teamId" class="macos-input">
+<label for="teamAgeDiv">Age / Division</label>  <input id="teamAgeDiv" class="macos-input">
+<label for="teamRegion">Team Region</label>  <input id="teamRegion" class="macos-input">
+<label for="teamNumber">Team Number</label>  <input id="teamNumber" class="macos-input">
+<label for="teamName">Team Name</label>  <input id="teamName" class="macos-input">
+<label for="teamCoach">Team Coach</label>  <input id="teamCoach" class="macos-input">
+<label for="teamAsstCoach">Assistant Coach</label>  <input id="teamAsstCoach" class="macos-input">
+<label for="teamColors">Team Colors</label>  <input id="teamColors" class="macos-input">
+</div>
+<!-- Roster paste/parse -->
+<div id="rosterTableContainer"></div>
+<div class="roster-buttons">
+<button id="parseRosterBtn" class="btn">Parse Roster</button>
+<button id="clearRosterBtn" class="secondary">Clear Roster</button>
+<button id="addPlayerBtn" class="btn">Add Player</button>
+<button id="sortRosterBtn" class="btn">Sort by #</button>
+<button id="saveTeamBtn" class="btn">Save Team</button>
+</div>
+<textarea id="rosterInput" class="import-textarea"
+placeholder="Paste player roster: Number <tab> Player Name"></textarea>
+</div>
+</section>
 
-			  <!-- ============================================================
-				   4. BULK EDIT SELECTED LINEUPS
-			  ============================================================ -->
-			<section class="collapsible-panel" id="section-4">
-				<button class="collapsible-header">
-				  <span class="collapsible-icon">+</span>
-				  <span class="collapsible-title">4. Bulk Edit Selected Lineups</span>
-				</button>
-				<p class="section-subtitle" id="status-section-4">Edit selected games/lineups.</p>
-				<div class="collapsible-body">
-				  <div class="macos-bulk-panel">
-					<div class="macos-row">
-					  <label>Date</label>
-					  <input id="bulkDate" type="date" class="macos-input">
-					</div>
-					<div class="macos-row">
-					  <label>Location/Field</label>
-					  <input id="bulkLocation" type="text" class="macos-input">
-					</div>
-					<div class="macos-row two-columns">
-					  <div class="column"><label>Opponent</label><input id="bulkOpponent" class="macos-input"></div>
-					  <div class="column"><label>Notes</label><input id="bulkNotes" class="macos-input"></div>
-					</div>
-					<div class="macos-button-row">
-					  <button id="applyBulkBtn" class="btn">Apply to Selected</button>
-					  <button id="clearBulkBtn" class="secondary">Clear</button>
-					</div>
-				  </div>
-				</div>
-			</section>
+<!-- ============================================================
+4. SELECT & FILTER GAMES
+============================================================ -->
+<section class="collapsible-panel" id="section-3">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">4. Select & Filter Games</span>
+</button>
+<p class="section-subtitle" id="status-section-3">Filter games involving this team.</p>
+<div class="collapsible-body">
+<input id="filterInput" class="macos-input" placeholder="Filter by opponent, date, etc">
+<div class="filter-buttons">
+<button id="applyFilterBtn" class="btn">Apply Filter</button>
+<button id="clearFilterBtn" class="secondary">Clear Filter</button>
+</div>
+</div>
+</section>
 
-			  <!-- ============================================================
-				   5. LINEUP CARD PREVIEW
-			  ============================================================ -->
-			<section class="collapsible-panel" id="section-5">
-				<button class="collapsible-header">
-				  <span class="collapsible-icon">+</span>
-				  <span class="collapsible-title">5. Lineup Card Preview</span>
-				</button>
-				<p class="section-subtitle" id="status-section-5">No cards to preview yet.</p>
-				<div class="collapsible-body">
-				<div id="previewCardContainer"></div>
-				</div>
-			</section>
+<!-- ============================================================
+5. BULK EDIT SELECTED LINEUPS
+============================================================ -->
+<section class="collapsible-panel" id="section-4">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">5. Bulk Edit Selected Lineups</span>
+</button>
+<p class="section-subtitle" id="status-section-4">Edit selected games/lineups.</p>
+<div class="collapsible-body">
+<div class="macos-bulk-panel">
+<div class="macos-row">
+<label>Date</label>
+<input id="bulkDate" type="date" class="macos-input">
+</div>
+<div class="macos-row">
+<label>Location/Field</label>
+<input id="bulkLocation" type="text" class="macos-input">
+</div>
+<div class="macos-row two-columns">
+<div class="column"><label>Opponent</label><input id="bulkOpponent" class="macos-input"></div>
+<div class="column"><label>Notes</label><input id="bulkNotes" class="macos-input"></div>
+</div>
+<div class="macos-button-row">
+<button id="applyBulkBtn" class="btn">Apply to Selected</button>
+<button id="clearBulkBtn" class="secondary">Clear</button>
+</div>
+</div>
+</div>
+</section>
 
-			<!-- ============================================================
-				 6. TEMPLATE SELECTOR
-			============================================================ -->\
-			<section class="collapsible-panel" id="section-6">
-			  <button class="collapsible-header">
-				<span class="collapsible-icon">+</span>
-				<span class="collapsible-title">6. Choose Template</span>
-			  </button>
-			  <p class="section-subtitle" id="status-section-6">Select lineup or roster template.</p>
+<!-- ============================================================
+5. LINEUP CARD PREVIEW
+============================================================ -->
+<section class="collapsible-panel" id="section-5">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">5. Lineup Card Preview</span>
+</button>
+<p class="section-subtitle" id="status-section-5">No cards to preview yet.</p>
+<div class="collapsible-body">
+<div id="previewCardContainer"></div>
+</div>
+</section>
 
-				<div class="collapsible-body">
-					<!-- Template carousel -->
-					<div class="template-carousel-wrapper">
-					  <button id="prevTemplate" class="carousel-arrow left">&lsaquo;</button>
-					  <div class="template-carousel">
-						<div class="template-slide active">
-						  <img id="templateImage" alt="Template preview" />
-						</div>
-					  </div>
-					  <button id="nextTemplate" class="carousel-arrow right">&rsaquo;</button>
-					</div>
+<!-- ============================================================
+6. TEMPLATE SELECTOR
+============================================================ -->\
+<section class="collapsible-panel" id="section-6">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">6. Choose Template</span>
+</button>
+<p class="section-subtitle" id="status-section-6">Select lineup or roster template.</p>
 
-					<!-- Template name and status -->
-					<p id="templateName" class="template-name"></p>
-					<p id="templateStatus" class="template-status"></p>
+<div class="collapsible-body">
+<!-- Template carousel -->
+<div class="template-carousel-wrapper">
+<button id="prevTemplate" class="carousel-arrow left">&lsaquo;</button>
+<div class="template-carousel">
+<div class="template-slide active">
+<img id="templateImage" alt="Template preview" />
+</div>
+</div>
+<button id="nextTemplate" class="carousel-arrow right">&rsaquo;</button>
+</div>
 
-					<!-- Inspect button -->
-					<button id="inspectTemplateBtn" class="btn secondary">Inspect Template Fields</button>
+<!-- Template name and status -->
+<p id="templateName" class="template-name"></p>
+<p id="templateStatus" class="template-status"></p>
 
-					<!-- Field validation output -->
+<!-- Inspect button -->
+<button id="inspectTemplateBtn" class="btn secondary">Inspect Template Fields</button>
 
-					<!-- Template Field Validation Output -->
-					<div id="templateValidationOutputContainer" class="template-validation-container">
-					  <div class="template-validation-header">
-						<strong>Template Fields</strong>
-						<button id="copyTemplateFieldsBtn" class="btn small">Copy Fields</button>
-					  </div>
-					<div id="templateValidationOutput" class="template-validation-output"
-						 style="white-space: pre-wrap; font-family: monospace; color: #000;">
-					</div>
-				</div>
+<!-- Field validation output -->
 
-				<!-- Template Field Inspector Modal -->
-				<div id="templateFieldInspector" class="modal-backdrop hidden">
-				  <div class="modal-content">
-					<h2>PDF Template Fields</h2>
-					<div id="templateFieldList"></div>
-					<div class="modal-buttons">
-					  <button class="btn" id="closeFieldInspectorBtn">Close</button>
-					</div>
-				  </div>
-				</div>
-			  </div>
-			</section>
+<!-- Template Field Validation Output -->
+<div id="templateValidationOutputContainer" class="template-validation-container">
+<div class="template-validation-header">
+<strong>Template Fields</strong>
+<button id="copyTemplateFieldsBtn" class="btn small">Copy Fields</button>
+</div>
+<div id="templateValidationOutput" class="template-validation-output"
+style="white-space: pre-wrap; font-family: monospace; color: #000;">
+</div>
+</div>
+
+<!-- Template Field Inspector Modal -->
+<div id="templateFieldInspector" class="modal-backdrop hidden">
+<div class="modal-content">
+<h2>PDF Template Fields</h2>
+<div id="templateFieldList"></div>
+<div class="modal-buttons">
+<button class="btn" id="closeFieldInspectorBtn">Close</button>
+</div>
+</div>
+</div>
+</div>
+</section>
 
 
-			<!-- Inline style for validation output -->
-			<style>
-			  #templateValidationOutput {
-				color: #000; /* force black text */
-				background: #fff; /* white background */
-				border: 1px solid #ccc;
-				padding: 0.6em;
-				margin-top: 0.5em;
-				max-height: 350px;
-				overflow-y: auto;
-				font-size: 0.9em;
-				font-family: monospace;
-			  }
-			  #templateValidationOutput ul {
-				list-style: disc;
-				margin-left: 1.2em;
-				padding-left: 0;
-			  }
-			  #templateValidationOutput li {
-				margin-bottom: 0.5em;
-			  }
-			</style>
+<!-- Inline style for validation output -->
+<style>
+#templateValidationOutput {
+color: #000; /* force black text */
+background: #fff; /* white background */
+border: 1px solid #ccc;
+padding: 0.6em;
+margin-top: 0.5em;
+max-height: 350px;
+overflow-y: auto;
+font-size: 0.9em;
+font-family: monospace;
+}
+#templateValidationOutput ul {
+list-style: disc;
+margin-left: 1.2em;
+padding-left: 0;
+}
+#templateValidationOutput li {
+margin-bottom: 0.5em;
+}
+</style>
 
-			<!-- ============================================================
-			   7. GENERATE LINEUP CARDS & ROSTERS
-			============================================================ -->
-			<section class="collapsible-panel" id="section-7">
-				<button class="collapsible-header">
-				  <span class="collapsible-icon">+</span>
-				  <span class="collapsible-title">7. Generate Lineup Cards & Rosters</span>
-				</button>
-				<p class="section-subtitle">Export selected cards</p>
-				<div class="collapsible-body">
-				  <button id="generateBtn" class="btn fullwidth">Generate PDF</button>
-				  <p id="generateStatus"></p>
-				</div>
-			</section>
+<!-- ============================================================
+7. GENERATE LINEUP CARDS & ROSTERS
+============================================================ -->
+<section class="collapsible-panel" id="section-7">
+<button class="collapsible-header">
+<span class="collapsible-icon">+</span>
+<span class="collapsible-title">7. Generate Lineup Cards & Rosters</span>
+</button>
+<p class="section-subtitle">Export selected cards</p>
+<div class="collapsible-body">
+<button id="generateBtn" class="btn fullwidth">Generate PDF</button>
+<p id="generateStatus"></p>
+</div>
+</section>
 
-		</div>
-		<!-- ============================================================
-			Modal for Importing Team and Roster -
-		============================================================ -->
-		<button id="openImportModalBtn" class="btn">Import Team and Roster</button>
+</div>
+<!-- ============================================================
+Modal for Importing Team and Roster -
+============================================================ -->
+<button id="openImportModalBtn" class="btn">Import Team and Roster</button>
 
-		<div id="importModal" class="modal hidden">
-			<div class="modal-content">
-				<h3>Import Team & Roster (TSV)</h3>
-				<textarea id="tsvInput" placeholder="Paste tab-separated values here"></textarea>
+<div id="importModal" class="modal hidden">
+<div class="modal-content">
+<h3>Import Team & Roster (TSV)</h3>
+<textarea id="tsvInput" placeholder="Paste tab-separated values here"></textarea>
 
-				<div class="modal-buttons">
-					<button id="importTsvBtn" class="btn">Import</button>
-					<button id="closeImportModalBtn" class="secondary">Cancel</button>
-				</div>
-			</div>
-		</div>
-		<footer>
-		  <p>© 2026 Law Five Referee</p>
-		</footer>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-		<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-		<script type="module" src="js/module-loader.js"></script>
+<div class="modal-buttons">
+<button id="importTsvBtn" class="btn">Import</button>
+<button id="closeImportModalBtn" class="secondary">Cancel</button>
+</div>
+</div>
+</div>
+<footer>
+<p>© 2026 Law Five Referee</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script type="module" src="js/module-loader.js"></script>
 
-		<script type="module" src="js/lineup-card-factory.js?v=20260113a"></script>
+<script type="module" src="js/lineup-card-factory.js?v=20260113a"></script>
 
-		<!-- Edit Lineup / Team Card Modal -->
-		<div id="lineupEditModal" class="modal-backdrop hidden">
-		  <div class="modal-content">
-			<h2>Edit Card</h2>
-			<div id="lineupEditModalBody"></div>
-			<div class="modal-buttons">
-			  <button id="saveLineupEditBtn" class="btn">Save</button>
-			  <button id="cancelLineupEditBtn" class="secondary">Cancel</button>
-			</div>
-		  </div>
-		</div>
-		<!-- Schedule Save Modal -->
-		<div id="scheduleSaveModal" class="modal hidden">
-			<div class="modal-content">
-				<h3>Save Schedule</h3>
-				<input id="scheduleNameInput" placeholder="Schedule name" />
-				<div class="modal-buttons">
-					<button id="confirmSaveScheduleBtn" class="btn">Save</button>
-					<button id="cancelSaveScheduleBtn" class="secondary">Cancel</button>
-				</div>
-				<p id="scheduleSaveError" class="error-text hidden"></p>
-			</div>
-		</div>
-	</body>
+<!-- Edit Lineup / Team Card Modal -->
+<div id="lineupEditModal" class="modal-backdrop hidden">
+<div class="modal-content">
+<h2>Edit Card</h2>
+<div id="lineupEditModalBody"></div>
+<div class="modal-buttons">
+<button id="saveLineupEditBtn" class="btn">Save</button>
+<button id="cancelLineupEditBtn" class="secondary">Cancel</button>
+</div>
+</div>
+</div>
+<!-- Schedule Save Modal -->
+<div id="scheduleSaveModal" class="modal hidden">
+<div class="modal-content">
+<h3>Save Schedule</h3>
+<input id="scheduleNameInput" placeholder="Schedule name" />
+<div class="modal-buttons">
+<button id="confirmSaveScheduleBtn" class="btn">Save</button>
+<button id="cancelSaveScheduleBtn" class="secondary">Cancel</button>
+</div>
+<p id="scheduleSaveError" class="error-text hidden"></p>
+</div>
+</div>
+<div id="saveScheduleModal" class="modal hidden">
+<div class="modal-content">
+<h3>Save Schedule</h3>
+<input type="text" id="scheduleNameInput" placeholder="Enter schedule name…" />
+<div class="modal-buttons">
+<button id="saveScheduleConfirmBtn">Save</button>
+<button id="saveScheduleCancelBtn" class="secondary">Cancel</button>
+</div>
+<p id="scheduleSaveError" class="error-text hidden"></p>
+</div>
+</div>
+</body>
 </html>

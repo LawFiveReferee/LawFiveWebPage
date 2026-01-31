@@ -147,4 +147,5 @@ export const ScheduleStore = {
 };
 
 // Make available to carousel-ui and apps via window
-window.ScheduleStore = ScheduleStore;
+window.ScheduleStoreV2 = ScheduleStoreV2;
+export default ScheduleStoreV2;

@@ -2,10 +2,39 @@
    ES MODULE LOADER — Lineup Card Factory
    Loads shared modules first, then app modules, then boots the UI.
 ============================================================================ */
+function waitForElement(selector, timeout = 1000) {
+  return new Promise((resolve, reject) => {
+    const el = document.querySelector(selector);
+    if (el) return resolve(el);
 
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) {
+        observer.disconnect();
+        resolve(found);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`Timeout waiting for ${selector}`));
+    }, timeout);
+  });
+}
 /* ================================
    Shared Modules (must load first)
 ================================== */
+
+/* ================================
+   Shared Parsers
+================================== */
+import "../../shared/parser-arbiter-game-details.js";
+console.log("✅ parser-arbiter-game-details loaded");
+
+import "../../shared/parser-arbiter-plain-text.js";
+console.log("✅ parser-arbiter-plain-text.js loaded");
 
 // Shared constants (if needed)
 import "../../shared/constants.js";
@@ -17,6 +46,9 @@ console.log("✅ shared/schedule-parser.js loaded");
 
 import "../../shared/schedule-store-v2.js";
 console.log("✅ shared/schedule-store-v2.js loaded");
+
+if (typeof populateParserSelect === "function") populateParserSelect();
+if (typeof initSharedScheduleUIv2 === "function") initSharedScheduleUIv2();
 
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ shared/schedule-ui-v2.js loaded");
@@ -41,29 +73,29 @@ console.log("✅ refreshImportCarousel function loaded");
 
 
 console.log("✅ All shared modules loaded");
+// DOM helpers
+import "../../shared/dom-helpers.js";
+console.log("✅ dom-helpers.js (shared)loaded");
 
 /* ================================
    Lineup Card Factory App Modules
 ================================== */
 
-// DOM helpers
-import "./dom-helpers.js";
-console.log("✅ dom-helpers.js loaded");
 
 // Parser standardization (legacy)
-import "./parser-standardizer.js";
-console.log("✅ parser-standardizer.js loaded");
+//import "./parser-standardizer.js";
+//console.log("✅ parser-standardizer.js loaded");
 
 // Legacy parser mappings (if still used)
-import "./parser.js";
-console.log("✅ parser.js loaded");
+//import "./parser.js";
+//console.log("✅ parser.js loaded");
 
-import "./parser-ayso.js";
-console.log("✅ parser-ayso.js loaded");
+//import "./parser-ayso.js";
+//console.log("✅ parser-ayso.js loaded");
 
 // Generic mapper and other parser support
-import "./parser-generic-mapper.js";
-console.log("✅ parser-generic-mapper.js loaded");
+//import "./parser-generic-mapper.js";
+//console.log("✅ parser-generic-mapper.js loaded");
 
 // UI modules
 import "./mapping-ui.js";
@@ -134,3 +166,6 @@ if (document.readyState === "loading") {
 } else {
   bootLineupCardFactory();
 }
+document.addEventListener("DOMContentLoaded", () => {
+  refreshScheduleDropdown();
+});

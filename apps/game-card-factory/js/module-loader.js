@@ -3,161 +3,133 @@
 // ================================
 
 console.log("✅ module-loader.js starting…");
+function waitForElement(selector, timeout = 1000) {
+  return new Promise((resolve, reject) => {
+    const el = document.querySelector(selector);
+    if (el) return resolve(el);
 
-/* ====================================================
-   1) Shared Modules (load these before everything else)
-==================================================== */
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) {
+        observer.disconnect();
+        resolve(found);
+      }
+    });
 
-// Shared schedule parser + v2 store + shared schedule UI
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    setTimeout(() => {
+      observer.disconnect();
+      reject(new Error(`Timeout waiting for ${selector}`));
+    }, timeout);
+  });
+}
+/* ================================
+   1. Load Shared Core Modules
+================================== */
+
+// Shared parsers (must come first)
+import "../../shared/parser-arbiter-game-details.js";
+import "../../shared/parser-arbiter-plain-text.js";
+console.log("✅ Shared basic parsers loaded");
+
+// Shared schedule parser + store
 import "../../shared/schedule-parser.js";
-console.log("✅ shared/schedule-parser.js loaded");
-
 import "../../shared/schedule-store-v2.js";
-console.log("✅ shared/schedule-store-v2.js loaded");
+ScheduleStoreV2 ||= ScheduleStore; // ← Ensure attached to window
+console.log("✅ Shared schedule parser/store loaded");
 
-import "../../shared/schedule-ui-v2.js";
-console.log("✅ shared/schedule-ui-v2.js loaded");
-
-// Shared team store (used in both factories)
+// Shared team + parser registry
 import "../../shared/team-store.js";
-console.log("✅ shared/team-store.js loaded");
-
-// Shared parser store (if still used for game parsers)
 import "../../shared/parser-store.js";
-console.log("✅ shared/parser-store.js loaded");
+console.log("✅ Shared team + parser store loaded");
 
-// Shared UI support modules
+// Shared UI (carousel + DOM helpers)
 import "../../shared/carousel-ui.js";
-console.log("✅ shared/carousel-ui.js loaded");
-
+import "../../shared/dom-helpers.js";
 import { refreshImportCarousel } from "../../shared/carousel-ui.js";
-console.log("✅ refreshImportCarousel function loaded");
+console.log("✅ Shared carousel + DOM helpers loaded");
 
-/* ====================================================
-   2) Core Helpers
-==================================================== */
+// Shared schedule UI (after everything else)
+import "../../shared/schedule-ui-v2.js";
+console.log("✅ Shared schedule-ui-v2.js loaded");
 
-import "./dom-helpers.js";
-console.log("✅ dom-helpers.js loaded");
+/* ================================
+   2. Factory-specific Modules
+================================== */
 
+// Helpers + standardizers
 import "./parser-standardizer.js";
-console.log("✅ parser-standardizer.js loaded");
 
-/* ====================================================
-   3) Game Card Parsers
-==================================================== */
-
+// Custom parsers
 import "./parser.js";
-console.log("✅ parser.js loaded");
-
 import "./parser-ayso.js";
-console.log("✅ parser-ayso.js loaded");
-
 import "./parser-arbiter.js";
-console.log("✅ parser-arbiter.js loaded");
-
 import "./parser-csv.js";
-console.log("✅ parser-csv.js loaded");
-
 import "./parser-compact.js";
-console.log("✅ parser-compact.js loaded");
-
 import "./parser-arbiter-email.js";
-console.log("✅ parser-arbiter-email.js loaded");
-
 import "./parser-glendale-table.js";
-console.log("✅ parser-glendale-table.js loaded");
-
 import "./parser-arbiter-csv-schedule.js";
-console.log("✅ parser-arbiter-csv-schedule.js loaded");
-
 import "./parser-ayso-playoffs.js";
-console.log("✅ parser-ayso-playoffs.js loaded");
-
 import "./parser-generic-mapper.js";
-console.log("✅ parser-generic-mapper.js loaded");
+console.log("✅ GameCard parsers loaded");
 
-/* ====================================================
-   4) UI Modules
-==================================================== */
-
+// UI modules
 import "./mapping-ui.js";
-console.log("✅ mapping-ui.js loaded");
-
 import "./filter-rules.js";
-console.log("✅ filter-rules.js loaded");
-
 import "./bulk-edit.js";
-console.log("✅ bulk-edit.js loaded");
+console.log("✅ GameCard UI modules loaded");
 
-/* ====================================================
-   5) Main App Script
-==================================================== */
-
+// App bootstrap
 import "./app.js";
 console.log("✅ app.js loaded via module-loader");
 
-/* ====================================================
-   6) DOM Ready / Boot Logic
-==================================================== */
-
-function bootWhenReady() {
+/* ================================
+   3. Boot Sequence (When Ready)
+================================== */
+ async function bootWhenReady() {
   if (window.__GCF_BOOTED__) return;
   window.__GCF_BOOTED__ = true;
 
-  // 1) Populate parser dropdown from shared parser registry
-  if (typeof populateParserSelect === "function") {
-    populateParserSelect();
-  } else {
-    console.warn("⚠️ populateParserSelect() not found");
-  }
+  console.log("🚀 Booting Game Card Factory…");
 
-  // 2) Initialize shared schedule UI v2
-  if (typeof initSharedScheduleUIv2 === "function") {
-    initSharedScheduleUIv2();
-  } else {
-    console.warn("⚠️ initSharedScheduleUIv2() not found");
-  }
+  try {
+    // Wait for required elements to appear in DOM
+    await waitForElement("#rawInput");
+    await waitForElement("#parserSelect");
+    await waitForElement("#parseScheduleBtn");
+    await waitForElement("#saveScheduleBtn");
 
-  // 3) Now boot the factory app
-  if (typeof window.bootGameCardFactory === "function") {
-    window.bootGameCardFactory();
-  } else {
-    console.warn("⚠️ bootGameCardFactory() not found");
-  }
+    if (typeof populateParserSelect === "function") {
+      populateParserSelect();
+    }
 
-  // 4) Legacy mapping panel – if you still use it (optional)
-  const openBtn = document.getElementById("openGenericMapping");
-  const cancelBtn = document.getElementById("mappingCancelBtn");
-  const saveBtn = document.getElementById("mappingSaveBtn");
-  const panel = document.getElementById("genericMappingPanel");
+    if (typeof initSharedScheduleUIv2 === "function") {
+      initSharedScheduleUIv2();
+    }
 
-  if (openBtn && panel) {
-    openBtn.addEventListener("click", () => {
-      if (typeof window.openGenericMappingPanel === "function") {
-        openGenericMappingPanel();
-      }
-      panel.classList.remove("hidden");
+    if (typeof window.bootGameCardFactory === "function") {
+      window.bootGameCardFactory();
+    }
+
+    // Optional legacy mapping panel glue
+    const panel = document.getElementById("genericMappingPanel");
+    document.getElementById("openGenericMapping")?.addEventListener("click", () => {
+      window.openGenericMappingPanel?.();
+      panel?.classList.remove("hidden");
     });
-  }
-
-  if (cancelBtn && panel) {
-    cancelBtn.addEventListener("click", () => {
-      panel.classList.add("hidden");
+    document.getElementById("mappingCancelBtn")?.addEventListener("click", () =>
+      panel?.classList.add("hidden")
+    );
+    document.getElementById("mappingSaveBtn")?.addEventListener("click", () => {
+      window.saveMappingProfileLogic?.();
+      panel?.classList.add("hidden");
     });
-  }
 
-  if (saveBtn && panel) {
-    saveBtn.addEventListener("click", () => {
-      if (typeof window.saveMappingProfileLogic === "function") {
-        window.saveMappingProfileLogic();
-      }
-      panel.classList.add("hidden");
-    });
+  } catch (err) {
+    console.error("❌ Boot failed:", err);
   }
 }
-
-// Attach to DOMContentLoaded
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", bootWhenReady, { once: true });
 } else {

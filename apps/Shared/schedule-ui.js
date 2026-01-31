@@ -13,7 +13,7 @@ function initSharedScheduleUI() {
     const name = sel?.value;
     if (!name) return alert("Select a schedule first.");
 
-    const schedule = window.ScheduleStore.getScheduleByName(name);
+    const schedule = ScheduleStoreV2.getScheduleByName(name);
     if (!schedule) return alert("Schedule not found.");
 
     document.getElementById("rawInput").value = schedule.rawText;
@@ -43,7 +43,7 @@ function initSharedScheduleUI() {
     if (!name) return alert("Select a schedule first.");
     if (!confirm(`Delete schedule "${name}"?`)) return;
 
-    window.ScheduleStore.deleteScheduleByName(name);
+    ScheduleStoreV2.deleteScheduleByName(name);
     window.refreshScheduleDropdown?.();
   });
 
@@ -56,12 +56,12 @@ function initSharedScheduleUI() {
     const newName = prompt("Enter a new name:", oldName);
     if (!newName || newName.trim() === "" || newName === oldName) return;
 
-    const schedule = window.ScheduleStore.getScheduleByName(oldName);
+    const schedule = ScheduleStoreV2.getScheduleByName(oldName);
     if (!schedule) return;
 
-    window.ScheduleStore.deleteScheduleByName(oldName);
+    ScheduleStoreV2.deleteScheduleByName(oldName);
     schedule.name = newName.trim();
-    window.ScheduleStore.addOrUpdateSchedule(schedule);
+    ScheduleStoreV2.addOrUpdateSchedule(schedule);
 
     window.refreshScheduleDropdown?.();
     sel.value = newName.trim();
@@ -96,7 +96,7 @@ function showSaveScheduleModal(defaultName = "") {
       modal.classList.add("hidden");
       return;
     }
-    window.ScheduleStore.addOrUpdateSchedule({
+    ScheduleStoreV2.addOrUpdateSchedule({
       name,
       rawText: raw,
       parserKey: window.selectedParserKey || ""
@@ -143,7 +143,7 @@ function showSaveScheduleModal(defaultName = "") {
     }
 
     // Save the schedule
-    window.ScheduleStore.addOrUpdateSchedule({
+    ScheduleStoreV2.addOrUpdateSchedule({
       name,
       rawText: raw,
       parserKey: window.selectedParserKey || "",
@@ -198,7 +198,7 @@ function showSaveScheduleModal(defaultName = "") {
     }
 
     // Check for duplicate names
-    const existing = window.ScheduleStore.getScheduleByName(name);
+    const existing = ScheduleStoreV2.getScheduleByName(name);
     if (existing) {
       if (!confirm(`A schedule named "${name}" already exists. Overwrite?`)) {
         return;
@@ -206,7 +206,7 @@ function showSaveScheduleModal(defaultName = "") {
     }
 
     // Save to ScheduleStore
-    window.ScheduleStore.addOrUpdateSchedule({
+    ScheduleStoreV2.addOrUpdateSchedule({
       name,
       rawText: raw,
       parserKey: window.selectedParserKey || "",
@@ -227,3 +227,50 @@ function showSaveScheduleModal(defaultName = "") {
 }
 
 window.showSaveScheduleModal = showSaveScheduleModal;
+
+// Save schedule button logic
+document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
+  // 1) Get schedule name from an input field or prompt
+  const nameInput = document.getElementById("scheduleSaveName");
+  let scheduleName = nameInput?.value?.trim();
+
+  // If no name yet, prompt the user
+  if (!scheduleName) {
+    scheduleName = prompt("Enter a name for this schedule:");
+    if (!scheduleName) {
+      alert("Save canceled — name required.");
+      return;
+    }
+  }
+
+  // 2) Gather data to save
+  const rawText = document.getElementById("rawInput")?.value || "";
+  const parserKey = localStorage.getItem("selectedScheduleParserKey") || "";
+
+  // If schedule has been saved before, include its id
+  const existing = ScheduleStoreV2.getScheduleByName(scheduleName);
+  const scheduleToSave = {
+    id: existing?.id,               // preserve id if updating
+    name: scheduleName,
+    rawText,
+    parserKey,
+    parsedGames: Array.isArray(window.GAME_LIST)
+      ? window.GAME_LIST
+      : []
+  };
+
+  // 3) Save
+  const saved = ScheduleStoreV2.saveSchedule(scheduleToSave);
+  if (!saved) {
+    alert("Error saving schedule.");
+    return;
+  }
+
+  // 4) Refresh schedule list and show success
+  refreshScheduleDropdown();
+
+  // Put the name back into the input if present
+  if (nameInput) nameInput.value = scheduleName;
+
+  alert(`Schedule "${scheduleName}" saved successfully.`);
+});

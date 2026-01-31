@@ -91,7 +91,7 @@ function saveSchedule(schedule) {
 
 
 // Expose globally for both factories to use
-window.ScheduleStore = {
+ScheduleStoreV2 = {
   getAllSchedules,
   getScheduleByName,
   addOrUpdateSchedule,
@@ -105,7 +105,7 @@ function refreshScheduleDropdown() {
   if (!sel) return;
 
   sel.innerHTML = "";
-  const list = window.ScheduleStore.getAllSchedules();
+  const list = ScheduleStoreV2.getAllSchedules();
   list.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.name;
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", () => {
       const sel = document.getElementById("scheduleSelect");
       const name = sel?.value;
-      const sched = window.ScheduleStore.getScheduleByName(name);
+      const sched = ScheduleStoreV2.getScheduleByName(name);
       if (!sched) return alert("Select a saved schedule first.");
 
       // Populate raw schedule text + parser if needed
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = sel?.value;
       if (!name) return alert("Select a saved schedule first.");
       if (!confirm(`Delete schedule "${name}"?`)) return;
-      window.ScheduleStore.deleteScheduleByName(name);
+      ScheduleStoreV2.deleteScheduleByName(name);
       refreshScheduleDropdown();
     });
 
@@ -167,13 +167,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const newName = prompt("Enter a new name:", name);
       if (!newName || newName.trim() === "" || newName === name) return;
 
-      const sched = window.ScheduleStore.getScheduleByName(name);
+      const sched = ScheduleStoreV2.getScheduleByName(name);
       if (!sched) return;
 
       // Remove old entry and save under new name
-      window.ScheduleStore.deleteScheduleByName(name);
+      ScheduleStoreV2.deleteScheduleByName(name);
       sched.name = newName.trim();
-      window.ScheduleStore.addOrUpdateSchedule(sched);
+      ScheduleStoreV2.addOrUpdateSchedule(sched);
 
       refreshScheduleDropdown();
       sel.value = newName.trim();
@@ -187,7 +187,7 @@ function refreshScheduleDropdown() {
   if (!sel) return;
 
   sel.innerHTML = "";
-  const list = window.ScheduleStore.getAllSchedules();
+  const list = ScheduleStoreV2.getAllSchedules();
   list.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.name;
@@ -200,3 +200,36 @@ function refreshScheduleDropdown() {
   }
 }
 window.refreshScheduleDropdown = refreshScheduleDropdown;
+
+export function normalizeReferees(game) {
+  if (!Array.isArray(game.referees)) return game;
+
+  // Helpers to pick roles:
+  const pickByRole = (roles) => {
+    return game.referees.find(r =>
+      roles.some(role => r.role.toLowerCase().includes(role.toLowerCase()))
+    );
+  };
+
+  const r1 = pickByRole(["sr", "referee"]);   // primary
+  const r2 = pickByRole(["jr", "ar1"]);       // second
+  const r3 = pickByRole(["ar2"]);             // third (if present)
+
+  if (r1) {
+    game.referee1 = r1.name;
+    game.referee1_email = r1.email;
+    game.referee1_phone = r1.phone;
+  }
+  if (r2) {
+    game.referee2 = r2.name;
+    game.referee2_email = r2.email;
+    game.referee2_phone = r2.phone;
+  }
+  if (r3) {
+    game.referee3 = r3.name;
+    game.referee3_email = r3.email;
+    game.referee3_phone = r3.phone;
+  }
+  return game;
+}
+

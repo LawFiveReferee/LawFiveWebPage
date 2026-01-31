@@ -91,7 +91,7 @@ function getLoadSavedParsers() {
 }
 
 function getScheduleStore() {
-  return window.ScheduleStore || {
+  return ScheduleStoreV2 || {
     getSavedSchedules: function() { return []; }
   };
 }
@@ -125,7 +125,7 @@ export function refreshImportCarousel() {
   viewport.innerHTML = "";
   window.IMPORT_SOURCES = [];
 
-  const ScheduleStore = window.ScheduleStore;
+  const ScheduleStore = ScheduleStoreV2;
   const ParserStore = window.ParserStore;
 
   // ───────────────────────────────────────────

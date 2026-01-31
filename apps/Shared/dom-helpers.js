@@ -12,33 +12,26 @@ window.$all = $all;
    Collapsible Panels — robust initializer
    Works regardless of DOM insertion order
 ============================================================ */
-function initCollapsibles() {
 
-const panels = document.querySelectorAll(".collapsible-panel");
-  if (!panels.length) {
-    console.warn("initCollapsibles: no panels found");
-    return;
-  }
-
+export function initCollapsibles() {
+  console.log("✅ Collapsible panels function called ");
+  const panels = document.querySelectorAll(".collapsible-panel");
   panels.forEach(panel => {
     const header = panel.querySelector(".collapsible-header");
-    const body   = panel.querySelector(".collapsible-body");
-    const icon   = header?.querySelector(".collapsible-icon");
+    const body = panel.querySelector(".collapsible-body");
 
-    if (!header || !body) return;
+    if (header && body) {
+      header.addEventListener("click", () => {
+        panel.classList.toggle("open");
+        body.classList.toggle("open");
 
-    // Start collapsed by default
-    body.style.display = "none";
-    if (icon) icon.textContent = "+";
-
-    header.addEventListener("click", () => {
-      const isClosed = body.style.display === "none";
-      body.style.display = isClosed ? "block" : "none";
-      if (icon) icon.textContent = isClosed ? "−" : "+";
-    });
+        const icon = header.querySelector(".collapsible-icon");
+        if (icon) {
+          icon.textContent = panel.classList.contains("open") ? "−" : "+";
+        }
+      });
+    }
   });
-
   console.log("✅ Collapsible panels initialized (" + panels.length + ")");
 }
-
 window.initCollapsibles = initCollapsibles;

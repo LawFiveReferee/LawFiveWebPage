@@ -99,13 +99,29 @@ function initBulkEditControls() {
   const payerPhone  = $("#bulkPayerPhone");
   const payerEmail  = $("#bulkPayerEmail");
 
+  /* ---- New rule fields ---- */
+  const teamSizeInput      = $("#bulkTeamSize");
+  const halfLengthInput    = $("#bulkHalfLength");
+  const tieTypeInput       = $("#bulkTieType");
+  const etMinutesGroup     = $("#bulkEtMinutesGroup");
+  const etMinutesInput     = $("#bulkEtMinutes");
+
   const applyBtn    = $("#applyBulkEditBtn");
   const clearBtn    = $("#clearBulkEditBtn");
-
   if (!notesUnified || !notesInput || !applyBtn || !clearBtn) {
     console.warn("Bulk Edit: required DOM elements not found, aborting init.");
     return;
   }
+
+	tieTypeInput.addEventListener("change", () => {
+	  if (tieTypeInput.value === "ET+PK") {
+		etMinutesInput.classList.remove("hidden");
+	     etMinutesInput.focus();
+} else {
+		etMinutesInput.classList.add("hidden");
+		etMinutesInput.value = "";
+	  }
+	});
 
   // Start with blank date so we only update when user enters one
   if (dateInput) dateInput.value = "";
@@ -117,7 +133,6 @@ function initBulkEditControls() {
 
   function rebuildUnifiedNotesMenu() {
     const combined = [...DEFAULT_NOTES_PRESETS];
-
     notesHistory.forEach((n) => {
       if (!combined.includes(n)) combined.push(n);
     });
@@ -129,14 +144,12 @@ function initBulkEditControls() {
 
   rebuildUnifiedNotesMenu();
 
-  // When user chooses from dropdown, copy into text field
   notesUnified.addEventListener("change", () => {
     if (notesUnified.value) {
       notesInput.value = notesUnified.value;
     }
   });
 
-  // When user types a new note, persist to history
   notesInput.addEventListener("change", () => {
     const txt = notesInput.value.trim();
     if (!txt) return;
@@ -146,14 +159,14 @@ function initBulkEditControls() {
       !notesHistory.includes(txt)
     ) {
       notesHistory.unshift(txt);
-      notesHistory = notesHistory.slice(0, 20); // cap length
+      notesHistory = notesHistory.slice(0, 20);
       saveUsedNotes(notesHistory);
       rebuildUnifiedNotesMenu();
     }
   });
 
   /* ============================================================
-     Assigner history (dropdown + autofill)
+     Assigner history
   ============================================================ */
   let assignerHistory = loadUsedAssigners();
 
@@ -170,11 +183,24 @@ function initBulkEditControls() {
     assignerHistorySelect.addEventListener("change", () => {
       const v = assignerHistorySelect.value;
       if (!v) return;
-
       const parts = v.split(" — ");
       assignName.value  = parts[0] || "";
       assignPhone.value = parts[1] || "";
       assignEmail.value = parts[2] || "";
+    });
+  }
+
+  /* ============================================================
+     Tie Type → show/hide ET minutes
+  ============================================================ */
+  if (tieTypeInput) {
+    tieTypeInput.addEventListener("change", () => {
+      if (tieTypeInput.value === "ET+PK") {
+        etMinutesGroup.classList.remove("hidden");
+      } else {
+        etMinutesGroup.classList.add("hidden");
+        if (etMinutesInput) etMinutesInput.value = "";
+      }
     });
   }
 
@@ -184,23 +210,25 @@ function initBulkEditControls() {
   clearBtn.addEventListener("click", () => {
     notesUnified.value = "";
     notesInput.value   = "";
-
     if (dateInput)  dateInput.value  = "";
     if (divInput)   divInput.value   = "";
     if (locInput)   locInput.value   = "";
     if (fieldInput) fieldInput.value = "";
-
     if (homeColors) homeColors.value = "";
     if (awayColors) awayColors.value = "";
-
     if (assignerHistorySelect) assignerHistorySelect.value = "";
     if (assignName)  assignName.value  = "";
     if (assignPhone) assignPhone.value = "";
     if (assignEmail) assignEmail.value = "";
-
     if (payerName)  payerName.value  = "";
     if (payerPhone) payerPhone.value = "";
     if (payerEmail) payerEmail.value = "";
+
+    if (teamSizeInput)   teamSizeInput.value = "";
+    if (halfLengthInput) halfLengthInput.value = "";
+    if (tieTypeInput)    tieTypeInput.value = "";
+    if (etMinutesInput)  etMinutesInput.value = "";
+    etMinutesGroup.classList.add("hidden");
   });
 
   /* ============================================================
@@ -214,65 +242,70 @@ function initBulkEditControls() {
       alert("No games selected.");
       return;
     }
-
     if (!confirm(`Apply edits to ${selected.length} game(s)?`)) return;
 
-    // Undo snapshot if available
     if (window.pushHistory) window.pushHistory();
 
     // Pull values from UI
-    const newNotes =
-      (notesInput.value || notesUnified.value || "").trim();
-
-    const newDate  = dateInput ? dateInput.value.trim() : "";
-    const newDiv   = divInput  ? divInput.value.trim()  : "";
-    const newLoc   = locInput  ? locInput.value.trim()  : "";
-    const newField = fieldInput ? fieldInput.value.trim() : "";
-
+    const newNotes  = (notesInput.value || notesUnified.value || "").trim();
+    const newDate   = dateInput ? dateInput.value.trim() : "";
+    const newDiv    = divInput ? divInput.value.trim() : "";
+    const newLoc    = locInput ? locInput.value.trim() : "";
+    const newField  = fieldInput ? fieldInput.value.trim() : "";
     const newHomeColors = homeColors ? homeColors.value.trim() : "";
     const newAwayColors = awayColors ? awayColors.value.trim() : "";
 
-    const newAssignName  = assignName  ? assignName.value.trim()  : "";
+    const newAssignName  = assignName ? assignName.value.trim() : "";
     const newAssignPhone = assignPhone ? assignPhone.value.trim() : "";
     const newAssignEmail = assignEmail ? assignEmail.value.trim() : "";
 
-    const newPayerName   = payerName  ? payerName.value.trim()  : "";
-    const newPayerPhone  = payerPhone ? payerPhone.value.trim() : "";
-    const newPayerEmail  = payerEmail ? payerEmail.value.trim() : "";
+    const newPayerName  = payerName ? payerName.value.trim() : "";
+    const newPayerPhone = payerPhone ? payerPhone.value.trim() : "";
+    const newPayerEmail = payerEmail ? payerEmail.value.trim() : "";
 
-    // Apply to each selected game
+    const newTeamSize = teamSizeInput ? teamSizeInput.value : "";
+    const newHalfLen  = halfLengthInput ? Number(halfLengthInput.value) : NaN;
+    const newTieType  = tieTypeInput ? tieTypeInput.value : "";
+    const newETMins   = etMinutesInput ? Number(etMinutesInput.value) : NaN;
+
     selected.forEach(g => {
-      // Ensure assigner/payer are objects so renderCards & PDFs behave
-      if (typeof g.assigner !== "object" || !g.assigner) {
-        g.assigner = { name: "", phone: "", email: "" };
-      }
-      if (typeof g.payer !== "object" || !g.payer) {
-        g.payer = { name: "", phone: "", email: "" };
-      }
-
       if (newNotes) g.notes = newNotes;
-      if (newDate)  g.match_date = newDate;         // ISO date; formatter handles it
+      if (newDate)  g.match_date = newDate;
       if (newDiv)   g.age_division = newDiv;
       if (newLoc)   g.location     = newLoc;
       if (newField) g.field        = newField;
-
       if (newHomeColors) g.home_colors = newHomeColors;
       if (newAwayColors) g.away_colors = newAwayColors;
 
-      if (newAssignName || newAssignPhone || newAssignEmail) {
-        g.assigner.name  = newAssignName  || g.assigner.name;
-        g.assigner.phone = newAssignPhone || g.assigner.phone;
-        g.assigner.email = newAssignEmail || g.assigner.email;
+      if (!g.assigner || typeof g.assigner !== "object") {
+        g.assigner = { name: "", phone: "", email: "" };
+      }
+      if (!g.payer || typeof g.payer !== "object") {
+        g.payer = { name: "", phone: "", email: "" };
       }
 
-      if (newPayerName || newPayerPhone || newPayerEmail) {
-        g.payer.name  = newPayerName  || g.payer.name;
-        g.payer.phone = newPayerPhone || g.payer.phone;
-        g.payer.email = newPayerEmail || g.payer.email;
+      if (newAssignName)  g.assigner.name  = newAssignName;
+      if (newAssignPhone) g.assigner.phone = newAssignPhone;
+      if (newAssignEmail) g.assigner.email = newAssignEmail;
+
+      if (newPayerName)  g.payer.name  = newPayerName;
+      if (newPayerPhone) g.payer.phone = newPayerPhone;
+      if (newPayerEmail) g.payer.email = newPayerEmail;
+
+      if (newTeamSize) g.team_size = newTeamSize;
+      if (!isNaN(newHalfLen) && halfLengthInput.value !== "") {
+        g.half_length = newHalfLen;
+      }
+      if (newTieType) {
+        g.tie_breaking = { type: newTieType };
+        if (newTieType === "ET+PK" && !isNaN(newETMins)) {
+          g.tie_breaking.et_minutes = newETMins;
+        } else {
+          delete g.tie_breaking?.et_minutes;
+        }
       }
     });
 
-    // Save & merge new notes into history
     if (newNotes) {
       let list = loadUsedNotes();
       if (!list.includes(newNotes)) {
@@ -284,35 +317,27 @@ function initBulkEditControls() {
       }
     }
 
-    // Save & merge new assigner into history
     if (newAssignName || newAssignPhone || newAssignEmail) {
-      const combined = [newAssignName, newAssignPhone, newAssignEmail]
-        .filter(Boolean)
-        .join(" — ");
-
+      const combined = [newAssignName, newAssignPhone, newAssignEmail].filter(Boolean).join(" — ");
       if (combined) {
         let list = loadUsedAssigners();
         if (!list.includes(combined)) {
           list.unshift(combined);
           list = list.slice(0, 20);
           saveUsedAssigners(list);
-          assignerHistory = list;
           rebuildAssignerHistoryOptions();
         }
       }
     }
 
-    // Re-render preview and status lines
-    if (window.renderCards) window.renderCards()
-updateSelectedCountUI()
-updateStatusLines()
-;
+    if (window.renderCards) window.renderCards();
+    if (window.updateSelectedCountUI) window.updateSelectedCountUI();
     if (window.updateStatusLines) window.updateStatusLines();
   });
 
   /* ============================================================
-     Manage History Modal (Section 6 button)
-============================================================ */
+     Manage History Modal
+  ============================================================ */
   const historyModal      = $("#historyModal");
   const notesHistoryList  = $("#notesHistoryList");
   const assignerHistoryList = $("#assignerHistoryList");
@@ -325,15 +350,10 @@ updateStatusLines()
     const notes = loadUsedNotes();
     const assigners = loadUsedAssigners();
 
-    // Notes list
     notesHistoryList.innerHTML = "";
     notes.forEach((note, idx) => {
       const row = document.createElement("div");
       row.className = "history-row";
-      row.style.display = "flex";
-      row.style.justifyContent = "space-between";
-      row.style.alignItems = "center";
-      row.style.marginBottom = "6px";
 
       const span = document.createElement("span");
       span.textContent = note;
@@ -342,12 +362,9 @@ updateStatusLines()
       btn.textContent = "Delete";
       btn.className = "secondary";
       btn.style.fontSize = "12px";
-      btn.style.marginLeft = "8px";
       btn.addEventListener("click", () => {
         const updated = loadUsedNotes().filter((_, i) => i !== idx);
         saveUsedNotes(updated);
-        notesHistory = updated;
-        rebuildUnifiedNotesMenu();
         renderHistoryLists();
       });
 
@@ -356,15 +373,10 @@ updateStatusLines()
       notesHistoryList.appendChild(row);
     });
 
-    // Assigner list
     assignerHistoryList.innerHTML = "";
     assigners.forEach((item, idx) => {
       const row = document.createElement("div");
       row.className = "history-row";
-      row.style.display = "flex";
-      row.style.justifyContent = "space-between";
-      row.style.alignItems = "center";
-      row.style.marginBottom = "6px";
 
       const span = document.createElement("span");
       span.textContent = item;
@@ -373,12 +385,9 @@ updateStatusLines()
       btn.textContent = "Delete";
       btn.className = "secondary";
       btn.style.fontSize = "12px";
-      btn.style.marginLeft = "8px";
       btn.addEventListener("click", () => {
         const updated = loadUsedAssigners().filter((_, i) => i !== idx);
         saveUsedAssigners(updated);
-        assignerHistory = updated;
-        rebuildAssignerHistoryOptions();
         renderHistoryLists();
       });
 
@@ -394,7 +403,6 @@ updateStatusLines()
       historyModal.style.display = "flex";
     });
   }
-
   if (closeModalBtn && historyModal) {
     closeModalBtn.addEventListener("click", () => {
       historyModal.style.display = "none";

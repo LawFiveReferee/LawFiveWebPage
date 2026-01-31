@@ -27,36 +27,6 @@ const {
 } = window.ScheduleImport || {};
 
 
-// ⏏️ Load schedule button
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-	const list = window.SCHEDULE_LIST || [];
-	const idx = window.selectedScheduleIndex;
-	if (!list.length || idx == null || !list[idx]) {
-		alert("Select a schedule first.");
-		return;
-	}
-
-	const sel = list[idx];
-	const games = parseAndImport({
-		rawText: sel.rawText,
-		parserKey: sel.parserKey || "generic",
-		save: false,
-		name: sel.name,
-		source: "saved"
-	});
-
-	window.GAME_LIST = games;
-
-	// Auto-select a team if desired
-	if (games.length > 0) {
-		const firstGame = games[0];
-		window.CURRENT_TEAM = firstGame.home?.teamId || firstGame.away?.teamId;
-	}
-
-	renderPreviewCards();
-	updateStatusLines();
-});
-
 // 🧹 Clear existing listeners so we donʼt double‑add
 const oldBtn = document.getElementById("addPlayerBtn");
 if (oldBtn) {
@@ -166,34 +136,6 @@ function pdfSafeText(value) {
 		.replace(/\s+/g, " ")
 		.trim();
 }
-
-/* ============================================================
-   COLLAPSIBLE PANELS
-============================================================ */
-
-function initCollapsibles() {
-	const panels = document.querySelectorAll(".collapsible-panel");
-
-	panels.forEach(panel => {
-		const header = panel.querySelector(".collapsible-header");
-		const icon = panel.querySelector(".collapsible-icon");
-		if (!header) return;
-
-		const open = panel.classList.contains("open");
-		header.setAttribute("aria-expanded", open ? "true" : "false");
-		if (icon) icon.textContent = open ? "−" : "+";
-
-		header.addEventListener("click", e => {
-			e.preventDefault();
-			const isOpen = panel.classList.toggle("open");
-			header.setAttribute("aria-expanded", isOpen ? "true" : "false");
-			if (icon) icon.textContent = isOpen ? "−" : "+";
-		});
-	});
-
-	console.log("✅ Collapsibles initialized:", panels.length);
-}
-window.initCollapsibles = initCollapsibles;
 
 
 
@@ -1142,40 +1084,13 @@ window.initUI = function initUI() {
 	window.refreshScheduleDropdown?.();
 
 	// Load Schedule dropdown handlers
-	document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-		const sel = document.getElementById("scheduleSelect");
-		const name = sel?.value;
-		if (!name) return alert("Select a saved schedule first.");
-
-		const schedule = window.ScheduleStore.getScheduleByName(name);
-		if (!schedule) return alert("Schedule not found.");
-
-		// Populate raw text
-		document.getElementById("rawInput").value = schedule.rawText;
-
-		// Restore parser selection if possible
-		if (schedule.parserKey && typeof selectParserByKey === "function") {
-			selectParserByKey(schedule.parserKey);
-		}
-
-		// Apply parsed games
-		window.GAME_LIST = schedule.parsedGames || [];
-
-		// Update UI
-		renderPreviewCards();
-		updateStatusLines?.();
-
-		document.getElementById("status-section-1").textContent =
-			`Loaded schedule: ${name}`;
-	});
-
-	document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
+ 	document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
 		const sel = document.getElementById("scheduleSelect");
 		const name = sel?.value;
 		if (!name) return alert("Select a schedule first.");
 		if (!confirm(`Delete schedule "${name}"?`)) return;
 
-		window.ScheduleStore.deleteScheduleByName(name);
+		ScheduleStoreV2.deleteScheduleByName(name);
 		window.refreshScheduleDropdown?.();
 	});
 
@@ -1187,12 +1102,12 @@ window.initUI = function initUI() {
 		const newName = prompt("Enter a new name:", oldName);
 		if (!newName || newName.trim() === "" || newName === oldName) return;
 
-		const schedule = window.ScheduleStore.getScheduleByName(oldName);
+		const schedule = ScheduleStoreV2.getScheduleByName(oldName);
 		if (!schedule) return;
 
-		window.ScheduleStore.deleteScheduleByName(oldName);
+		ScheduleStoreV2.deleteScheduleByName(oldName);
 		schedule.name = newName.trim();
-		window.ScheduleStore.addOrUpdateSchedule(schedule);
+		ScheduleStoreV2.addOrUpdateSchedule(schedule);
 
 		window.refreshScheduleDropdown?.();
 		document.getElementById("scheduleSelect").value = newName.trim();
@@ -1208,7 +1123,7 @@ window.initUI = function initUI() {
 		return;
 	  }
 
-	  const games = window.ScheduleStore.importSchedule({
+	  const games = ScheduleStoreV2.importSchedule({
 		rawText: raw,
 		source: "paste",
 		autoSelect: true
