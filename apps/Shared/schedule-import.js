@@ -173,11 +173,15 @@ export function setupScheduleParser({ parseBtnId, rawInputId }) {
 
     const parserKey = localStorage.getItem("selectedScheduleParserKey") || "generic";
 
-    const games = ScheduleStoreV2.importSchedule({
-      rawText: raw,
-      parserKey,
-      autoSelect: true
-    });
+	const { games, errors } = ScheduleParser.parse(
+	  raw,
+	  window.selectedParserKey || "generic"
+	);
+
+	if (errors?.length) console.warn("Parse errors:", errors);
+
+	// You can optionally do auto-selection logic here if needed:
+	window.GAME_LIST = games;
 
     if (!Array.isArray(games) || games.length === 0) {
       alert("No games parsed.");

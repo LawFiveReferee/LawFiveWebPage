@@ -61,17 +61,16 @@ console.log("✅ Shared schedule-ui-v2.js loaded");
 // Helpers + standardizers
 import "./parser-standardizer.js";
 
-// Custom parsers
-import "./parser.js";
-import "./parser-ayso.js";
-import "./parser-arbiter.js";
-import "./parser-csv.js";
-import "./parser-compact.js";
-import "./parser-arbiter-email.js";
-import "./parser-glendale-table.js";
-import "./parser-arbiter-csv-schedule.js";
-import "./parser-ayso-playoffs.js";
-import "./parser-generic-mapper.js";
+// Shared parsers
+import "../../Shared/parser-arbiter-game-details.js";
+import "../../Shared/parser-arbiter-plain-text.js";
+//import "../../Shared/parser-arbiter-csv-schedule.js";
+import "../../Shared/parser-arbiter.js";
+import "../../Shared/parser-ayso.js";
+import "../../Shared/parser-csv.js";
+import "../../Shared/parser-compact.js";
+import "../../Shared/parser-glendale-table.js";
+//import "../../Shared/parser-generic-mapper.js";
 console.log("✅ GameCard parsers loaded");
 
 // UI modules

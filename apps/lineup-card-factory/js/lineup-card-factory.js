@@ -1123,11 +1123,15 @@ window.initUI = function initUI() {
 		return;
 	  }
 
-	  const games = ScheduleStoreV2.importSchedule({
-		rawText: raw,
-		source: "paste",
-		autoSelect: true
-	  });
+		const { games, errors } = ScheduleParser.parse(
+		  raw,
+		  window.selectedParserKey || "generic"
+		);
+
+		if (errors?.length) console.warn("Parse errors:", errors);
+
+		// You can optionally do auto-selection logic here if needed:
+		window.GAME_LIST = games;
 
 	  if (!Array.isArray(games) || games.length === 0) {
 		return;

@@ -142,17 +142,33 @@ const ScheduleStoreV2 = {
   /**
    * Delete by name (legacy / convenience)
    */
-  deleteScheduleByName(name) {
-    if (!name) return;
-    const list = _loadRaw().filter(s => s.name !== name);
-    _saveRaw(list);
-  }
-};
-
+	deleteScheduleByName(name) {
+		if (!name) return;
+		const list = _loadRaw().filter(s => s.name !== name);
+		_saveRaw(list);
+	}
+	};
 /* ------------------------------------------------------------
    Expose globally + module export
 ------------------------------------------------------------ */
-// Expose as both ScheduleStore and ScheduleStoreV2
-ScheduleStoreV2 = ScheduleStoreV2;
+
+// Safe global assignment
 window.ScheduleStoreV2 = ScheduleStoreV2;
+
+// Backward-compatible alias:
+// Try to assign only if writable, else skip
+try {
+  Object.defineProperty(window, "ScheduleStore", {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value: ScheduleStoreV2
+  });
+} catch (err) {
+  console.warn("⚠️ Could not alias ScheduleStore as a writable global; using ScheduleStoreV2 only.", err);
+}
+
+// Module exports
 export default ScheduleStoreV2;
+export { ScheduleStoreV2 as ScheduleStore };
+

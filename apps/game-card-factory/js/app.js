@@ -650,12 +650,18 @@ function initParsingControls() {
 
 		// Parse games using selected parser
 	   // Parse games using selected parser (ScheduleStoreV2)
-	const result = ScheduleStoreV2.importSchedule({
-	  rawText: raw,
-	  parserKey: window.selectedParserKey || "generic",
-	  autoSelect: true
-	});
+		const result = ScheduleParser.parse(
+		  raw,
+		  window.selectedParserKey || "generic"
+		);
 
+		// Store games globally for use elsewhere
+		window.GAME_LIST = result.games;
+
+		// Optional logging or error handling
+		if (result.errors?.length) {
+		  console.warn("⚠️ Parse errors:", result.errors);
+		}
 	// Normalize return (defensive)
 	const games = Array.isArray(result)
 	  ? result
