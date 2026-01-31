@@ -118,8 +118,7 @@ function populateParserSelect() {
   if (!sel || typeof ScheduleParser?.getParserList !== "function") return;
 
   const parserList = ScheduleParser.getParserList();
-
-  sel.innerHTML = "";
+  sel.innerHTML = ""; // Clear existing options
 
   if (!parserList.length) {
     const opt = document.createElement("option");
@@ -130,6 +129,7 @@ function populateParserSelect() {
     return;
   }
 
+  // Add each available parser as an option
   parserList.forEach(parser => {
     const opt = document.createElement("option");
     opt.value = parser.key;
@@ -139,24 +139,24 @@ function populateParserSelect() {
 
   sel.disabled = false;
 
-  // Try restoring previously selected parser
+  // Restore saved selection from localStorage, or default to the first parser
   const storedKey = localStorage.getItem("selectedScheduleParserKey");
-  const validStored = parserList.find(p => p.key === storedKey);
-  sel.value = validStored ? storedKey : parserList[0].key;
+  const defaultKey = parserList[0].key;
+  const selectedKey = parserList.some(p => p.key === storedKey) ? storedKey : defaultKey;
 
-  // Save selection on change
-  sel.addEventListener("change", () => {
-    localStorage.setItem("selectedScheduleParserKey", sel.value);
-  });
+  sel.value = selectedKey;
+  window.selectedParserKey = selectedKey;
 
-  // Optional: store selection in global for easy access
-  window.selectedParserKey = sel.value;
+  // Keep localStorage and global in sync on change
   sel.addEventListener("change", () => {
-    window.selectedParserKey = sel.value;
+    const current = sel.value;
+    localStorage.setItem("selectedScheduleParserKey", current);
+    window.selectedParserKey = current;
   });
 }
-window.populateParserSelect = populateParserSelect;
 
+// Expose for external usage
+window.populateParserSelect = populateParserSelect;
 function initSharedScheduleUIv2() {
   // —————————————
   // ELEMENT REFERENCES

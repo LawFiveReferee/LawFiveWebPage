@@ -394,7 +394,7 @@ function parsearbiter csvschedule(rawText) {
 }
 
 ScheduleParser.registerParser({
-  key: "arbitercsv",
-  name: "arbiter CSV Schedule",
-  parse: parsesarbitercsvschedule
+  key: "arbiter-csv-schedule",
+  name: "Arbiter — CSV Schedule",
+  parse: parseArbiterCsvSchedule
 });

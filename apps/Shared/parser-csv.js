@@ -66,6 +66,6 @@ function parsecsvschedule(rawText) {
 
 ScheduleParser.registerParser({
   key: "csv",
-  name: "CSV Schedule",
-  parse: parsescsvschedule
+  name: "Google Sheets / CSV",
+  parse: parseCSV // or whatever your actual implementation is named
 });

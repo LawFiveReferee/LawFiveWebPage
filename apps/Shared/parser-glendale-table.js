@@ -164,14 +164,8 @@ window.parseGlendaleTable = parseGlendaleTable;
 ============================================================ */
 
 // parse-glendale table.js
-
-function parseglendaletableschedule(rawText) {
-  // your parsing logic here
-  return parsedGames;
-}
-
-ScheduleParser.registerParser({
-  key: "glendaletable",
-  name: "Glendale table Schedule",
-  parse: parsesglendaletableschedule
+ ScheduleParser.registerParser({
+  key: "glendale-table",
+  name: "Glendale Table Format",
+  parse: parseGlendaleTable
 });

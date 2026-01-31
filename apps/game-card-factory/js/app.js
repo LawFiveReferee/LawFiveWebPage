@@ -110,8 +110,9 @@ function loadSavedGenericMapperProfiles() {
 function registerGenericMapperProfile(profileKey, profileName) {
 	if (!profileKey) return;
 
-	const parserKey = "generic-mapper:" + profileKey;
-	const existing = PARSER_LIST.find(p => p.key === parserKey);
+const sel = document.getElementById("parserSelect");
+const parserKey = sel?.value || "generic";
+const existing = PARSER_LIST.find(p => p.key === parserKey);
 
 	if (!existing) {
 		PARSER_LIST.push({
@@ -142,6 +143,60 @@ window.registerGenericMapperProfile = registerGenericMapperProfile;
    Load parsers from JSON and bind to window functions
 ============================================================ */
 
+/**
+ * Parse schedule text using selected parser,
+ * populate global GAME_LIST, update UI and fill JSON textarea.
+ */
+function handleParseSchedule() {
+  console.log("👟 handleParseSchedule triggered");
+
+  const rawInputEl = document.getElementById("rawInput");
+  const parserSelectEl = document.getElementById("parserSelect");
+  const displayEl = document.getElementById("currentScheduleDisplay");
+
+  const rawText = rawInputEl?.value?.trim();
+  if (!rawText) {
+    alert("⚠️ Paste schedule text first.");
+    return;
+  }
+
+  // Always get the current parser from the dropdown
+  const parserKey = parserSelectEl?.value;
+  window.selectedParserKey = parserKey;
+  localStorage.setItem("selectedScheduleParserKey", parserKey);
+  console.log("🛠 Parsing schedule using parser key:", parserKey);
+
+  // Run parser
+  const { games, errors } = ScheduleParser.parse(rawText, parserKey);
+
+  if (errors?.length) {
+    console.warn("⚠️ Parse warnings/errors:", errors);
+  }
+
+  if (!Array.isArray(games) || games.length === 0) {
+    console.error("❌ No games were parsed from the schedule.");
+    alert("No games were parsed — check the format or selected parser.");
+    return;
+  }
+
+  // Save globally and update status
+  window.GAME_LIST = games;
+  console.log(`✅ Parsed ${games.length} games using parser "${parserKey}".`);
+
+  // Populate JSON textarea
+  if (displayEl) {
+    displayEl.value = JSON.stringify(games, null, 2);
+    console.log("📝 Populated schedule textarea with parsed JSON.");
+  } else {
+    console.warn("⚠️ currentScheduleDisplay textarea not found.");
+  }
+
+  // Update UI
+  if (typeof renderCards === "function") renderCards();
+  if (typeof updateStatusLines === "function") updateStatusLines();
+  if (typeof updateSelectedCountUI === "function") updateSelectedCountUI();
+}
+window.handleParseSchedule = handleParseSchedule;
 
 
 /* ============================================================
@@ -410,97 +465,29 @@ function deleteSelectedGames() {
    Render Cards
 ============================================================ */
 function renderCards() {
-	const container = $("#cardsContainer");
-	const list = window.GAME_LIST || [];
-	if (!container) return;
-	container.innerHTML = "";
+  const games = window.GAME_LIST || [];
+  const container = document.getElementById("gameCardContainer");
+  if (!container) return;
 
-	if (!games.length) {
-		container.innerHTML = "<p>No games extracted yet.</p>";
-		updateSelectedCountUI();
-		updateStatusLines();
-		return;
-	}
+  container.innerHTML = "";
 
-	games.forEach(g => {
-		const card = document.createElement("div");
-		card.className = "game-card";
-		card.dataset.id = g.id;
+  if (!games.length) {
+    container.innerHTML = "<p>No games to display.</p>";
+    return;
+  }
 
-		const dateStr = formatGameDate(g.match_date);
-		const timeStr = formatGameTime(g.match_time);
-
-		const assignerText =
-			g.assigner && typeof g.assigner === "object" ? [g.assigner.name, g.assigner.phone, g.assigner.email].filter(Boolean).join(" — ") :
-			"";
-
-		const payerText =
-			g.payer && typeof g.payer === "object" ? [g.payer.name, g.payer.phone, g.payer.email].filter(Boolean).join(" — ") :
-			"";
-
-		card.innerHTML = `
-      <div class="card-header-row">
-        <input type="checkbox" class="select-box" ${g.selected ? "checked" : ""}>
-        <h3>Game ${g.game_number || ""}</h3>
-      </div>
-
-      <div class="card-row"><label>Date:</label> ${dateStr}</div>
-      <div class="card-row"><label>Time:</label> ${timeStr}</div>
-      <div class="card-row"><label>Age/Div:</label> ${g.age_division || ""}</div>
-
-      <div class="card-row"><label>Home:</label> ${g.home_team || ""}</div>
-      <div class="card-row"><label>Home Colors:</label> ${g.home_colors || ""}</div>
-
-      <div class="card-row"><label>Away:</label> ${g.away_team || ""}</div>
-      <div class="card-row"><label>Away Colors:</label> ${g.away_colors || ""}</div>
-
-      <div class="card-row"><label>Location:</label> ${g.location || ""}</div>
-      <div class="card-row"><label>Field:</label> ${g.field || ""}</div>
-
-      <div class="card-row"><label>Ref 1:</label> ${g.referee1 || ""}</div>
-      <div class="card-row"><label>Ref 2:</label> ${g.referee2 || ""}</div>
-      <div class="card-row"><label>Ref 3:</label> ${g.referee3 || ""}</div>
-
-      <div class="card-row"><label>Assigner:</label> ${assignerText}</div>
-      <div class="card-row"><label>Payer:</label> ${payerText}</div>
-
-      <div class="card-row"><label>Notes:</label> ${g.notes || ""}</div>
-
-     <div class="card-buttons">
-	  <button class="secondary editBtn">Edit</button>
-	  <button class="secondary singlePdfBtn">PDF</button>
-	  <button class="secondary deleteGameBtn">Delete</button>
-	</div>
+  games.forEach((g, i) => {
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+      <h3>Game ${i + 1}</h3>
+      <p><strong>Date:</strong> ${g.match_date || "—"}</p>
+      <p><strong>Time:</strong> ${g.match_time || "—"}</p>
+      <p><strong>Field:</strong> ${g.field || "—"}</p>
+      <p><strong>${g.home_team || "TBD"}</strong> vs <strong>${g.away_team || "TBD"}</strong></p>
     `;
-
-		const checkbox = card.querySelector(".select-box");
-		if (checkbox) {
-			checkbox.addEventListener("change", e => {
-				g.selected = e.target.checked;
-				updateSelectedCountUI();
-				updateStatusLines();
-			});
-		}
-
-		const editBtn = card.querySelector(".editBtn");
-		if (editBtn) editBtn.addEventListener("click", () => enterEditMode(g.id));
-
-		const pdfBtn = card.querySelector(".singlePdfBtn");
-		if (pdfBtn) pdfBtn.addEventListener("click", () => generateSinglePdfById(g.id));
-		// ✅ DELETE BUTTON — MUST BE HERE
-		const delBtn = card.querySelector(".deleteGameBtn");
-		if (delBtn) {
-			delBtn.addEventListener("click", () => {
-				const ok = confirm(`Delete this game?`);
-				if (!ok) return;
-				deleteGameById(g.id);
-			});
-		}
-		container.appendChild(card);
-	});
-	updateSelectedCountUI();
-
-	updateStatusLines();
+    container.appendChild(card);
+  });
 }
 
 window.renderCards = renderCards;
@@ -629,125 +616,7 @@ function saveEditChanges(id) {
 window.enterEditMode = enterEditMode;
 window.saveEditChanges = saveEditChanges;
 
-/* ============================================================
-   Parsing Controls (single, clean)
-============================================================ */
-function initParsingControls() {
-  const parseBtn = document.getElementById("parseScheduleBtn");
-  const rawEl = document.getElementById("rawInput");
-  const statusEl = document.getElementById("scheduleParseStatus");
-  const clearBtn = document.getElementById("clearBtn");
-  const displayEl = document.getElementById("currentScheduleDisplay");
-  const schedulePanel = document.getElementById("section-schedule");
-  const saveBtn = document.getElementById("saveScheduleBtn");
 
-  if (!rawEl) return;
-
-  // — Parse and Extract Games —
-  	parseBtn?.addEventListener("click", () => {
-		const raw = rawEl.value?.trim();
-		if (!raw) return alert("Paste schedule text first.");
-
-		// Parse games using selected parser
-	   // Parse games using selected parser (ScheduleStoreV2)
-		const result = ScheduleParser.parse(
-		  raw,
-		  window.selectedParserKey || "generic"
-		);
-
-		// Store games globally for use elsewhere
-		window.GAME_LIST = result.games;
-
-		// Optional logging or error handling
-		if (result.errors?.length) {
-		  console.warn("⚠️ Parse errors:", result.errors);
-		}
-	// Normalize return (defensive)
-	const games = Array.isArray(result)
-	  ? result
-	  : result?.games || [];
-
-	if (!games.length) {
-	  throw new Error("No games were parsed from the schedule.");
-	}
-
-window.GAME_LIST = games;
-
-
-    if (!Array.isArray(games) || games.length === 0) {
-      alert("No games parsed.");
-      return;
-    }
-
-    window.GAME_LIST = games;
-    renderCards();
-    updateStatusLines();
-    updateSelectedCountUI();
-
-    // ✅ Show the extracted schedule in display field
-    if (displayEl) displayEl.value = raw;
-
-    // ✅ Expand the Save panel automatically
-    if (schedulePanel && !schedulePanel.classList.contains("expanded")) {
-      schedulePanel.classList.add("expanded");
-      schedulePanel.querySelector(".collapsible-body").style.display = "block";
-      schedulePanel.querySelector(".collapsible-icon").textContent = "−";
-    }
-
-    // ✅ Update parse status
-    if (statusEl) statusEl.textContent = `${games.length} games parsed.`;
-  });
-
-  // — Save Schedule —
-  saveBtn?.addEventListener("click", () => {
-    const rawInput = rawEl.value?.trim();
-    if (!rawInput) {
-      alert("Nothing to save — paste or select a schedule first.");
-      return;
-    }
-
-    const defaultName = rawInput.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
-    showSaveScheduleModal(defaultName, (name) => {
-      if (!name) return;
-
-      const parserKey = window.selectedParserKey || "generic";
-      const schedules = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
-      schedules.push({ name, rawText: rawInput, parserKey });
-      localStorage.setItem("savedSchedules", JSON.stringify(schedules));
-
-      alert(`Schedule "${name}" saved.`);
-    });
-  });
-
-  // — Clear Button —
-  clearBtn?.addEventListener("click", () => {
-    if (!confirm("Clear ALL games?")) return;
-
-    window.GAME_LIST.length = 0;
-    rawEl.value = "";
-    displayEl.value = "";
-    if (statusEl) statusEl.textContent = "";
-    clearBtn.disabled = true;
-
-    renderCards();
-    updateStatusLines();
-    updateSelectedCountUI();
-  });
-
-  // — Edit Mapping Button —
-  document.getElementById("editMappingBtn")?.addEventListener("click", () => {
-    const raw = rawEl.value?.trim();
-    if (!raw) return alert("Paste schedule text first.");
-
-    const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
-    const lines = raw.split(/\r?\n/).filter(Boolean);
-    const headers = (lines[0] || "").split(delimiter).map(h => h.trim());
-
-    window.openGenericMappingUI(headers, "generic-default-profile", raw);
-  });
-}
-
-window.initParsingControls = initParsingControls;
 
 	/* ============================================================
 	   Template Carousel + PDF helpers (kept from your version)
@@ -1247,9 +1116,6 @@ async function bootGameCardFactory() {
     initParserCarouselControls();
     refreshParserCarousel();
 
-    // Parsing controls
-    initParsingControls();
-
     // Templates
     await loadTemplates();
     initCarouselControls();
@@ -1287,34 +1153,76 @@ cancelSaveBtn?.addEventListener("click", () => {
 });
 }
 
-window.bootGameCardFactory = bootGameCardFactory;/* ============================================================
+window.bootGameCardFactory = bootGameCardFactory;
+
+/* ============================================================
    DOMContentLoaded — initialize after DOM ready
 ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  bootGameCardFactory(); // Run the main boot logic
 
-  // ✅ Safe to call now that DOM is fully ready
+ /* ============================================================
+   DOM READY — SINGLE ENTRY POINT
+============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("📦 DOM ready — booting Game Card Factory");
+
+  // Main boot
+  if (typeof bootGameCardFactory === "function") {
+    bootGameCardFactory();
+  }
+
+  // Shared schedule UI
   if (typeof window.initSharedScheduleUIv2 === "function") {
     window.initSharedScheduleUIv2();
   }
 
-  // —————————————————————————
-  // MAPPING PANEL BUTTON SETUP
-  // —————————————————————————
+  // Collapsibles
+  if (typeof initCollapsibles === "function") {
+    initCollapsibles();
+  }
+
+  // Buttons
+  const parseBtn = document.getElementById("parseScheduleBtn");
+  const saveBtn = document.getElementById("saveScheduleBtn");
+  const applyFilterBtn = document.getElementById("applyFilterBtn");
+  const clearFilterBtn = document.getElementById("clearFilterBtn");
   const mapBtn = document.getElementById("openMappingPanelBtn");
+
+  if (parseBtn && typeof handleParseSchedule === "function") {
+    parseBtn.addEventListener("click", handleParseSchedule);
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      if (!window.GAME_LIST?.length) {
+        alert("⚠️ Nothing to save — parse first.");
+        return;
+      }
+      showSaveScheduleModal(window.selectedParserKey);
+    });
+  }
+
+  if (applyFilterBtn && typeof applyFilter === "function") {
+    applyFilterBtn.addEventListener("click", applyFilter);
+  }
+
+  if (clearFilterBtn && typeof applyFilter === "function") {
+    clearFilterBtn.addEventListener("click", () => {
+      const filterInput = document.getElementById("filterInput");
+      if (filterInput) filterInput.value = "";
+      applyFilter();
+    });
+  }
+
   if (mapBtn) {
     mapBtn.addEventListener("click", () => {
-      const raw = document.getElementById("rawInput")?.value?.trim() || "";
-      if (!raw) return alert("Paste schedule text first.");
+      const raw = document.getElementById("rawInput")?.value?.trim();
+      if (!raw) {
+        alert("Paste schedule text first.");
+        return;
+      }
 
-      const delimiter = raw.includes("\t")
-        ? "\t"
-        : raw.includes("|")
-        ? "|"
-        : ",";
-      const headers = (raw.split(/\r?\n/)[0] || "")
-        .split(delimiter)
-        .map(h => h.trim());
+      const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
+      const headers = raw.split(/\r?\n/)[0].split(delimiter).map(h => h.trim());
 
       if (typeof window.openGenericMappingUI === "function") {
         window.openGenericMappingUI(headers, "user-mapper", raw);
@@ -1323,42 +1231,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // —————————————————————————
-  // FILTERING
-  // —————————————————————————
-  function applyFilter() {
-    const keyword = document.getElementById("filterInput")?.value?.toLowerCase() || "";
-    if (!Array.isArray(window.GAME_LIST)) return;
-
-    window.GAME_LIST.forEach(game => {
-      const match =
-        game.home_team?.toLowerCase().includes(keyword) ||
-        game.away_team?.toLowerCase().includes(keyword) ||
-        game.age_division?.toLowerCase().includes(keyword) ||
-        game.location?.toLowerCase().includes(keyword);
-
-      game.selected = match;
-    });
-
-    updateGameCountUI();
-    renderCards();
-    renderGamePreview();
-    updateStatusLines();
-    updateSelectedCountUI();
-  }
-
-  document.getElementById("applyFilterBtn")?.addEventListener("click", applyFilter);
-  document.getElementById("clearFilterBtn")?.addEventListener("click", () => {
-    document.getElementById("filterInput").value = "";
-    applyFilter();
-  });
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (typeof initCollapsibles === "function") {
-    initCollapsibles();
-  } else {
-    console.warn("initCollapsibles not defined");
+  const parseBtn = document.getElementById("parseScheduleBtn");
+  if (parseBtn) {
+    parseBtn.addEventListener("click", handleParseSchedule);
   }
 });

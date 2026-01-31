@@ -158,13 +158,10 @@ window.parseArbiter = parseArbiter;
 
 // parse-arbiter.js
 
-function parsearbiterschedule(rawText) {
-  // your parsing logic here
-  return parsedGames;
-}
+
 
 ScheduleParser.registerParser({
   key: "arbiter",
   name: "Arbiter Schedule",
-  parse: parsesarbiterschedule
+  parse: parseArbiter
 });

@@ -70,7 +70,8 @@ import "../../Shared/parser-ayso.js";
 import "../../Shared/parser-csv.js";
 import "../../Shared/parser-compact.js";
 import "../../Shared/parser-glendale-table.js";
-//import "../../Shared/parser-generic-mapper.js";
+import "../../Shared/parser-generic-mapper.js";
+
 console.log("✅ GameCard parsers loaded");
 
 // UI modules

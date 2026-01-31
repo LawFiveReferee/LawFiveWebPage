@@ -162,6 +162,6 @@ function parseArbiterPlainText(rawText) {
 
 ScheduleParser.registerParser({
   key: "arbiter-plain-text",
-  name: "Arbiter — Plain Text Schedule",
+  name: "Arbiter — Plain Text",
   parse: parseArbiterPlainText
 });
