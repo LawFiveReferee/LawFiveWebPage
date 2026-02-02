@@ -54,6 +54,8 @@ console.log("✅ Shared carousel + DOM helpers loaded");
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ Shared schedule-ui-v2.js loaded");
 
+import { refreshScheduleDropdown } from "../../shared/utils.js";
+
 /* ================================
    2. Factory-specific Modules
 ================================== */
@@ -62,19 +64,19 @@ console.log("✅ Shared schedule-ui-v2.js loaded");
 import "./parser-standardizer.js";
 
 // Shared parsers
-import "../../Shared/parser-arbiter-game-details.js";
-import "../../Shared/parser-arbiter-plain-text.js";
-//import "../../Shared/parser-arbiter-csv-schedule.js";
-import "../../Shared/parser-arbiter.js";
-import "../../Shared/parser-ayso.js";
-import "../../Shared/parser-csv.js";
-import "../../Shared/parser-compact.js";
-import "../../Shared/parser-glendale-table.js";
-import "../../Shared/parser-generic-mapper.js";
+import "../../shared/parser-arbiter-game-details.js";
+import "../../shared/parser-arbiter-plain-text.js";
+//import "../../shared/parser-arbiter-csv-schedule.js";
+import "../../shared/parser-arbiter.js";
+import "../../shared/parser-ayso.js";
+import "../../shared/parser-csv.js";
+import "../../shared/parser-compact.js";
+import "../../shared/parser-glendale-table.js";
+import "../../shared/parser-generic-mapper.js";
 
 console.log("✅ GameCard parsers loaded");
 
-import "../../Shared/utils.js";
+import "../../shared/utils.js";
 
 // UI modules
 import "./mapping-ui.js";
@@ -100,7 +102,6 @@ console.log("✅ app.js loaded via module-loader");
     await waitForElement("#rawInput");
     await waitForElement("#parserSelect");
     await waitForElement("#parseScheduleBtn");
-    await waitForElement("#saveScheduleBtn");
 
     if (typeof populateParserSelect === "function") {
       populateParserSelect();

@@ -27,7 +27,7 @@
 <!-- ============================================================
 Colllaspible Sections
 ============================================================ -->
-	<!-- ======================= -->
+ 	<!-- ======================= -->
 	<!-- 1. Schedule Import -->
 	<!-- ======================= -->
 	<section class="collapsible-panel" id="section-schedule-import">
@@ -52,11 +52,6 @@ Colllaspible Sections
 		<div class="button-group">
 		  <button id="parseScheduleBtn" class="btn">Extract Games</button>
 		  <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
-		</div>
-
-		<!-- Save Button -->
-		<div class="button-group">
-		  <button id="saveScheduleBtn" class="btn primary">Save Schedule</button>
 		</div>
 
 	  </div>
@@ -85,8 +80,8 @@ Colllaspible Sections
 
         <button id="loadScheduleBtn" class="btn">Load</button>
         <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-        <button id="saveScheduleBtn" class="btn primary">Save</button>
-      </div>
+		<button id="saveScheduleBtnLibrary" class="btn primary">💾 Save Schedule</button>
+	</div>
     </div>
   </section>
 <!-- ============================================================
@@ -353,6 +348,14 @@ Modal for Importing Team and Roster -
 </div>
 <p id="scheduleSaveError" class="error-text hidden"></p>
 </div>
+</div>
+<!-- Save Schedule Modal -->
+<div id="saveScheduleModal" class="modal hidden" style="position:fixed; top:20%; left:35%; background:#fff; border:1px solid #ccc; padding:20px; z-index:9999;">
+  <h3>💾 Save Current Schedule</h3>
+  <label for="saveScheduleKeyInput">Schedule Name:</label><br>
+  <input type="text" id="saveScheduleKeyInput" placeholder="e.g. Winter2026" style="width:100%; margin-top:5px;" /><br><br>
+  <button id="saveScheduleConfirmBtn">Save</button>
+  <button id="saveScheduleCancelBtn">Cancel</button>
 </div>
 </body>
 </html>

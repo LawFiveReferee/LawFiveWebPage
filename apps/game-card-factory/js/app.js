@@ -83,8 +83,7 @@ window.registerGenericMapperProfile = registerGenericMapperProfile;
  * Parse schedule text using selected parser,
  * populate global GAME_LIST, update UI and fill JSON textarea.
  */
- import { handleParseSchedule } from "../shared/util.js";
-
+import { handleParseSchedule } from "../../shared/utils.js";
 document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
   handleParseSchedule({
     onAfterParse: () => {
@@ -1037,12 +1036,8 @@ async function bootGameCardFactory() {
 // Schedule Save Modal Logic
 // —————————————————————————
 const saveModal = document.getElementById("saveScheduleModal");
-const openSaveBtn = document.getElementById("saveScheduleBtn");
 const cancelSaveBtn = document.getElementById("saveScheduleCancelBtn");
 
-openSaveBtn?.addEventListener("click", () => {
-  saveModal?.classList.remove("hidden");
-});
 
 cancelSaveBtn?.addEventListener("click", () => {
   saveModal?.classList.add("hidden");
@@ -1078,7 +1073,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Buttons
   const parseBtn = document.getElementById("parseScheduleBtn");
-  const saveBtn = document.getElementById("saveScheduleBtn");
   const applyFilterBtn = document.getElementById("applyFilterBtn");
   const clearFilterBtn = document.getElementById("clearFilterBtn");
   const mapBtn = document.getElementById("openMappingPanelBtn");
@@ -1087,15 +1081,6 @@ document.addEventListener("DOMContentLoaded", () => {
     parseBtn.addEventListener("click", handleParseSchedule);
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      if (!window.GAME_LIST?.length) {
-        alert("⚠️ Nothing to save — parse first.");
-        return;
-      }
-      showSaveScheduleModal(window.selectedParserKey);
-    });
-  }
 
   if (applyFilterBtn && typeof applyFilter === "function") {
     applyFilterBtn.addEventListener("click", applyFilter);
@@ -1134,4 +1119,39 @@ document.addEventListener("DOMContentLoaded", () => {
   if (parseBtn) {
     parseBtn.addEventListener("click", handleParseSchedule);
   }
+});
+
+// ============================================================
+// Schedule Saving Section
+// ============================================================
+
+import { saveScheduleToStorage } from "../../shared/utils.js";
+
+// Show save modal
+const modal = document.getElementById("saveScheduleModal");
+const input = document.getElementById("saveScheduleKeyInput");
+const cancelBtn = document.getElementById("saveScheduleCancelBtn");
+const confirmBtn = document.getElementById("saveScheduleConfirmBtn");
+
+
+cancelBtn?.addEventListener("click", () => {
+  modal?.classList.add("hidden");
+});
+
+confirmBtn?.addEventListener("click", () => {
+  const key = input?.value?.trim();
+  const gameList = window.GAME_LIST;
+
+  if (!key) {
+    alert("⚠️ Enter a schedule name.");
+    return;
+  }
+
+  if (!Array.isArray(gameList) || gameList.length === 0) {
+    alert("⚠️ No games to save — extract a schedule first.");
+    return;
+  }
+
+  saveScheduleToStorage(key, gameList);
+  modal.classList.add("hidden");
 });

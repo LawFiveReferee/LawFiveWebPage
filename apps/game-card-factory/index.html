@@ -80,12 +80,6 @@
 		  <button id="parseScheduleBtn" class="btn">Extract Games</button>
 		  <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
 		</div>
-
-		<!-- Save Button -->
-		<div class="button-group">
-		  <button id="saveScheduleBtn" class="btn primary">Save Schedule</button>
-		</div>
-
 	  </div>
 	</section>
   <!-- ============================ -->
@@ -112,8 +106,8 @@
 
         <button id="loadScheduleBtn" class="btn">Load</button>
         <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-        <button id="saveScheduleBtn" class="btn primary">Save</button>
-      </div>
+		<button id="saveScheduleBtnLibrary" class="btn primary">💾 Save Schedule</button>
+	</div>
     </div>
   </section>
 
@@ -239,21 +233,26 @@
 
 </div> <!-- /.container -->
 
+<!-- Save Schedule Modal -->
 <!-- ========================= -->
-<!-- Schedule Save Modal -->
-<!-- ========================= -->
+<!-- Save Schedule Modal -->
 <div id="scheduleSaveModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Save Schedule</h3>
-    <input id="scheduleNameInput" placeholder="Schedule name" />
-    <div class="modal-buttons">
-      <button id="confirmSaveScheduleBtn" class="btn">Save</button>
-      <button id="cancelSaveScheduleBtn" class="secondary">Cancel</button>
+    <h2>Save Schedule</h2>
+
+    <label for="scheduleNameInput">Enter a name for this schedule:</label>
+    <input type="text" id="scheduleNameInput" />
+
+    <div id="scheduleSaveError" class="error hidden"></div>
+
+    <div class="modal-actions">
+      <button id="saveScheduleConfirmBtn" class="btn primary">Save</button>
+      <button id="saveScheduleCancelBtn" class="btn secondary">Cancel</button>
     </div>
-    <p id="scheduleSaveError" class="error-text hidden"></p>
   </div>
 </div>
-
+<!-- ========================= -->
+<!-- ========================= -->
 <footer>
   <p>© 2025 Law Five Referee</p>
 </footer>

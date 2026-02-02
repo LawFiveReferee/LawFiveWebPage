@@ -7,6 +7,7 @@ import("../../shared/pdf-utils.js").then(module => {
 
 console.log("Lineup Card Factory loaded…");
 
+
 /* ============================================================
    GLOBAL STATE
 ============================================================ */
@@ -20,7 +21,17 @@ window.ROSTER_LIST = [];
 /* ============================================================
    Shared schedule import and parsing
 ============================================================ */
+import { handleParseSchedule } from "../../shared/utils.js";
 
+document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
+  handleParseSchedule({
+    onAfterParse: () => {
+      renderCards();
+      updateStatusLines?.();
+      updateSelectedCountUI?.();
+    }
+  });
+});
 
 const {
 	parseAndImport
@@ -923,44 +934,12 @@ loadSavedSchedules();
 
 // Save the selected schedule into memory
 
-document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-	const rawInputEl = document.getElementById("rawInput");
-	const raw = rawInputEl?.value.trim() || "";
-
-	if (!raw) {
-		alert("Please paste schedule text before saving.");
-		return;
-	}
-
-	const nameInput = prompt("Name this schedule:", "");
-	const name = nameInput?.trim();
-	if (!name) return;
-
-	const list = window.SCHEDULE_LIST || [];
-	const existingIndex = list.findIndex(s => s.name === name);
-
-	if (existingIndex >= 0) {
-		if (!confirm(`A schedule named "${name}" already exists. Replace it?`)) {
-			return;
-		}
-
-		// Replace
-		list[existingIndex].rawText = raw;
-		window.selectedScheduleIndex = existingIndex;
-
-	} else {
-		list.push({
-			name,
-			rawText: raw
-		});
-		window.selectedScheduleIndex = list.length - 1;
-	}
-
-	localStorage.setItem("savedSchedules", JSON.stringify(list));
-	refreshScheduleCarousel();
-	updateScheduleStatus();
+ document.getElementById("saveScheduleBtnImport")?.addEventListener("click", () => {
+  // logic for Save button from Import section
+  const modal = document.getElementById("saveScheduleModal");
+  document.getElementById("saveScheduleKeyInput").value = window.selectedParserKey || "";
+  modal?.classList.remove("hidden");
 });
-
 
 
 // Delete the selected schedule
@@ -1289,25 +1268,39 @@ document.getElementById("scheduleNext")?.addEventListener("click", () => {
 });
 
 
-// Save the currently selected schedule
-document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-	const sel = window.SCHEDULE_LIST[window.selectedScheduleIndex];
-	if (!sel) return;
+// ============================================================
+// Schedule Saving Section
+// ============================================================
 
-	const stored = JSON.parse(localStorage.getItem("savedSchedules") || "[]");
-	const exists = stored.find(s => s.rawText === sel.rawText);
+import { saveScheduleToStorage } from "../../shared/utils.js";
 
-	if (exists) {
-		alert("This schedule is already saved.");
-		return;
-	}
+// Show save modal
+const modal = document.getElementById("saveScheduleModal");
+const input = document.getElementById("saveScheduleKeyInput");
+const cancelBtn = document.getElementById("saveScheduleCancelBtn");
+const confirmBtn = document.getElementById("saveScheduleConfirmBtn");
 
-	stored.push(sel);
-	localStorage.setItem("savedSchedules", JSON.stringify(stored));
-	alert(`Schedule "${sel.name}" saved.`);
+cancelBtn?.addEventListener("click", () => {
+  modal?.classList.add("hidden");
 });
 
+confirmBtn?.addEventListener("click", () => {
+  const key = input?.value?.trim();
+  const gameList = window.GAME_LIST;
 
+  if (!key) {
+    alert("⚠️ Enter a schedule name.");
+    return;
+  }
+
+  if (!Array.isArray(gameList) || gameList.length === 0) {
+    alert("⚠️ No games to save — extract a schedule first.");
+    return;
+  }
+
+  saveScheduleToStorage(key, gameList);
+  modal.classList.add("hidden");
+});
 /**
  * Create a single PDF byte array for one lineup card
  * @param {Object} team

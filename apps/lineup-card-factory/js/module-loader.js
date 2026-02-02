@@ -80,6 +80,7 @@ console.log("✅ dom-helpers.js (shared)loaded");
 /* ================================
    Lineup Card Factory App Modules
 ================================== */
+import { refreshScheduleDropdown } from "../../shared/utils.js";
 
 
 // Parser standardization (legacy)

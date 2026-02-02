@@ -203,9 +203,13 @@ export function setupScheduleParser({ parseBtnId, rawInputId }) {
 
     // Prompt for save name based on first line of raw
     const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
-    if (typeof showSaveScheduleModal === "function") {
-      showSaveScheduleModal(defaultName);
-    }
+	if (typeof showSaveScheduleModal === "function") {
+	console.log("[Caller] showSaveScheduleModal about to be called");
+
+		document.addEventListener("DOMContentLoaded", () => {
+		showSaveScheduleModal(defaultName);
+	});
+}
   });
 }
 document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
@@ -236,33 +240,3 @@ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   updateStatusLines?.();
 });
 
-document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-  // show the modal
-  const modal = document.getElementById("saveScheduleModal");
-  modal.classList.remove("hidden");
-
-  // clear input
-  document.getElementById("scheduleNameInput").value = "";
-});
-
-document.getElementById("saveScheduleCancelBtn")?.addEventListener("click", () => {
-  document.getElementById("saveScheduleModal")?.classList.add("hidden");
-});
-
-document.getElementById("saveScheduleConfirmBtn")?.addEventListener("click", () => {
-  const name = document.getElementById("scheduleNameInput")?.value.trim();
-  if (!name) return alert("Enter a name.");
-
-  const rawText = document.getElementById("rawInput")?.value || "";
-  const parserKey = localStorage.getItem("selectedScheduleParserKey") || "";
-  const parsedGames = Array.isArray(window.GAME_LIST)
-    ? window.GAME_LIST
-    : [];
-
-  ScheduleStoreV2.saveSchedule({
-    name, rawText, parserKey, parsedGames
-  });
-
-  refreshScheduleDropdown();
-  document.getElementById("saveScheduleModal")?.classList.add("hidden");
-});

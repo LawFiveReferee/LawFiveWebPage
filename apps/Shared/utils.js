@@ -2,9 +2,12 @@
 function $(sel) {
   return document.querySelector(sel);
 }
+window.$ = $;
+
 function $all(sel) {
   return Array.from(document.querySelectorAll(sel));
 }
+window.$all = $all;
 
 /* ============================================================
    UTILITY: Date / Time formatting
@@ -31,6 +34,7 @@ function formatGameDate(raw) {
 
   return `${weekdays[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
 }
+window.formatGameDate = formatGameDate;
 
 function formatGameTime(raw) {
   const m = raw.match(/(\d{1,2}):(\d{2})\s*([AaPp][Mm])/);
@@ -42,6 +46,7 @@ function formatGameTime(raw) {
 
   return (mins === "00" && hour !== 12) ? `${hour} ${ampm}` : `${hour}:${mins} ${ampm}`;
 }
+window.formatGameTime = formatGameTime;
 
 /* ============================================================
    UTILITY: Unique ID for games
@@ -50,7 +55,11 @@ function formatGameTime(raw) {
 const makeGameId = () => {
   return (crypto?.randomUUID?.() || ("g-" + Math.random().toString(36).slice(2) + Date.now().toString(36)));
 };
+window.makeGameId = makeGameId;
+
+
 // shared/util.js
+
 export function handleParseSchedule(options = {}) {
   const {
     rawInputId = "rawInput",
@@ -85,26 +94,177 @@ export function handleParseSchedule(options = {}) {
     return;
   }
 
-  window.GAME_LIST = games;
-  console.log(`✅ Parsed ${games.length} games using parser "${parserKey}".`);
+ // ✅ Save games globally
+window.GAME_LIST = games;
 
-  const displayEl = document.getElementById(outputDisplayId);
-  if (displayEl) {
-    displayEl.value = JSON.stringify(games, null, 2);
-  }
+console.log(`✅ Parsed ${games.length} games using parser "${parserKey}".`);
 
-  const schedulePanel = document.getElementById("scheduleDisplayPanel");
-  if (schedulePanel?.classList.contains("collapsed")) {
-    schedulePanel.classList.remove("collapsed");
-  }
+// Show JSON in the schedule text area
+const displayEl = document.getElementById("currentScheduleDisplay");
+if (displayEl) {
+  displayEl.value = JSON.stringify(games, null, 2); // Pretty print
+}
+
+// ✅ Expand the schedule panel so user sees parsed result and Save button
+const schedulePanel = document.getElementById("section-schedule");
+if (schedulePanel && schedulePanel.classList.contains("collapsed")) {
+  schedulePanel.classList.remove("collapsed");
+}
+
+// Render cards, update status lines, etc.
 
   onAfterParse(games);
 }
 
-// Expose globally
-window.$ = $;
-window.$all = $all;
-window.formatGameDate = formatGameDate;
-window.formatGameTime = formatGameTime;
-window.makeGameId = makeGameId;
+export function applyFilter(filterInputId = "filterInput") {
+  const keyword = document.getElementById(filterInputId)?.value?.toLowerCase() || "";
+  if (!Array.isArray(window.GAME_LIST)) return;
 
+  window.GAME_LIST.forEach(game => {
+    const match =
+      game.home_team?.toLowerCase().includes(keyword) ||
+      game.away_team?.toLowerCase().includes(keyword) ||
+      game.age_division?.toLowerCase().includes(keyword) ||
+      game.location?.toLowerCase().includes(keyword);
+
+    game.selected = match;
+  });
+
+  if (typeof window.updateGameCountUI === "function") window.updateGameCountUI();
+  if (typeof window.renderCards === "function") window.renderCards();
+  if (typeof window.renderPreviewCards === "function") window.renderPreviewCards();
+  if (typeof window.updateStatusLines === "function") window.updateStatusLines();
+  if (typeof window.updateSelectedCountUI === "function") window.updateSelectedCountUI();
+}
+
+export function updateGameCountUI() {
+  const total = window.GAME_LIST?.length || 0;
+  const selected = window.GAME_LIST?.filter(g => g.selected).length || 0;
+
+  document.querySelectorAll(".total-game-count").forEach(el => {
+    el.textContent = total;
+  });
+
+  document.querySelectorAll(".selected-game-count").forEach(el => {
+    el.textContent = selected;
+  });
+}
+
+/* ============================================================
+   SCHEDULE STORAGE (Shared, V2)
+============================================================ */
+
+const SCHEDULE_STORAGE_KEY = "savedSchedulesV2";
+
+/**
+ * Save a schedule under a key
+ */
+export function saveScheduleToStorage(key, gameList) {
+  if (!key || !Array.isArray(gameList)) {
+    console.warn("❌ saveScheduleToStorage: invalid arguments");
+    return;
+  }
+
+  try {
+    const saved =
+      JSON.parse(localStorage.getItem(SCHEDULE_STORAGE_KEY)) || {};
+
+    saved[key] = {
+      savedAt: new Date().toISOString(),
+      games: gameList
+    };
+
+    localStorage.setItem(
+      SCHEDULE_STORAGE_KEY,
+      JSON.stringify(saved, null, 2)
+    );
+
+    console.log(
+      `💾 Saved schedule "${key}" (${gameList.length} games)`
+    );
+  } catch (err) {
+    console.error("❌ Failed to save schedule:", err);
+  }
+}
+
+/**
+ * Load a schedule by key
+ */
+export function loadScheduleFromStorage(key) {
+  if (!key) return null;
+
+  try {
+    const saved =
+      JSON.parse(localStorage.getItem(SCHEDULE_STORAGE_KEY)) || {};
+
+    return saved[key]?.games || null;
+  } catch (err) {
+    console.error("❌ Failed to load schedule:", err);
+    return null;
+  }
+}
+
+/**
+ * Get list of saved schedule keys
+ */
+export function getSavedScheduleKeys() {
+  try {
+    const saved =
+      JSON.parse(localStorage.getItem(SCHEDULE_STORAGE_KEY)) || {};
+    return Object.keys(saved);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Delete a saved schedule
+ */
+export function deleteScheduleFromStorage(key) {
+  if (!key) return;
+
+  try {
+    const saved =
+      JSON.parse(localStorage.getItem(SCHEDULE_STORAGE_KEY)) || {};
+
+    if (saved[key]) {
+      delete saved[key];
+      localStorage.setItem(
+        SCHEDULE_STORAGE_KEY,
+        JSON.stringify(saved, null, 2)
+      );
+      console.log(`🗑 Deleted schedule "${key}"`);
+    }
+  } catch (err) {
+    console.error("❌ Failed to delete schedule:", err);
+  }
+}
+
+export function refreshScheduleDropdown() {
+  const dropdown = document.getElementById("savedScheduleDropdown");
+  if (!dropdown) return;
+
+  // Clear existing
+  dropdown.innerHTML = "";
+
+  // Load keys from storage
+  const keys = getSavedScheduleKeys();
+  if (!keys.length) {
+    const opt = document.createElement("option");
+    opt.disabled = true;
+    opt.textContent = "(No saved schedules)";
+    dropdown.appendChild(opt);
+    dropdown.disabled = true;
+    return;
+  }
+
+  // Populate options
+  keys.forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key;
+    dropdown.appendChild(opt);
+  });
+
+  dropdown.disabled = false;
+}

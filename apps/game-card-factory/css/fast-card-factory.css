@@ -1533,7 +1533,7 @@ footer {
 
 #importScheduleBtn,
 #parseScheduleBtn,
-#saveScheduleBtn,
+#saveScheduleBtnLibrary,
 #loadScheduleBtn,
 #deleteScheduleBtn,
 #renameScheduleBtn {
@@ -1721,3 +1721,4 @@ footer {
   font-size: 14px;
   box-sizing: border-box;
 }
+.hidden { display: none; }

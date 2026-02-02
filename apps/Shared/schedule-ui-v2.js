@@ -27,6 +27,35 @@
     });
   }
 
+  function getDefaultScheduleName() {
+  const parserName = (window.selectedParserKey || "")
+    .split("-")[0]
+    .trim()
+    .replace(/\s+/g, "");
+
+  const games = window.GAME_LIST || [];
+  const numGames = games.length;
+
+  if (numGames === 0) return `${parserName}-0 games`;
+
+  const dates = games
+    .map(g => new Date(g.date))
+    .filter(d => !isNaN(d));
+
+  if (!dates.length) return `${parserName}-${numGames} games`;
+
+  const minDate = new Date(Math.min(...dates));
+  const maxDate = new Date(Math.max(...dates));
+
+  const format = d => `${d.getMonth() + 1}-${d.getDate()}-${String(d.getFullYear()).slice(-2)}`;
+
+  if (format(minDate) === format(maxDate)) {
+    return `${parserName}-${numGames} games - ${format(minDate)}`;
+  } else {
+    return `${parserName}-${numGames} games - ${format(minDate)} - ${format(maxDate)}`;
+  }
+}
+window.getDefaultScheduleName = getDefaultScheduleName;
   function attachLoad() {
     document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
       const sel = document.getElementById("scheduleSelect");
@@ -99,7 +128,10 @@
       updateSelectedCountUI?.();
 
       const defaultName = raw.split(/\r?\n/)[0]?.trim() || "";
-      showSaveScheduleModal(defaultName);
+      console.log("[Caller] showSaveScheduleModal about to be called");
+	document.addEventListener("DOMContentLoaded", () => {
+		showSaveScheduleModal(defaultName);
+	});
     });
   }
 
@@ -165,7 +197,7 @@ function initSharedScheduleUIv2() {
   const parserSelect = document.getElementById("parserSelect");
   const rawInput = document.getElementById("rawInput");
   const parseBtn = document.getElementById("parseScheduleBtn");
-  const saveBtn = document.getElementById("saveScheduleBtn");
+  const saveBtn = document.getElementById("saveScheduleBtnLibrary");
   const statusEl = document.getElementById("scheduleParseStatus");
 
   const scheduleSelect = document.getElementById("scheduleSelect");
@@ -256,7 +288,10 @@ function initSharedScheduleUIv2() {
     const { games } = ScheduleParser.parse(raw, parserKey);
 
     // Open the modal to ask for a name
-    showSaveScheduleModal(raw.split(/\r?\n/)[0]?.trim() || "");
+    console.log("[Caller] showSaveScheduleModal about to be called");
+	document.addEventListener("DOMContentLoaded", () => {
+		showSaveScheduleModal(raw.split(/\r?\n/)[0]?.trim() || "");
+	});
   });
 
   // —————————————
@@ -321,14 +356,16 @@ function initSharedScheduleUIv2() {
   });
 }
 
-// Expose init so factories can load it
-window.initSharedScheduleUIv2 = initSharedScheduleUIv2;
+/* ============================================================
+   Shared Schedule UI v2 — Save / Load Logic
+============================================================ */
 
 function refreshScheduleDropdown() {
   const sel = document.getElementById("scheduleSelect");
-  if (!sel) return;
+  if (!sel || !window.ScheduleStoreV2) return;
 
   sel.innerHTML = `<option value="">— Select Schedule —</option>`;
+
   const all = ScheduleStoreV2.getAllSchedules();
   all.forEach(s => {
     const opt = document.createElement("option");
@@ -338,47 +375,126 @@ function refreshScheduleDropdown() {
   });
 }
 
-document.getElementById("saveScheduleBtn")?.addEventListener("click", () => {
-  const nameEl = document.getElementById("scheduleSaveName");
-  const name = nameEl?.value.trim();
-  if (!name) return alert("Enter a name for this schedule.");
+// expose globally
+window.refreshScheduleDropdown = refreshScheduleDropdown;
+
+/* ============================================================
+   SAVE SCHEDULE (Library button only)
+============================================================ */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const saveBtn = document.getElementById("saveScheduleBtnLibrary");
+
+  if (!saveBtn) {
+    console.warn("⚠️ Save Schedule button (#saveScheduleBtnLibrary) not found.");
+    return;
+  }
+
+  saveBtn.addEventListener("click", () => {
+    const defaultName = getDefaultScheduleName(); // your logic to build default
+    console.log("[Save Button] Opening Save Modal with default:", defaultName);
+
+    const modal = document.getElementById("scheduleSaveModal");
+    const input = document.getElementById("scheduleNameInput");
+
+    if (!modal || !input) {
+      console.error("❌ Save Schedule modal elements missing");
+      return;
+    }
+
+    // Show modal and pass save callback
+    showSaveScheduleModal(defaultName, name => {
+      console.log("[SaveCallback] Saving schedule:", name);
+
+      ScheduleStoreV2.addOrUpdateSchedule({
+        name,
+        rawText: document.getElementById("rawInput")?.value || "",
+        parserKey: window.selectedParserKey || "",
+        parsedGames: window.GAME_LIST || [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      refreshScheduleDropdown();
+      alert(`✅ Schedule "${name}" saved.`);
+    });
+  });
+});
+
+/* ============================================================
+   CONFIRM SAVE
+============================================================ */
+
+document.getElementById("confirmSaveScheduleBtn")?.addEventListener("click", () => {
+  const input = document.getElementById("scheduleNameInput");
+  const name = input?.value?.trim();
+
+  if (!name) {
+    alert("Enter a schedule name.");
+    return;
+  }
 
   const rawText = document.getElementById("rawInput")?.value || "";
 
   const schedule = {
-    id: null,  // Let ScheduleStoreV2 generate it
+    id: null,
     name,
     parserKey: localStorage.getItem("selectedScheduleParserKey"),
     rawText,
-    parsedGames: window.GAME_LIST || [],
+    parsedGames: window.GAME_LIST,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
   ScheduleStoreV2.saveSchedule(schedule);
   refreshScheduleDropdown();
+
+  document.getElementById("saveScheduleModal")?.classList.add("hidden");
   alert(`Schedule "${name}" saved.`);
 });
 
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const sel = document.getElementById("scheduleSelect");
-  const name = sel?.value;
-  if (!name) return alert("Select a schedule first.");
+/* ============================================================
+   CANCEL SAVE
+============================================================ */
 
-  const schedule = ScheduleStoreV2.getScheduleByName(name);
-  if (!schedule) return alert("Schedule not found.");
-
-  document.getElementById("rawInput").value = schedule.rawText;
-
-  window.GAME_LIST = schedule.parsedGames || [];
-  localStorage.setItem("selectedScheduleParserKey", schedule.parserKey);
-  document.getElementById("parserSelect").value = schedule.parserKey;
-
-  renderCards();
-  updateStatusLines();
-  refreshScheduleDropdown();
+document.getElementById("cancelSaveScheduleBtn")?.addEventListener("click", () => {
+  document.getElementById("saveScheduleModal")?.classList.add("hidden");
 });
 
+/* ============================================================
+   LOAD SCHEDULE
+============================================================ */
+
+ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
+  const sel = document.getElementById("scheduleSelect");
+  const name = sel?.value;
+
+  if (!name) {
+    alert("Select a schedule first.");
+    return;
+  }
+
+  const schedule = ScheduleStoreV2.getScheduleByName(name);
+  if (!schedule) {
+    alert("Schedule not found.");
+    return;
+  }
+
+  document.getElementById("rawInput").value = schedule.rawText || "";
+  window.GAME_LIST = schedule.parsedGames || [];
+
+  localStorage.setItem("selectedScheduleParserKey", schedule.parserKey);
+  const parserSel = document.getElementById("parserSelect");
+  if (parserSel) parserSel.value = schedule.parserKey;
+
+  const display = document.getElementById("currentScheduleDisplay");
+  if (display) {
+    display.value = JSON.stringify(window.GAME_LIST, null, 2);
+  }
+
+  renderCards?.();
+  updateStatusLines?.();
+});
 document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
   const sel = document.getElementById("scheduleSelect");
   const name = sel?.value;
@@ -393,33 +509,59 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showSaveScheduleModal(defaultName, onSave) {
+  console.log("[showSaveScheduleModal] called with:", defaultName);
+
   const modal = document.getElementById("scheduleSaveModal");
   const input = document.getElementById("scheduleNameInput");
   const confirmBtn = document.getElementById("saveScheduleConfirmBtn");
   const cancelBtn = document.getElementById("saveScheduleCancelBtn");
+  const errorEl = document.getElementById("scheduleSaveError");
 
+  console.log("[showSaveScheduleModal] modal:", modal);
+  console.log("[showSaveScheduleModal] input:", input);
+  console.log("[showSaveScheduleModal] confirmBtn:", confirmBtn);
+  console.log("[showSaveScheduleModal] cancelBtn:", cancelBtn);
+  console.log("[showSaveScheduleModal] errorEl:", errorEl);
+
+  if (!modal || !input || !confirmBtn || !cancelBtn || !errorEl) {
+    console.error("❌ Save Schedule modal elements missing");
+    return;
+  }
+
+  // Prefill name and show modal
   input.value = defaultName || "";
-
+  errorEl.classList.add("hidden");
   modal.classList.remove("hidden");
 
   const cleanup = () => {
-    confirmBtn.removeEventListener("click", confirmHandler);
-    cancelBtn.removeEventListener("click", cancelHandler);
+    confirmBtn.removeEventListener("click", handleConfirm);
+    cancelBtn.removeEventListener("click", handleCancel);
+    console.log("[showSaveScheduleModal] Listeners removed");
   };
 
-  const confirmHandler = () => {
+  function handleConfirm() {
     const name = input.value.trim();
-    modal.classList.add("hidden");
-    cleanup();
-    if (name) onSave(name);
-  };
+    if (!name) {
+      errorEl.textContent = "Schedule name is required.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
 
-  const cancelHandler = () => {
-    modal.classList.add("hidden");
+    console.log("[showSaveScheduleModal] Saving with name:", name);
     cleanup();
-  };
+    modal.classList.add("hidden");
+    onSave?.(name);
+  }
 
-  confirmBtn.addEventListener("click", confirmHandler);
-  cancelBtn.addEventListener("click", cancelHandler);
+  function handleCancel() {
+    console.log("[showSaveScheduleModal] Cancel clicked");
+    cleanup();
+    modal.classList.add("hidden");
+  }
+
+  confirmBtn.addEventListener("click", handleConfirm);
+  cancelBtn.addEventListener("click", handleCancel);
+  console.log("[showSaveScheduleModal] Listeners attached, modal shown");
 }
-window.initSharedScheduleUIv2 = initSharedScheduleUIv2;
+
+ window.showSaveScheduleModal = showSaveScheduleModal;

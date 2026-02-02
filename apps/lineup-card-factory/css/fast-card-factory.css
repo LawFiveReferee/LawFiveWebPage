@@ -2191,7 +2191,7 @@ roster-table {
 
 #importScheduleBtn,
 #parseScheduleBtn,
-#saveScheduleBtn,
+#saveScheduleBtnLibrary,
 #loadScheduleBtn,
 #deleteScheduleBtn,
 #renameScheduleBtn {
@@ -2318,4 +2318,5 @@ roster-table {
   color: var(--textColor, #222);
 }
 
+.hidden { display: none; }
 
