@@ -2320,3 +2320,27 @@ roster-table {
 
 .hidden { display: none; }
 
+
+#scheduleSaveModal .modal-content {
+  width: 90%;
+  max-width: 700px;
+  margin: 5% auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+#scheduleSaveModal input#scheduleNameInput {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px;
+  margin-top: 10px;
+}
+#scheduleSaveModal .modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}

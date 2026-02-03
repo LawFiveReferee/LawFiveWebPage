@@ -55,7 +55,10 @@ import "../../shared/schedule-ui-v2.js";
 console.log("✅ Shared schedule-ui-v2.js loaded");
 
 import { refreshScheduleDropdown } from "../../shared/utils.js";
+import  "../../shared/game-normalizer.js";
 
+import { updateSelectedCountUI } from "../../shared/ui-helpers.js";
+window.updateSelectedCountUI = updateSelectedCountUI;
 /* ================================
    2. Factory-specific Modules
 ================================== */

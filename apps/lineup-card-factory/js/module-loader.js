@@ -71,6 +71,10 @@ console.log("✅ shared/carousel-ui.js loaded");
 import { refreshImportCarousel } from "../../shared/carousel-ui.js";
 console.log("✅ refreshImportCarousel function loaded");
 
+import  "../../shared/game-normalizer.js";
+
+import { updateSelectedCountUI } from "../../shared/ui-helpers.js";
+
 
 console.log("✅ All shared modules loaded");
 // DOM helpers

@@ -217,14 +217,18 @@ document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   const name = sel?.value;
   if (!name) return alert("Select a saved schedule first.");
 
-  const schedule = ScheduleStoreV2.getScheduleByName(name);
-  if (!schedule) return alert("Schedule not found.");
+ const schedule = ScheduleStoreV2.getScheduleByName(name);
+if (!schedule) return alert("Schedule not found.");
 
-  // Put rawText into textarea
-  document.getElementById("rawInput").value = schedule.rawText || "";
+document.getElementById("rawInput").value = schedule.rawText;
 
-  // Populate GAME_LIST
-  window.GAME_LIST = schedule.parsedGames || [];
+// Normalize parsed games
+const parsedGames = schedule.parsedGames || [];
+const selectedParserKey = schedule.parserKey || "unknown";
+const normalizedGames = parsedGames.map(g =>
+  normalizeParsedGame(g, selectedParserKey)
+);
+window.GAME_LIST = normalizedGames;
 
   // Update display area
   document.getElementById("currentScheduleDisplay").value =

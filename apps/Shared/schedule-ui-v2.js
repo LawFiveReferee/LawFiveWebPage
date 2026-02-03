@@ -71,7 +71,10 @@ window.getDefaultScheduleName = getDefaultScheduleName;
       if (errors.length) console.warn(errors);
 
       window.GAME_LIST = games;
-      renderPreviewCards?.();
+      // ✅ Select all by default
+	window.GAME_LIST.forEach(game => game.selected = true);
+
+	renderCards?.();
       updateStatusLines?.();
       updateSelectedCountUI?.();
     });
@@ -108,6 +111,42 @@ window.getDefaultScheduleName = getDefaultScheduleName;
       sel.value = newName.trim();
     });
   }
+function getDefaultScheduleName() {
+  const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+  const count = games.length;
+
+  // Parser name → short prefix (before dash)
+  let parserLabel = "Schedule";
+  const parserKey = window.selectedParserKey || "";
+  if (parserKey.includes("arbiter")) parserLabel = "Arbiter";
+  else if (parserKey) parserLabel = parserKey.split("-")[0];
+
+  if (!count) {
+    return `${parserLabel}-0 games`;
+  }
+
+  // Collect valid dates
+  const dates = games
+    .map(g => g.match_date)
+    .map(d => new Date(d))
+    .filter(d => !isNaN(d));
+
+  if (!dates.length) {
+    return `${parserLabel}-${count} games`;
+  }
+
+  dates.sort((a, b) => a - b);
+
+  const formatDate = d =>
+    `${d.getMonth() + 1}-${d.getDate()}-${String(d.getFullYear()).slice(-2)}`;
+
+  const first = formatDate(dates[0]);
+  const last = formatDate(dates[dates.length - 1]);
+
+  return first === last
+    ? `${parserLabel}-${count} games - ${first}`
+    : `${parserLabel}-${count} games - ${first} - ${last}`;
+}
 
   function attachParse() {
     document.getElementById("parseBtn")?.addEventListener("click", () => {
@@ -123,7 +162,9 @@ window.getDefaultScheduleName = getDefaultScheduleName;
       if (errors.length) console.warn(errors);
 
       window.GAME_LIST = games;
-      renderPreviewCards?.();
+      // ✅ Select all by default
+	window.GAME_LIST.forEach(game => game.selected = true);
+	renderCards?.();
       updateStatusLines?.();
       updateSelectedCountUI?.();
 
@@ -269,7 +310,7 @@ function initSharedScheduleUIv2() {
         : `✅ Parsed ${games.length} game${games.length !== 1 ? "s" : ""}.`);
 
     // Optionally render preview here if you have preview logic
-    if (typeof renderPreviewCards === "function") renderPreviewCards();
+    if (typeof renderCards === "function") renderCards();
   });
 
   // —————————————
@@ -316,7 +357,7 @@ function initSharedScheduleUIv2() {
     window.GAME_LIST = Array.isArray(sched.parsedGames) ? sched.parsedGames : [];
 
     statusEl && (statusEl.textContent = `Loaded schedule: "${name}".`);
-    if (typeof renderPreviewCards === "function") renderPreviewCards();
+    if (typeof renderCards === "function") renderCards();
   });
 
   // —————————————
@@ -406,15 +447,14 @@ document.addEventListener("DOMContentLoaded", () => {
     showSaveScheduleModal(defaultName, name => {
       console.log("[SaveCallback] Saving schedule:", name);
 
-      ScheduleStoreV2.addOrUpdateSchedule({
-        name,
-        rawText: document.getElementById("rawInput")?.value || "",
-        parserKey: window.selectedParserKey || "",
-        parsedGames: window.GAME_LIST || [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-
+	ScheduleStoreV2.saveSchedule({
+	  name,
+	  rawText: document.getElementById("rawInput")?.value || "",
+	  parserKey: window.selectedParserKey || "",
+	  parsedGames: window.GAME_LIST || [],
+	  createdAt: new Date().toISOString(),
+	  updatedAt: new Date().toISOString()
+	});
       refreshScheduleDropdown();
       alert(`✅ Schedule "${name}" saved.`);
     });
@@ -464,6 +504,55 @@ document.getElementById("cancelSaveScheduleBtn")?.addEventListener("click", () =
 /* ============================================================
    LOAD SCHEDULE
 ============================================================ */
+function loadScheduleByName(scheduleName) {
+  if (!scheduleName) {
+    alert("Select a schedule first.");
+    return;
+  }
+
+  const schedule = ScheduleStoreV2.getScheduleByName(scheduleName);
+  if (!schedule) {
+    alert("Schedule not found.");
+    return;
+  }
+
+  console.log(`[LoadSchedule] loading schedule "${scheduleName}"`, schedule);
+
+  // Fill raw input
+  const rawInputEl = document.getElementById("rawInput");
+  if (rawInputEl) {
+    rawInputEl.value = schedule.rawText || "";
+  }
+
+  // Restore parser selection
+  if (schedule.parserKey) {
+    window.selectedParserKey = schedule.parserKey;
+    localStorage.setItem("selectedScheduleParserKey", schedule.parserKey);
+
+    const parserSelector = document.getElementById("parserSelect");
+    if (parserSelector) {
+      parserSelector.value = schedule.parserKey;
+    }
+  }
+
+  // Restore the parsed games list
+  window.GAME_LIST = Array.isArray(schedule.parsedGames)
+    ? schedule.parsedGames
+    : [];
+
+  // Update dependent UIs
+  if (typeof renderCards === "function") renderCards(window.GAME_LIST);
+  if (typeof updateStatusLines === "function") updateStatusLines();
+  if (typeof updateSelectedCountUI === "function") updateSelectedCountUI();
+
+  const displayEl = document.getElementById("currentScheduleDisplay");
+  if (displayEl) {
+    displayEl.value = JSON.stringify(window.GAME_LIST, null, 2);
+  }
+
+  console.log(`[LoadSchedule] schedule "${scheduleName}" loaded successfully.`);
+}
+
 
  document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
   const sel = document.getElementById("scheduleSelect");
@@ -491,9 +580,12 @@ document.getElementById("cancelSaveScheduleBtn")?.addEventListener("click", () =
   if (display) {
     display.value = JSON.stringify(window.GAME_LIST, null, 2);
   }
+// ✅ Select all by default
+window.GAME_LIST.forEach(game => game.selected = true);
 
   renderCards?.();
   updateStatusLines?.();
+  updateSelectedCountUI?.();
 });
 document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
   const sel = document.getElementById("scheduleSelect");
@@ -506,7 +598,29 @@ document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
 });
 document.addEventListener("DOMContentLoaded", () => {
   refreshScheduleDropdown();
+
+  const loadBtn = document.getElementById("loadScheduleBtn");
+  const scheduleSelect = document.getElementById("scheduleSelect");
+
+  if (loadBtn && scheduleSelect) {
+    loadBtn.addEventListener("click", () => {
+      const selectedName = scheduleSelect.value;
+      loadScheduleByName(selectedName);
+    });
+  }
+
+  // Also populate dropdown on init
+	refreshScheduleDropdown?.();
+	window.GAME_LIST.forEach(game => game.selected = true);
+
+  renderCards?.();
+  updateStatusLines?.();
+  updateSelectedCountUI?.();
+
 });
+
+
+
 
 function showSaveScheduleModal(defaultName, onSave) {
   console.log("[showSaveScheduleModal] called with:", defaultName);

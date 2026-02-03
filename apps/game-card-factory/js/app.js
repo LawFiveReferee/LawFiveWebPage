@@ -321,15 +321,6 @@ function updateGameCountUI() {
 	);
 }
 
-function updateSelectedCountUI() {
-	const el = document.getElementById("selectedCount");
-	if (!el) return;
-
-	const list = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-	const selectedCount = list.filter(g => g.selected).length;
-
-	el.textContent = String(selectedCount);
-}
 
 function deleteGameById(gameId) {
 	const idx = games.findIndex(g => g.id === gameId);
@@ -359,9 +350,10 @@ function deleteSelectedGames() {
 /* ============================================================
    Render Cards
 ============================================================ */
+
 function renderCards() {
-  const games = window.GAME_LIST || [];
-  const container = document.getElementById("gameCardContainer");
+  const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+  const container = document.getElementById("cardsContainer");
   if (!container) return;
 
   container.innerHTML = "";
@@ -371,147 +363,364 @@ function renderCards() {
     return;
   }
 
+  const renderField = (label, value, alwaysShow = false) => {
+    if (!value?.toString().trim() && !alwaysShow) return "";
+    return `<p><strong>${label}:</strong> ${value || ""}</p>`;
+  };
+
+  const renderRefereeBlock = (referees = []) => {
+    if (!Array.isArray(referees) || referees.length === 0) return "";
+    return referees.map((ref, i) => {
+      const parts = [
+        ref.name || "(No name)",
+        ref.email ? `📧 ${ref.email}` : "",
+        ref.phone ? `📞 ${ref.phone}` : ""
+      ].filter(Boolean).join(" &nbsp;•&nbsp; ");
+      return `<p><strong>${ref.role || `Referee ${i + 1}`}:</strong> ${parts}</p>`;
+    }).join("");
+  };
+
   games.forEach((g, i) => {
     const card = document.createElement("div");
     card.className = "game-card";
+
     card.innerHTML = `
-      <h3>Game ${i + 1}</h3>
-      <p><strong>Date:</strong> ${g.match_date || "—"}</p>
-      <p><strong>Time:</strong> ${g.match_time || "—"}</p>
-      <p><strong>Field:</strong> ${g.field || "—"}</p>
-      <p><strong>${g.home_team || "TBD"}</strong> vs <strong>${g.away_team || "TBD"}</strong></p>
+      <h3>Game ${i + 1} — ${g.match_date || "??"} @ ${g.match_time || "??"}</h3>
+
+      ${renderField("Game ID", g.id)}
+      ${renderField("Game #", g.game_number)}
+
+      <hr>
+      <strong>League & Competition</strong>
+      ${renderField("League", g.league)}
+      ${renderField("Competition", g.competition)}
+
+      <hr>
+      <strong>Match Info</strong>
+      ${renderField("Date", g.match_date, true)}
+      ${renderField("Time", g.match_time, true)}
+      ${renderField("Age / Division", g.age_division)}
+      ${renderField("Location", g.location)}
+      ${renderField("Field", g.field)}
+
+      <hr>
+      <strong>Teams</strong>
+      ${renderField("Home Team", g.home_team)}
+      ${renderField("Away Team", g.away_team)}
+      ${renderField("Home Colors", g.home_colors)}
+      ${renderField("Away Colors", g.away_colors)}
+      ${renderField("Home Coach", g.home_coach?.name)}
+      ${renderField("Away Coach", g.away_coach?.name)}
+
+      <hr>
+      <strong>Referee Crew</strong>
+      ${renderRefereeBlock(g.referees)}
+
+      <hr>
+      <strong>Officials</strong>
+      ${renderField("Assigner", g.assigner?.name)}
+      ${renderField("Assigner Email", g.assigner?.email)}
+      ${renderField("Assigner Phone", g.assigner?.phone)}
+      ${renderField("Payer", g.payer?.name)}
+      ${renderField("Payer Email", g.payer?.email)}
+      ${renderField("Payer Phone", g.payer?.phone)}
+
+      ${g.notes?.trim() ? `
+        <hr>
+        <strong>Notes</strong>
+        <p>${g.notes}</p>
+      ` : ""}
+
+      <div class="card-actions">
+        <button class="btn edit-btn" data-gameid="${g.id}">Edit</button>
+        <button class="btn pdf-btn" data-gameid="${g.id}">PDF</button>
+      </div>
     `;
+
     container.appendChild(card);
   });
 }
-
 window.renderCards = renderCards;
 
 /* ============================================================
    Edit Modal
 ============================================================ */
-function editRow(label, id, val, type = "text") {
-	return `
-    <div class="edit-row">
-      <label>${label}</label>
-      <input id="${id}" class="macos-input" type="${type}" value="${val || ""}">
+
+function toggleEmptyFields(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+
+  const rows = [...group.querySelectorAll(".edit-row[data-edit-row]")];
+  const toggleLink = group.querySelector(".edit-group-toggle");
+  if (!toggleLink) return;
+
+  // Determine mode: show all, or hide empties
+  const anyHidden = rows.some(row =>
+    !row.dataset.alwaysShow && row.classList.contains("hidden")
+  );
+
+  rows.forEach(row => {
+    const input = row.querySelector("input, textarea");
+
+    // Always show rows marked as always-show
+    if (row.dataset.alwaysShow !== undefined || input?.readOnly) {
+      row.classList.remove("hidden");
+      return;
+    }
+
+    const val = input?.value?.trim();
+    const isEmpty = !val;
+
+    if (anyHidden) {
+      // Reveal everything
+      row.classList.remove("hidden");
+    } else {
+      // Hide only truly empty fields
+      row.classList.toggle("hidden", isEmpty);
+    }
+  });
+
+  // Update button text
+  toggleLink.textContent = anyHidden
+    ? "Hide empty fields"
+    : "Show hidden fields";
+}
+window.toggleEmptyFields = toggleEmptyFields;
+
+function safeVal(val) {
+  return (val ?? "").toString();
+}
+
+function editRow(label, id, val, type = "text", readOnly = false, alwaysShow = false) {
+  const safeValue =
+    val === null || val === undefined ? "" : String(val);
+
+  const input = `
+    <input
+      id="${id}"
+      class="macos-input"
+      type="${type}"
+      value="${safeValue}"
+      ${readOnly ? "readonly" : ""}
+    >
+  `;
+
+  const shouldHide = !alwaysShow && safeValue.trim() === "";
+
+  return `
+    <div
+      class="edit-row horizontal ${shouldHide ? "hidden" : ""}"
+      data-edit-row
+      ${alwaysShow ? "data-always-show" : ""}
+    >
+      <label for="${id}">${label}</label>
+      ${input}
+    </div>
+  `;
+}
+
+function editTextArea(label, id, val) {
+  const hiddenClass = (!val || val === "") ? "hidden" : "";
+  return `
+    <div class="edit-row horizontal ${hiddenClass}" data-edit-row>
+      <label for="${id}">${label}</label>
+      <textarea id="${id}" class="macos-input">${val}</textarea>
+    </div>
+  `;
+}
+
+//Helper to build a toggleable group
+function editGroup(title, rowsHtml, groupId) {
+  return `
+    <div class="edit-group" id="${groupId}">
+      <h3>${title}</h3>
+      <span class="edit-group-toggle" onclick="toggleEmptyFields('${groupId}')">
+        Show hidden fields
+      </span>
+      ${rowsHtml}
     </div>
   `;
 }
 
 function enterEditMode(id) {
-	const g = games.find(x => x.id === id);
-	if (!g) return;
+  console.log("[enterEditMode] Called with:", id);
 
-	if (typeof g.assigner !== "object" || !g.assigner) g.assigner = {
-		name: "",
-		phone: "",
-		email: ""
-	};
-	if (typeof g.payer !== "object" || !g.payer) g.payer = {
-		name: "",
-		phone: "",
-		email: ""
-	};
+  const g = window.GAME_LIST?.find(x => x.id === id);
+  if (!g) {
+    console.warn("[enterEditMode] No game found for ID:", id);
+    return;
+  }
+  console.log("[enterEditMode] Found game object:", g);
 
-	const modal = $("#editModal");
-	const body = $("#editModalBody");
-	if (!modal || !body) return;
+  g.assigner ??= { name: "", phone: "", email: "" };
+  g.payer ??= { name: "", phone: "", email: "" };
+  g.referees ??= [];
 
-	body.innerHTML = `
-    ${editRow("Game #",          "editGameNumber",  g.game_number)}
-    ${editRow("Date",            "editDate",        g.match_date, "date")}
-    ${editRow("Time",            "editTime",        g.match_time)}
-    ${editRow("Age/Div",         "editAgeDiv",      g.age_division)}
-    ${editRow("Home Team",       "editHome",        g.home_team)}
-    ${editRow("Away Team",       "editAway",        g.away_team)}
-    ${editRow("Location",        "editLocation",    g.location)}
-    ${editRow("Field",           "editField",       g.field)}
-    ${editRow("Home Colors",     "editHomeColors",  g.home_colors)}
-    ${editRow("Away Colors",     "editAwayColors",  g.away_colors)}
-    ${editRow("Ref 1",           "editRef1",        g.referee1)}
-    ${editRow("Ref 2",           "editRef2",        g.referee2)}
-    ${editRow("Ref 3",           "editRef3",        g.referee3)}
+  const modal = document.getElementById("editModal");
+  const body = document.getElementById("editModalBody");
 
-    ${editRow("Assigner Name",   "editAssignName",  g.assigner.name)}
-    ${editRow("Assigner Phone",  "editAssignPhone", g.assigner.phone)}
-    ${editRow("Assigner Email",  "editAssignEmail", g.assigner.email)}
+  if (!modal) {
+    console.error("[enterEditMode] Modal not found");
+    return;
+  }
+  if (!body) {
+    console.error("[enterEditMode] Modal body not found");
+    return;
+  }
 
-    ${editRow("Payer Name",      "editPayerName",   g.payer.name)}
-    ${editRow("Payer Phone",     "editPayerPhone",  g.payer.phone)}
-    ${editRow("Payer Email",     "editPayerEmail",  g.payer.email)}
+	const refereeInputs = g.referees.map((ref, i) => `
+	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Name`, `editRef${i}_name`, ref.name)}
+	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Email`, `editRef${i}_email`, ref.email, "email")}
+	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Phone`, `editRef${i}_phone`, ref.phone, "tel")}
+	`).join("");
+  console.log("[enterEditMode] Setting modal innerHTML...");
 
-    <div class="edit-row">
-      <label>Notes</label>
-      <textarea id="editNotes" class="macos-input" rows="3">${g.notes || ""}</textarea>
-    </div>
+  body.innerHTML = `
+    ${editGroup("League & Competition", `
+      ${editRow("League", "editLeague", g.league ?? "")}
+      ${editRow("Competition", "editCompetition", g.competition ?? "")}
+    `, "group-competition")}
+
+    ${editGroup("Match Info", `
+		${editRow("Game ID", "editGameId", g.id, "text", true, true)}
+		${editRow("Game #", "editGameNumber", g.game_number)}
+		${editRow("Date", "editDate", g.match_date, "date", false, true)}
+		${editRow("Time", "editTime", g.match_time, "time", false, true)}
+		${editRow("Age / Division", "editAgeDiv", g.age_division)}
+		${editRow("Location", "editLocation", g.location)}
+		${editRow("Field", "editField", g.field)}
+		`, "group-match")}
+
+	${editGroup("Teams", `
+	  ${editRow("Home Team", "editHome", g.home_team)}
+	  ${editRow("Home Coach", "editHomeCoach", g.home_coach?.name)}
+	  ${editRow("Home Coach Email", "editHomeCoachEmail", g.home_coach?.email, "email")}
+	  ${editRow("Home Coach Phone", "editHomeCoachPhone", g.home_coach?.phone, "tel")}
+	  ${editRow("Home Asst. Coach", "editHomeAsstCoach", g.home_asst_coach?.name)}
+	  ${editRow("Home Asst. Coach Email", "editHomeAsstCoachEmail", g.home_asst_coach?.email, "email")}
+	  ${editRow("Home Asst. Coach Phone", "editHomeAsstCoachPhone", g.home_asst_coach?.phone, "tel")}
+
+	  ${editRow("Away Team", "editAway", g.away_team)}
+	  ${editRow("Away Coach", "editAwayCoach", g.away_coach?.name)}
+	  ${editRow("Away Coach Email", "editAwayCoachEmail", g.away_coach?.email, "email")}
+	  ${editRow("Away Coach Phone", "editAwayCoachPhone", g.away_coach?.phone, "tel")}
+	  ${editRow("Away Asst. Coach", "editAwayAsstCoach", g.away_asst_coach?.name)}
+	  ${editRow("Away Asst. Coach Email", "editAwayAsstCoachEmail", g.away_asst_coach?.email, "email")}
+	  ${editRow("Away Asst. Coach Phone", "editAwayAsstCoachPhone", g.away_asst_coach?.phone, "tel")}
+
+	  ${editRow("Home Colors", "editHomeColors", g.home_colors)}
+	  ${editRow("Away Colors", "editAwayColors", g.away_colors)}
+	`, "group-teams")}
+
+    ${editGroup("Referee Crew", refereeInputs, "group-crew")}
+
+    ${editGroup("Officials", `
+      ${editRow("Assigner Name", "editAssignName", g.assigner.name ?? "")}
+      ${editRow("Assigner Phone", "editAssignPhone", g.assigner.phone ?? "")}
+      ${editRow("Assigner Email", "editAssignEmail", g.assigner.email ?? "")}
+      ${editRow("Payer Name", "editPayerName", g.payer.name ?? "")}
+      ${editRow("Payer Phone", "editPayerPhone", g.payer.phone ?? "")}
+      ${editRow("Payer Email", "editPayerEmail", g.payer.email ?? "")}
+    `, "group-officials")}
+
+    ${editGroup("Notes", `
+      ${editTextArea("Notes", "editNotes", g.notes ?? "")}
+    `, "group-notes")}
   `;
 
-	modal.style.display = "flex";
+  console.log("[enterEditMode] Showing modal");
+	modal.classList.remove("hidden");
+	modal.style.display = "flex"; // 👈 force visible
 
-	const saveBtn = $("#saveEditBtn");
-	const cancelBtn = $("#cancelEditBtn");
+  const saveBtn = document.getElementById("saveEditBtn");
+  const cancelBtn = document.getElementById("cancelEditBtn");
 
-	if (saveBtn) saveBtn.onclick = () => saveEditChanges(id);
-	if (cancelBtn) cancelBtn.onclick = () => {
-		modal.style.display = "none";
-	};
+if (saveBtn) {
+  saveBtn.onclick = () => {
+    saveEditChanges(id);
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+  };
+}
+
+if (cancelBtn) {
+  cancelBtn.onclick = () => {
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+  };
+}
 }
 
 function saveEditChanges(id) {
-	const g = games.find(x => x.id === id);
-	if (!g) return;
+  const g = window.GAME_LIST?.find(x => x.id === id);
+  if (!g) return;
 
-	if (typeof g.assigner !== "object" || !g.assigner) g.assigner = {
-		name: "",
-		phone: "",
-		email: ""
-	};
-	if (typeof g.payer !== "object" || !g.payer) g.payer = {
-		name: "",
-		phone: "",
-		email: ""
-	};
+  g.assigner ??= { name: "", phone: "", email: "" };
+  g.payer ??= { name: "", phone: "", email: "" };
 
-	g.game_number = $("#editGameNumber")?.value?.trim() || "";
-	g.match_date = $("#editDate")?.value?.trim() || "";
-	g.match_time = $("#editTime")?.value?.trim() || "";
-	g.age_division = $("#editAgeDiv")?.value?.trim() || "";
-	g.home_team = $("#editHome")?.value?.trim() || "";
-	g.away_team = $("#editAway")?.value?.trim() || "";
+  g.game_number = $("#editGameNumber")?.value?.trim() || "";
+  g.match_date = $("#editDate")?.value?.trim() || "";
+  g.match_time = $("#editTime")?.value?.trim() || "";
+  g.age_division = $("#editAgeDiv")?.value?.trim() || "";
 	g.location = $("#editLocation")?.value?.trim() || "";
 	g.field = $("#editField")?.value?.trim() || "";
-	g.home_colors = $("#editHomeColors")?.value?.trim() || "";
-	g.away_colors = $("#editAwayColors")?.value?.trim() || "";
-	g.referee1 = $("#editRef1")?.value?.trim() || "";
-	g.referee2 = $("#editRef2")?.value?.trim() || "";
-	g.referee3 = $("#editRef3")?.value?.trim() || "";
+	g.home_team = $("#editHome")?.value?.trim() || "";
+  g.away_team = $("#editAway")?.value?.trim() || "";
+  g.home_colors = $("#editHomeColors")?.value?.trim() || "";
+  g.away_colors = $("#editAwayColors")?.value?.trim() || "";
 
-	g.assigner.name = $("#editAssignName")?.value?.trim() || "";
-	g.assigner.phone = $("#editAssignPhone")?.value?.trim() || "";
-	g.assigner.email = $("#editAssignEmail")?.value?.trim() || "";
+	g.home_coach = {
+	  name: $("#editHomeCoach")?.value?.trim() || "",
+	  email: $("#editHomeCoachEmail")?.value?.trim() || "",
+	  phone: $("#editHomeCoachPhone")?.value?.trim() || ""
+	};
 
-	g.payer.name = $("#editPayerName")?.value?.trim() || "";
-	g.payer.phone = $("#editPayerPhone")?.value?.trim() || "";
-	g.payer.email = $("#editPayerEmail")?.value?.trim() || "";
+	g.away_coach = {
+	  name: $("#editAwayCoach")?.value?.trim() || "",
+	  email: $("#editAwayCoachEmail")?.value?.trim() || "",
+	  phone: $("#editAwayCoachPhone")?.value?.trim() || ""
+	};
+	g.home_asst_coach = {
+  name: $("#editHomeAsstCoach")?.value?.trim() || "",
+  email: $("#editHomeAsstCoachEmail")?.value?.trim() || "",
+  phone: $("#editHomeAsstCoachPhone")?.value?.trim() || ""
+};
 
-	g.notes = $("#editNotes")?.value?.trim() || "";
+g.away_asst_coach = {
+  name: $("#editAwayAsstCoach")?.value?.trim() || "",
+  email: $("#editAwayAsstCoachEmail")?.value?.trim() || "",
+  phone: $("#editAwayAsstCoachPhone")?.value?.trim() || ""
+};
+  g.assigner.name = $("#editAssignName")?.value?.trim() || "";
+  g.assigner.phone = $("#editAssignPhone")?.value?.trim() || "";
+  g.assigner.email = $("#editAssignEmail")?.value?.trim() || "";
 
-	renderCards()
-	updateSelectedCountUI
-	updateStatusLines()
-		();
-	updateSelectedCountUI();
-	updateStatusLines();
+  g.payer.name = $("#editPayerName")?.value?.trim() || "";
+  g.payer.phone = $("#editPayerPhone")?.value?.trim() || "";
+  g.payer.email = $("#editPayerEmail")?.value?.trim() || "";
 
-	const modal = $("#editModal");
-	if (modal) modal.style.display = "none";
+  g.league = $("#editLeague")?.value?.trim() || "";
+  g.competition = $("#editCompetition")?.value?.trim() || "";
+
+  g.notes = $("#editNotes")?.value?.trim() || "";
+
+  // Update referees (by index)
+  g.referees = g.referees.map((ref, i) => ({
+    ...ref,
+    name: $(`#editRef${i}_name`)?.value?.trim() || "",
+    email: $(`#editRef${i}_email`)?.value?.trim() || "",
+    phone: $(`#editRef${i}_phone`)?.value?.trim() || ""
+  }));
+
+  renderCards();
+  updateSelectedCountUI?.();
+  updateStatusLines?.();
+
+  hideModal("editModal");
 }
 
 window.enterEditMode = enterEditMode;
 window.saveEditChanges = saveEditChanges;
-
-
 
 	/* ============================================================
 	   Template Carousel + PDF helpers (kept from your version)

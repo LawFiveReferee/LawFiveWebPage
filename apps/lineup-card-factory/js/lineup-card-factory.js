@@ -530,7 +530,7 @@ function enterEditMode(team, game) {
 	   SHOW MODAL
 	========================= */
 	modal.classList.remove("hidden");
-
+	modal.style.display = "flex";
 	/* =========================
 	   SAVE HANDLER
 	========================= */
@@ -1106,11 +1106,15 @@ window.initUI = function initUI() {
 		  raw,
 		  window.selectedParserKey || "generic"
 		);
+		const parsedGames = result.games || [];
+		const selectedParserKey = window.selectedParserKey || "unknown";
+		const normalizedGames = parsedGames.map(g =>
+		  normalizeParsedGame(g, selectedParserKey)
+		);
+				if (errors?.length) console.warn("Parse errors:", errors);
 
-		if (errors?.length) console.warn("Parse errors:", errors);
-
-		// You can optionally do auto-selection logic here if needed:
-		window.GAME_LIST = games;
+				// You can optionally do auto-selection logic here if needed:
+		window.GAME_LIST = normalizedGames;
 
 	  if (!Array.isArray(games) || games.length === 0) {
 		return;

@@ -268,3 +268,16 @@ export function refreshScheduleDropdown() {
 
   dropdown.disabled = false;
 }
+function showModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return console.warn(`[showModal] "${id}" not found`);
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
+}
+
+function hideModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.style.display = "none";
+}
