@@ -4,7 +4,7 @@ let selectedTemplateIndex = 0;
 // ─── PDF Template Validation ──────────────────────────────
 // validatePdfTemplate()
 
-export async function validatePdfTemplate(pdfUrl) {
+ async function validatePdfTemplate(pdfUrl) {
   const result = {
     fields: [],
     hasIllegalNames: false,
@@ -200,7 +200,7 @@ function buildFieldValuesFromGame(g) {
 		};
 	}
 
-// fillTemplatePdfForGame()
+// fill TemplatePdfForGame()
 async function fillTemplatePdfForGame(templateBytes, tpl, g) {
 	const srcDoc = await PDFLib.PDFDocument.load(templateBytes);
 	const form = srcDoc.getForm();
@@ -227,7 +227,7 @@ async function fillTemplatePdfForGame(templateBytes, tpl, g) {
 	return await srcDoc.save();
 }
 
-// generateSinglePdf()
+// generate SinglePdf()
 async function generateSinglePdf(g) {
 	if (!g) return;
 
@@ -245,7 +245,7 @@ async function generateSinglePdf(g) {
 	}), `Game-${g.game_number || "Match"}.pdf`);
 }
 
-// generateSinglePdfById()
+// generate SinglePdfById()
 async function generateSinglePdfById(gameId) {
 	const status = $("#generateStatus");
 	if (status) status.textContent = "Generating single-game PDF…";
@@ -263,9 +263,8 @@ async function generateSinglePdfById(gameId) {
 		if (status) status.textContent = "Error generating single-game PDF.";
 	}
 }
-window.generateSinglePdfById = generateSinglePdfById;
 
-// generateCombinedPdf()
+// generate CombinedPdf()
 async function generateCombinedPdf() {
 		const selected = games.filter(g => g.selected);
 		if (!selected.length) {
@@ -346,11 +345,11 @@ async function generateCombinedPdf() {
 			pdfProgressHide();
 		}
 	}
-window.generateCombinedPdf = generateCombinedPdf;
 
-// generateIndividualPdfs()
+// generate IndividualPdfs()
 async function generateIndividualPdfs() {
 	const selected = games.filter(g => g.selected);
+
 	if (!selected.length) {
 		alert("No games selected.");
 		return;
@@ -421,13 +420,12 @@ async function generateIndividualPdfs() {
 		pdfProgressHide();
 	}
 }
-window.generateIndividualPdfs = generateIndividualPdfs;
 
 // ─── PDF Generation UI Helpers ────────────────────────────
 	/* ============================================================
 	   PDF Progress UI helpers
 	============================================================ */
-// getPdfProgressEls()
+// get PdfProgressEls()
 function getPdfProgressEls() {
 	return {
 		wrap: document.getElementById("pdfProgressWrap"),
@@ -439,7 +437,7 @@ function getPdfProgressEls() {
 	};
 }
 
-// pdfProgressShow()
+// pdf ProgressShow()
 function pdfProgressShow(total, message) {
 	const els = getPdfProgressEls();
 	if (!els.wrap) return;
@@ -464,7 +462,7 @@ function pdfProgressShow(total, message) {
 	if (els.count) els.count.textContent = `0 / ${total}`;
 }
 
-// pdfProgressUpdate()
+// pdf ProgressUpdate()
 function pdfProgressUpdate(done, total, message) {
 	const els = getPdfProgressEls();
 	if (!els.wrap) return;
@@ -485,7 +483,7 @@ function pdfProgressUpdate(done, total, message) {
 	}
 }
 
-// pdfProgressHide()
+// pdf ProgressHide()
 function pdfProgressHide() {
 	const els = getPdfProgressEls();
 	if (!els.wrap) return;
@@ -493,7 +491,7 @@ function pdfProgressHide() {
 	els.wrap.classList.add("hidden");
 }
 
-// initPdfButtons()
+// init PdfButtons()
 	function initPdfButtons() {
 		const combinedBtn = $("#generateCombinedBtn");
 		const indivBtn = $("#generateIndividualBtn");
@@ -518,16 +516,15 @@ function pdfProgressHide() {
 			});
 		}
 	}
-	window.initPdfButtons = initPdfButtons;
 
 
 // Make sure PDFLib is already loaded globally (via script or import)
-
+window.generateSinglePdfById = generateSinglePdfById;
 export {
-  validatePdfTemplate,
   loadTemplates,
-  refreshTemplateCarousel,
   initCarouselControls,
+  validatePdfTemplate,
+  refreshTemplateCarousel,
   buildFieldValuesFromGame,
   fillTemplatePdfForGame,
   generateSinglePdf,

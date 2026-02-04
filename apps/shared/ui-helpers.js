@@ -43,8 +43,7 @@ document.body.addEventListener("click", (e) => {
     const gameId = pdfBtn.dataset.gameid;
     if (gameId) {
       console.log("[PDFButton] Clicked for:", gameId);
-      // call your existing PDF logic here
-      // e.g., generatePdfForGame(gameId);
+      generateSinglePdfById(gameId);
     }
   }
 });

@@ -24,6 +24,10 @@ function waitForElement(selector, timeout = 1000) {
     }, timeout);
   });
 }
+// Early in your main app.js or shared script
+window.games = games; // wherever `games` is defined
+window.$ = (sel) => document.querySelector(sel);
+
 /* ================================
    1. Load Shared Core Modules
 ================================== */
@@ -59,6 +63,10 @@ import  "../../shared/game-normalizer.js";
 
 import { updateSelectedCountUI } from "../../shared/ui-helpers.js";
 window.updateSelectedCountUI = updateSelectedCountUI;
+
+import "../../shared/pdf-utils.js";
+console.log("✅ pdf-utils loaded");
+
 /* ================================
    2. Factory-specific Modules
 ================================== */

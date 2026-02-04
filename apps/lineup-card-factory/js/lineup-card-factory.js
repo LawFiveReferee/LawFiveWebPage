@@ -194,6 +194,7 @@ function applyFilter() {
 
 function updateStatusLines() {
 	const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+	window.games = games; // ✅ expose globally
 	const total = games.length;
 	const selectedGames = games.filter(g => g.selectedInPreview).length;
 

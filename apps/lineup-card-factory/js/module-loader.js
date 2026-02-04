@@ -26,12 +26,17 @@ function waitForElement(selector, timeout = 1000) {
 /* ================================
    Shared Modules (must load first)
 ================================== */
+window.games = games; // wherever `games` is defined
+window.$ = (sel) => document.querySelector(sel);
+import "../../shared/pdf-utils.js";
+console.log("✅ pdf-utils loaded");
 
 /* ================================
    Shared Parsers
 ================================== */
 import "../../shared/parser-arbiter-game-details.js";
 console.log("✅ parser-arbiter-game-details loaded");
+
 
 import "../../shared/parser-arbiter-plain-text.js";
 console.log("✅ parser-arbiter-plain-text.js loaded");

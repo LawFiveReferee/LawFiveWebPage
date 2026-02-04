@@ -9,6 +9,10 @@
 
 console.log("App.js loaded");
 
+	import { loadTemplates,
+		initCarouselControls,
+		refreshTemplateCarousel,
+		initPdfButtons } from "../../shared/pdf-utils.js";
 
 
 /* ============================================================
@@ -23,7 +27,8 @@ window.selectedParserKey = null;
 
 // Unified current game list for views & bulk edit UI
 window.GAME_LIST = [];
-
+const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+window.games = games;
 // Templates (if used elsewhere)
 window.selectedTemplateIndex = 0;
 window.TEMPLATE_LIST = [];
@@ -270,6 +275,7 @@ window.initParserCarouselControls = initParserCarouselControls;
 ============================================================ */
 function updateStatusLines() {
 	const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+	window.games = games; // ✅ now globally available to all modules
 	const total = games.length;
 	const selected = games.filter(g => g.selected).length;
 
@@ -722,21 +728,6 @@ g.away_asst_coach = {
 window.enterEditMode = enterEditMode;
 window.saveEditChanges = saveEditChanges;
 
-	/* ============================================================
-	   Template Carousel + PDF helpers (kept from your version)
-	============================================================ */
-
-
-
-	/* ============================================================
-	   PDF generation (your existing functions rely on PDFLib, JSZip, saveAs)
-	   Kept function names you already call: generateSinglePdfById, generateCombinedPdf, generateIndividualPdfs
-	============================================================ */
-
-
-
-
-
 
 	function tickUI() {
 		// let the browser paint (important for long loops)
@@ -768,12 +759,14 @@ window.saveEditChanges = saveEditChanges;
 			alert("Your mapping was applied, but none of the rows contained valid data (Home + Away teams).");
 		}
 	};
+/*============================================================ */
 
 /* ============================================================
    BOOT — called by module-loader.js after DOM ready
 ============================================================ */
 async function bootGameCardFactory() {
-  try {
+  	console.log("📦 DOM ready — booting Game Card Factory");
+try {
     // Parser dropdown
     if (typeof populateParserSelect === "function") {
       populateParserSelect();
@@ -821,7 +814,6 @@ window.bootGameCardFactory = bootGameCardFactory;
 
 /* ============================================================
    DOMContentLoaded — initialize after DOM ready
-============================================================ */
 
  /* ============================================================
    DOM READY — SINGLE ENTRY POINT
