@@ -1,0 +1,178 @@
+/* ============================================================
+   Layout Containers
+============================================================ */
+#cardsContainer,
+#previewCardContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   Game Card Style
+============================================================ */
+.game-card {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 1rem;
+  flex: 1 1 calc(33% - 1rem);
+  min-width: 280px;
+  box-sizing: border-box;
+  color: #222;
+}
+
+/* ============================================================
+   Modal Base
+============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+.modal-backdrop.show {
+  display: flex;
+}
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   Modal Buttons
+============================================================ */
+.modal-buttons {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ============================================================
+   Buttons
+============================================================ */
+.btn {
+  background-color: #0366d6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn.secondary {
+  background: #ccc;
+  color: #222;
+}
+.btn.small {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+
+/* ============================================================
+   Field & Label Layout
+============================================================ */
+.field-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.field-wrapper label {
+  flex: 0 0 140px;
+  font-weight: 500;
+  color: #222;
+}
+.field-wrapper input,
+.field-wrapper select,
+.field-wrapper textarea {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: white;
+}
+
+
+/* ============================================================
+   Group Labels
+============================================================ */
+.group-label {
+  background: #f3f3f3;
+  color: #222;
+  font-weight: bold;
+  padding: 6px 10px;
+  margin: 10px 0 4px;
+  display: block;
+  border-left: 4px solid #2b7bff;
+}
+
+/* ============================================================
+   Hide/Show Empty Fields
+============================================================ */
+.empty-field {
+  display: none;
+}
+.show-all-fields .empty-field {
+  display: flex;
+}
+
+/* By default, hide empty fields */
+.field-wrapper.empty-field {
+  display: none;
+}
+
+/* When show-all-fields is active, show all fields */
+.modal-content.show-all-fields .field-wrapper.empty-field {
+  display: flex;
+}
+.nested-field {
+  margin-left: 1.5rem;
+  margin-top: 0.25rem;
+}
+/* Block spacing between refs / officials */
+.ref-block {
+  margin-bottom: 1rem;
+}
+
+/* Nested rows */
+.field-wrapper.nested {
+  margin-left: 140px; /* SAME as label width */
+}
+
+/* Ensure consistent label width */
+.field-wrapper label {
+  width: 140px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+/* ============================================================
+   Card Actions
+============================================================ */
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+/* ============================================================
+   Text / Typography
+============================================================ */
+label {
+  font-weight: 600;
+}

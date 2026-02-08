@@ -268,6 +268,7 @@ export function refreshScheduleDropdown() {
 
   dropdown.disabled = false;
 }
+
 function showModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return console.warn(`[showModal] "${id}" not found`);

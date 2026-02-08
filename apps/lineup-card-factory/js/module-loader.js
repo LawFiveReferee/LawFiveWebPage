@@ -31,6 +31,15 @@ window.$ = (sel) => document.querySelector(sel);
 import "../../shared/pdf-utils.js";
 console.log("✅ pdf-utils loaded");
 
+
+import "../../shared/schedule-store-v2.js";
+console.log("✅ shared/schedule-store-v2.js loaded");
+
+import "../../shared/schedule-ui-v2.js";
+console.log("✅ shared/schedule-ui-v2.js loaded");
+
+
+
 /* ================================
    Shared Parsers
 ================================== */
@@ -49,18 +58,7 @@ console.log("✅ shared/constants.js loaded");
 import "../../shared/schedule-parser.js";
 console.log("✅ shared/schedule-parser.js loaded");
 
-import "../../shared/schedule-store-v2.js";
-console.log("✅ shared/schedule-store-v2.js loaded");
-
 if (typeof populateParserSelect === "function") populateParserSelect();
-if (typeof initSharedScheduleUIv2 === "function") initSharedScheduleUIv2();
-
-import "../../shared/schedule-ui-v2.js";
-console.log("✅ shared/schedule-ui-v2.js loaded");
-
-// Legacy schedule import (if still used for compatibility)
-import "../../shared/schedule-import.js";
-console.log("✅ shared/schedule-import.js loaded");
 
 // Shared team store, parser store, etc.
 import "../../shared/team-store.js";
@@ -107,6 +105,9 @@ import { refreshScheduleDropdown } from "../../shared/utils.js";
 //import "./parser-generic-mapper.js";
 //console.log("✅ parser-generic-mapper.js loaded");
 
+import "../../shared/team-store.js"
+console.log("✅ team-store.js loaded");
+
 // UI modules
 import "./mapping-ui.js";
 console.log("✅ mapping-ui.js loaded");
@@ -132,10 +133,6 @@ function initializeUI() {
     populateParserSelect();
   }
 
-  // Initialize shared schedule UI (v2)
-  if (typeof initSharedScheduleUIv2 === "function") {
-    initSharedScheduleUIv2();
-  }
 
   // Refresh any legacy import carousels
   if (typeof refreshImportCarousel === "function") {

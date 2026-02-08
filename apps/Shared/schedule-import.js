@@ -1,5 +1,4 @@
-/**schedule-import.js
- * Schedule Import Helper (ES5-compatible)
+ /* Schedule Import Helper (ES5-compatible)
  * Handles parsing a raw schedule string using a selected parser
  */
 
@@ -109,7 +108,6 @@ function exportGameToPDF(gameId) {
   // TODO — hook into your existing PDF system
 }
 
-// schedule-import.js
 
 function parseAndImport(rawText, parserKey = "generic") {
   if (!rawText) {
@@ -150,10 +148,7 @@ function parseAndImport(rawText, parserKey = "generic") {
   return games;
 }
 
-// expose globally for both apps
-window.ScheduleImport = {
-  parseAndImport
-};
+
 
 export function setupScheduleParser({ parseBtnId, rawInputId }) {
   const parseBtn = document.getElementById(parseBtnId);
@@ -212,35 +207,4 @@ export function setupScheduleParser({ parseBtnId, rawInputId }) {
 }
   });
 }
-document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-  const sel = document.getElementById("scheduleSelect");
-  const name = sel?.value;
-  if (!name) return alert("Select a saved schedule first.");
-
- const schedule = ScheduleStoreV2.getScheduleByName(name);
-if (!schedule) return alert("Schedule not found.");
-
-document.getElementById("rawInput").value = schedule.rawText;
-
-// Normalize parsed games
-const parsedGames = schedule.parsedGames || [];
-const selectedParserKey = schedule.parserKey || "unknown";
-const normalizedGames = parsedGames.map(g =>
-  normalizeParsedGame(g, selectedParserKey)
-);
-window.GAME_LIST = normalizedGames;
-
-  // Update display area
-  document.getElementById("currentScheduleDisplay").value =
-    JSON.stringify(window.GAME_LIST, null, 2);
-
-  // Keep parser dropdown in sync
-  if (schedule.parserKey) {
-    localStorage.setItem("selectedScheduleParserKey", schedule.parserKey);
-    document.getElementById("parserSelect").value = schedule.parserKey;
-  }
-
-  renderCards?.();
-  updateStatusLines?.();
-});
 

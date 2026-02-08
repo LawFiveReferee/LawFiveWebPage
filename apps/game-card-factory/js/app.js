@@ -34,6 +34,14 @@ window.selectedTemplateIndex = 0;
 window.TEMPLATE_LIST = [];
 
 
+import {
+  generalFields,
+  teamFields,
+  refereeFields,
+  officialFields,
+  selectedTeamFields,
+  matchResultFields
+} from "../../shared/field-groups.js";
 
 /* ============================================================
    Collapsibles (expand/collapse panels)
@@ -311,8 +319,6 @@ function updateStatusLines() {
 		selected
 	});
 }
-
-
 window.updateStatusLines = updateStatusLines;
 
 function updateGameCountUI() {
@@ -363,6 +369,9 @@ function renderCards() {
   if (!container) return;
 
   container.innerHTML = "";
+  container.style.display = "flex";
+  container.style.flexWrap = "wrap";
+  container.style.gap = "1rem";
 
   if (!games.length) {
     container.innerHTML = "<p>No games to display.</p>";
@@ -396,21 +405,18 @@ function renderCards() {
       ${renderField("Game ID", g.id)}
       ${renderField("Game #", g.game_number)}
 
-      <hr>
-      <strong>League & Competition</strong>
+      <hr><strong>League & Competition</strong>
       ${renderField("League", g.league)}
       ${renderField("Competition", g.competition)}
 
-      <hr>
-      <strong>Match Info</strong>
+      <hr><strong>Match Info</strong>
       ${renderField("Date", g.match_date, true)}
       ${renderField("Time", g.match_time, true)}
       ${renderField("Age / Division", g.age_division)}
       ${renderField("Location", g.location)}
       ${renderField("Field", g.field)}
 
-      <hr>
-      <strong>Teams</strong>
+      <hr><strong>Teams</strong>
       ${renderField("Home Team", g.home_team)}
       ${renderField("Away Team", g.away_team)}
       ${renderField("Home Colors", g.home_colors)}
@@ -418,22 +424,15 @@ function renderCards() {
       ${renderField("Home Coach", g.home_coach?.name)}
       ${renderField("Away Coach", g.away_coach?.name)}
 
-      <hr>
-      <strong>Referee Crew</strong>
+      <hr><strong>Referee Crew</strong>
       ${renderRefereeBlock(g.referees)}
 
-      <hr>
-      <strong>Officials</strong>
+      <hr><strong>Officials</strong>
       ${renderField("Assigner", g.assigner?.name)}
-      ${renderField("Assigner Email", g.assigner?.email)}
-      ${renderField("Assigner Phone", g.assigner?.phone)}
       ${renderField("Payer", g.payer?.name)}
-      ${renderField("Payer Email", g.payer?.email)}
-      ${renderField("Payer Phone", g.payer?.phone)}
 
       ${g.notes?.trim() ? `
-        <hr>
-        <strong>Notes</strong>
+        <hr><strong>Notes</strong>
         <p>${g.notes}</p>
       ` : ""}
 
@@ -448,10 +447,11 @@ function renderCards() {
 }
 window.renderCards = renderCards;
 
+import { enterEditMode } from "../../shared/ui-helpers.js";
+
 /* ============================================================
    Edit Modal
 ============================================================ */
-
 function toggleEmptyFields(groupId) {
   const group = document.getElementById(groupId);
   if (!group) return;
@@ -547,189 +547,7 @@ function editGroup(title, rowsHtml, groupId) {
     </div>
   `;
 }
-
-function enterEditMode(id) {
-  console.log("[enterEditMode] Called with:", id);
-
-  const g = window.GAME_LIST?.find(x => x.id === id);
-  if (!g) {
-    console.warn("[enterEditMode] No game found for ID:", id);
-    return;
-  }
-  console.log("[enterEditMode] Found game object:", g);
-
-  g.assigner ??= { name: "", phone: "", email: "" };
-  g.payer ??= { name: "", phone: "", email: "" };
-  g.referees ??= [];
-
-  const modal = document.getElementById("editModal");
-  const body = document.getElementById("editModalBody");
-
-  if (!modal) {
-    console.error("[enterEditMode] Modal not found");
-    return;
-  }
-  if (!body) {
-    console.error("[enterEditMode] Modal body not found");
-    return;
-  }
-
-	const refereeInputs = g.referees.map((ref, i) => `
-	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Name`, `editRef${i}_name`, ref.name)}
-	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Email`, `editRef${i}_email`, ref.email, "email")}
-	  ${editRow(`${ref.role || `Referee ${i + 1}`} — Phone`, `editRef${i}_phone`, ref.phone, "tel")}
-	`).join("");
-  console.log("[enterEditMode] Setting modal innerHTML...");
-
-  body.innerHTML = `
-    ${editGroup("League & Competition", `
-      ${editRow("League", "editLeague", g.league ?? "")}
-      ${editRow("Competition", "editCompetition", g.competition ?? "")}
-    `, "group-competition")}
-
-    ${editGroup("Match Info", `
-		${editRow("Game ID", "editGameId", g.id, "text", true, true)}
-		${editRow("Game #", "editGameNumber", g.game_number)}
-		${editRow("Date", "editDate", g.match_date, "date", false, true)}
-		${editRow("Time", "editTime", g.match_time, "time", false, true)}
-		${editRow("Age / Division", "editAgeDiv", g.age_division)}
-		${editRow("Location", "editLocation", g.location)}
-		${editRow("Field", "editField", g.field)}
-		`, "group-match")}
-
-	${editGroup("Teams", `
-	  ${editRow("Home Team", "editHome", g.home_team)}
-	  ${editRow("Home Coach", "editHomeCoach", g.home_coach?.name)}
-	  ${editRow("Home Coach Email", "editHomeCoachEmail", g.home_coach?.email, "email")}
-	  ${editRow("Home Coach Phone", "editHomeCoachPhone", g.home_coach?.phone, "tel")}
-	  ${editRow("Home Asst. Coach", "editHomeAsstCoach", g.home_asst_coach?.name)}
-	  ${editRow("Home Asst. Coach Email", "editHomeAsstCoachEmail", g.home_asst_coach?.email, "email")}
-	  ${editRow("Home Asst. Coach Phone", "editHomeAsstCoachPhone", g.home_asst_coach?.phone, "tel")}
-
-	  ${editRow("Away Team", "editAway", g.away_team)}
-	  ${editRow("Away Coach", "editAwayCoach", g.away_coach?.name)}
-	  ${editRow("Away Coach Email", "editAwayCoachEmail", g.away_coach?.email, "email")}
-	  ${editRow("Away Coach Phone", "editAwayCoachPhone", g.away_coach?.phone, "tel")}
-	  ${editRow("Away Asst. Coach", "editAwayAsstCoach", g.away_asst_coach?.name)}
-	  ${editRow("Away Asst. Coach Email", "editAwayAsstCoachEmail", g.away_asst_coach?.email, "email")}
-	  ${editRow("Away Asst. Coach Phone", "editAwayAsstCoachPhone", g.away_asst_coach?.phone, "tel")}
-
-	  ${editRow("Home Colors", "editHomeColors", g.home_colors)}
-	  ${editRow("Away Colors", "editAwayColors", g.away_colors)}
-	`, "group-teams")}
-
-    ${editGroup("Referee Crew", refereeInputs, "group-crew")}
-
-    ${editGroup("Officials", `
-      ${editRow("Assigner Name", "editAssignName", g.assigner.name ?? "")}
-      ${editRow("Assigner Phone", "editAssignPhone", g.assigner.phone ?? "")}
-      ${editRow("Assigner Email", "editAssignEmail", g.assigner.email ?? "")}
-      ${editRow("Payer Name", "editPayerName", g.payer.name ?? "")}
-      ${editRow("Payer Phone", "editPayerPhone", g.payer.phone ?? "")}
-      ${editRow("Payer Email", "editPayerEmail", g.payer.email ?? "")}
-    `, "group-officials")}
-
-    ${editGroup("Notes", `
-      ${editTextArea("Notes", "editNotes", g.notes ?? "")}
-    `, "group-notes")}
-  `;
-
-  console.log("[enterEditMode] Showing modal");
-	modal.classList.remove("hidden");
-	modal.style.display = "flex"; // 👈 force visible
-
-  const saveBtn = document.getElementById("saveEditBtn");
-  const cancelBtn = document.getElementById("cancelEditBtn");
-
-if (saveBtn) {
-  saveBtn.onclick = () => {
-    saveEditChanges(id);
-    modal.classList.add("hidden");
-    modal.style.display = "none";
-  };
-}
-
-if (cancelBtn) {
-  cancelBtn.onclick = () => {
-    modal.classList.add("hidden");
-    modal.style.display = "none";
-  };
-}
-}
-
-function saveEditChanges(id) {
-  const g = window.GAME_LIST?.find(x => x.id === id);
-  if (!g) return;
-
-  g.assigner ??= { name: "", phone: "", email: "" };
-  g.payer ??= { name: "", phone: "", email: "" };
-
-  g.game_number = $("#editGameNumber")?.value?.trim() || "";
-  g.match_date = $("#editDate")?.value?.trim() || "";
-  g.match_time = $("#editTime")?.value?.trim() || "";
-  g.age_division = $("#editAgeDiv")?.value?.trim() || "";
-	g.location = $("#editLocation")?.value?.trim() || "";
-	g.field = $("#editField")?.value?.trim() || "";
-	g.home_team = $("#editHome")?.value?.trim() || "";
-  g.away_team = $("#editAway")?.value?.trim() || "";
-  g.home_colors = $("#editHomeColors")?.value?.trim() || "";
-  g.away_colors = $("#editAwayColors")?.value?.trim() || "";
-
-	g.home_coach = {
-	  name: $("#editHomeCoach")?.value?.trim() || "",
-	  email: $("#editHomeCoachEmail")?.value?.trim() || "",
-	  phone: $("#editHomeCoachPhone")?.value?.trim() || ""
-	};
-
-	g.away_coach = {
-	  name: $("#editAwayCoach")?.value?.trim() || "",
-	  email: $("#editAwayCoachEmail")?.value?.trim() || "",
-	  phone: $("#editAwayCoachPhone")?.value?.trim() || ""
-	};
-	g.home_asst_coach = {
-  name: $("#editHomeAsstCoach")?.value?.trim() || "",
-  email: $("#editHomeAsstCoachEmail")?.value?.trim() || "",
-  phone: $("#editHomeAsstCoachPhone")?.value?.trim() || ""
-};
-
-g.away_asst_coach = {
-  name: $("#editAwayAsstCoach")?.value?.trim() || "",
-  email: $("#editAwayAsstCoachEmail")?.value?.trim() || "",
-  phone: $("#editAwayAsstCoachPhone")?.value?.trim() || ""
-};
-  g.assigner.name = $("#editAssignName")?.value?.trim() || "";
-  g.assigner.phone = $("#editAssignPhone")?.value?.trim() || "";
-  g.assigner.email = $("#editAssignEmail")?.value?.trim() || "";
-
-  g.payer.name = $("#editPayerName")?.value?.trim() || "";
-  g.payer.phone = $("#editPayerPhone")?.value?.trim() || "";
-  g.payer.email = $("#editPayerEmail")?.value?.trim() || "";
-
-  g.league = $("#editLeague")?.value?.trim() || "";
-  g.competition = $("#editCompetition")?.value?.trim() || "";
-
-  g.notes = $("#editNotes")?.value?.trim() || "";
-
-  // Update referees (by index)
-  g.referees = g.referees.map((ref, i) => ({
-    ...ref,
-    name: $(`#editRef${i}_name`)?.value?.trim() || "",
-    email: $(`#editRef${i}_email`)?.value?.trim() || "",
-    phone: $(`#editRef${i}_phone`)?.value?.trim() || ""
-  }));
-
-  renderCards();
-  updateSelectedCountUI?.();
-  updateStatusLines?.();
-
-  hideModal("editModal");
-}
-
-window.enterEditMode = enterEditMode;
-window.saveEditChanges = saveEditChanges;
-
-
-	function tickUI() {
+ 	function tickUI() {
 		// let the browser paint (important for long loops)
 		return new Promise(resolve => setTimeout(resolve, 0));
 	}
@@ -759,7 +577,105 @@ window.saveEditChanges = saveEditChanges;
 			alert("Your mapping was applied, but none of the rows contained valid data (Home + Away teams).");
 		}
 	};
+
 /*============================================================ */
+/*Game card factory edit details*/
+/*============================================================ */
+import {
+  buildFieldEditor,
+  getValue,
+  prettifyFieldLabel
+} from "../../shared/ui-helpers.js";
+
+//import { generalFields, teamFields, refereeFields, officialFields } from "../../shared/field-groups.js";
+// Get value safely from nested object using dot path (e.g. "home_coach.name")
+
+
+ function buildRefereeEditor(game) {
+  const crew = game.referees ?? [];
+  return crew.map((ref, i) => {
+    const name = ref.name || "";
+    const email = ref.email || "";
+    const phone = ref.phone || "";
+
+    const nameEmpty = name.trim() === "";
+    const emailEmpty = email.trim() === "";
+    const phoneEmpty = phone.trim() === "";
+
+    return `
+      <div class="field-wrapper ${nameEmpty ? "empty-field" : ""}" data-ref-index="${i}" data-ref-field="name">
+        <label>Referee ${i + 1} (${ref.role || "Unknown"})</label>
+        <input type="text" value="${name}" data-ref-index="${i}" data-ref-field="name" />
+      </div>
+      <div class="field-wrapper nested ${emailEmpty ? "empty-field" : ""}">
+        <label>Email</label>
+        <input type="email" value="${email}" data-ref-index="${i}" data-ref-field="email" />
+      </div>
+      <div class="field-wrapper nested ${phoneEmpty ? "empty-field" : ""}">
+        <label>Phone</label>
+        <input type="text" value="${phone}" data-ref-index="${i}" data-ref-field="phone" />
+      </div>
+    `;
+  }).join("");
+}
+function buildMatchOfficialsEditor(game) {
+  const roles = [
+    { key: "assigner", label: "Assigner" },
+    { key: "payer", label: "Payer" }
+  ];
+
+  return roles.map(({ key, label }) => {
+    const obj = game[key] || {};
+    const name = obj.name || "";
+    const email = obj.email || "";
+    const phone = obj.phone || "";
+
+    const nameEmpty = name.trim() === "";
+    const emailEmpty = email.trim() === "";
+    const phoneEmpty = phone.trim() === "";
+
+    return `
+      <div class="field-wrapper ${nameEmpty ? "empty-field" : ""}">
+        <label>${label} Name</label>
+        <input type="text" value="${name}" data-field="${key}.name" />
+      </div>
+      <div class="field-wrapper nested ${emailEmpty ? "empty-field" : ""}">
+        <label>Email</label>
+        <input type="email" value="${email}" data-field="${key}.email" />
+      </div>
+      <div class="field-wrapper nested ${phoneEmpty ? "empty-field" : ""}">
+        <label>Phone</label>
+        <input type="text" value="${phone}" data-field="${key}.phone" />
+      </div>
+    `;
+  }).join("");
+}
+
+// Generate a single editable field row
+
+function buildEditModalContent(game) {
+  return `
+    <h3>Edit Game</h3>
+
+    ${buildFieldEditor(game, generalFields)}
+
+    <div class="group-label">Home Team</div>
+    ${buildFieldEditor(game, teamFields.home)}
+
+    <div class="group-label">Away Team</div>
+    ${buildFieldEditor(game, teamFields.away)}
+
+ //  <div class="group-label">Referees</div>
+ //   ${buildFieldEditor(game, refereeFields)}
+
+	<div class="group-label">Referee Crew</div>
+	${buildRefereeEditor(game)}
+
+	<div class="group-label">Match Officials</div>
+	${buildMatchOfficialsEditor(game)}
+  `;
+}
+window.buildEditModalContent = buildEditModalContent;
 
 /* ============================================================
    BOOT — called by module-loader.js after DOM ready

@@ -408,92 +408,6 @@ button:hover {
    Cards Layout (B-2: responsive grid auto-fit)
 ============================================================ */
 
-/* Scrollable container with grid layout */
-
-#cardsContainer {
-  max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
-  gap: 1rem !important;
-  padding: 0.5rem 0;
-}
-
-/* Game card core style */
-
-.game-card {
-  background: white;
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-  font-size: 1.05rem;
-  color: #222;
-  width: 100% !important;
-  max-width: 300px !important;
-  margin: 0 auto;
-  box-sizing: border-box !important;
-
-  /* align left edge for checkbox + text */
-  padding-left: 12px;
-}
-
-/* Card header row: checkbox above, game text below */
-
-.card-header-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  margin-bottom: 8px;
-}
-
-.card-header-row .select-box {
-  margin: 0;
-  padding: 0;
-}
-
-/* spacing ABOVE "Game ####" */
-.card-header-row h3 {
-  margin: 0;
-  margin-top: 16px;
-  color: var(--green);
-}
-
-/* Checkbox visual style (card-level) */
-
-.select-box {
-  width: 22px;
-  height: 22px;
-  transform: scale(1.25);
-  cursor: pointer;
-}
-
-/* Older inline placement helper (if used in other rows) */
-.card-select-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-  height: 28px;
-}
-
-/* Card content */
-
-.game-card label {
-  font-weight: 600;
-  color: #333;
-}
-
-.card-row {
-  margin-bottom: 0.35rem;
-}
-
-.card-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.75rem;
-}
-
 /* Edit mode */
 
 .edit-mode {
@@ -519,19 +433,7 @@ button:hover {
   margin-top: 0.75rem;
 }
 
-/* Responsive tweaks */
 
-@media (max-width: 1100px) {
-  #cardsContainer {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-  }
-}
-
-@media (max-width: 650px) {
-  #cardsContainer {
-    grid-template-columns: 1fr !important;
-  }
-}
 
 /* ============================================================
    Filter Rules Panel
@@ -995,30 +897,6 @@ footer {
 .history-delete-btn:hover {
   background: #c9302c;
 }
-
-/* ===== Modal Overlay ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-/* ===== Modal Window ===== */
-.modal-window {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px 30px;
-  width: 420px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-  color: #111;
-}
-
 /* ===== History Item Row ===== */
 .history-item {
   display: flex;
@@ -1096,36 +974,6 @@ footer {
 
 #section-6 .invisible-label {
   opacity: 0;
-}
-/* EDIT MODAL — Modern macOS Style */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.modal-window.edit-window {
-  background: #fff;
-  border-radius: 14px;
-  padding: 24px 28px;
-  width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
-  animation: slideDown 0.18s ease-out;
-}
-
-.modal-title {
-  margin-top: 0;
-  margin-bottom: 18px;
-  font-size: 20px;
-  font-weight: 600;
-  text-align: center;
 }
 
 .edit-grid {
@@ -1484,39 +1332,7 @@ footer {
 #scheduleSelect {
   flex: 1;
 }
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
 
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: white;
-  padding: 2em;
-  border-radius: 6px;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 0 12px rgba(0,0,0,0.3);
-  text-align: center;
-}
-
-.modal-buttons {
-  margin-top: 1em;
-  display: flex;
-  justify-content: center;
-  gap: 1em;
-}
 
 .error-text {
   color: red;
@@ -1626,34 +1442,6 @@ footer {
 .schedule-controls select {
   min-width: 200px;
 }
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 16px;
-  width: 90%;
-  max-width: 380px;
-  border-radius: 4px;
-  box-shadow: 0px 2px 12px rgba(0,0,0,0.3);
-}
-
-.modal-buttons {
-  margin-top: 12px;
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
 .hidden {
   display: none !important;
 }
@@ -1725,142 +1513,4 @@ footer {
 
 
 
-#scheduleSaveModal .modal-content {
-  width: 90%;
-  max-width: 700px;
-  margin: 5% auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-}
-#scheduleSaveModal input#scheduleNameInput {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 16px;
-  padding: 10px;
-  margin-top: 10px;
-}
-#scheduleSaveModal .modal-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.5);
-  z-index: 9999;
-}
 
-.modal:not(.hidden) {
-  display: flex;
-}
-
-.modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-}
-.modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.5);
-  z-index: 9999;
-}
-
-.modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 100%;
-}
-
-.modal:not(.hidden) {
-  display: flex;
-}
-#editModal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5); /* backdrop */
-  display: none; /* toggled by JS */
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-#editModalBody {
-  max-height: 80vh;
-  overflow-y: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-}
-#editModal .edit-row label {
-  display: block !important;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #333;
-}
-#editModal .edit-row {
-  display: block;
-  margin-bottom: 12px;
-}
-
-#editModal .edit-row input,
-#editModal .edit-row textarea {
-  width: 100%;
-}
-#editModal .edit-row.horizontal {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  gap: 8px;
-}
-
-#editModal .edit-row.horizontal label {
-  flex: 0 0 150px;
-  font-weight: 500;
-  color: #333;
-}
-
-#editModal .edit-row.horizontal input,
-#editModal .edit-row.horizontal textarea {
-  flex: 1 1 auto;
-  padding: 6px 10px;
-}
-.edit-group {
-  margin-bottom: 20px;
-  border-top: 1px solid #ccc;
-  padding-top: 10px;
-}
-
-.edit-group h3 {
-  font-size: 1.1em;
-  margin-bottom: 5px;
-}
-
-.edit-group-toggle {
-  font-size: 0.9em;
-  cursor: pointer;
-  color: #007acc;
-  margin-bottom: 10px;
-  display: inline-block;
-}
-
-.edit-row.hidden {
-  display: none;
-}

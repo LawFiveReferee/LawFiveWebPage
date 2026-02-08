@@ -56,29 +56,6 @@
   }
 }
 window.getDefaultScheduleName = getDefaultScheduleName;
-  function attachLoad() {
-    document.getElementById("loadScheduleBtn")?.addEventListener("click", () => {
-      const sel = document.getElementById("scheduleSelect");
-      const name = sel?.value;
-      if (!name) return alert("Select a saved schedule first.");
-
-      const schedule = ScheduleStoreV2.getScheduleByName(name);
-      if (!schedule) return alert("Schedule not found.");
-
-      document.getElementById("rawInput").value = schedule.rawText;
-
-      const { games, errors } = ScheduleParser.parse(schedule.rawText, schedule.parserKey);
-      if (errors.length) console.warn(errors);
-
-      window.GAME_LIST = games;
-      // ✅ Select all by default
-	window.GAME_LIST.forEach(game => game.selected = true);
-
-	renderCards?.();
-      updateStatusLines?.();
-      updateSelectedCountUI?.();
-    });
-  }
 
   function attachDelete() {
     document.getElementById("deleteScheduleBtn")?.addEventListener("click", () => {
@@ -113,6 +90,7 @@ window.getDefaultScheduleName = getDefaultScheduleName;
   }
 function getDefaultScheduleName() {
   const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+  window.games = games;
   const count = games.length;
 
   // Parser name → short prefix (before dash)
@@ -178,7 +156,6 @@ function getDefaultScheduleName() {
 
   function init() {
     refreshDropdown();
-    attachLoad();
     attachDelete();
     attachRename();
     attachParse();

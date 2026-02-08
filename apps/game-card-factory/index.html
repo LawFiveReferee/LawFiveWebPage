@@ -9,52 +9,56 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="css/fast-card-factory.css">
   <link rel="stylesheet" href="css/mapping-ui.css">
-
   <!-- PDF + FileSaver + JSZip -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+	<link rel="stylesheet" href="../shared/shared-factory-ui.css">
 </head>
 
 <body class="admin-page">
 
-<header>
-  <h1>Law Five Referee</h1>
-  <nav>
-    <a href="/index.html">Home</a>
-    <a href="/penalty-shootout.html">Penalty Shoot-out</a>
-    <a href="/quicklook-today.html">QuickLook Today</a>
-    <a href="/apps/game-card-factory/index.html">Game Card Factory</a>
-    <a href="/apps/lineup-card-factory/index.html">Lineup Card Factory</a>
-    <a href="/downloads.html">Downloads</a>
-    <a href="/contact.html">Contact</a>
-    <a href="/privacy.html">Privacy</a>
-  </nav>
-</header>
+	<header>
+	  <h1>Law Five Referee - Game Card Factory</h1>
+	  <nav>
+		<a href="/index.html">Home</a>
+		<a href="/penalty-shootout.html">Penalty Shoot-out</a>
+		<a href="/quicklook-today.html">QuickLook Today</a>
+		<a href="/apps/game-card-factory/index.html">Game Card Factory</a>
+		<a href="/apps/lineup-card-factory/index.html">Lineup Card Factory</a>
+		<a href="/downloads.html">Downloads</a>
+		<a href="/contact.html">Contact</a>
+		<a href="/privacy.html">Privacy</a>
+	  </nav>
+	</header>
 
-<div class="container">
+	<div class="container">
 
-  <h1>Game Card Factory</h1>
-  <p class="intro-blurb">
-    <strong>Paste a schedule, preview game cards, and generate match report PDFs without a database.</strong>
-  </p>
+	<h1>Game Card Factory</h1>
+	<p class="intro-blurb">
+	<strong>Paste a schedule, preview game cards, and generate match report PDFs.</strong>
+	</p>
 
-  <!-- ========================= -->
-  <!-- Parser Help (Static) -->
-  <!-- ========================= -->
-  <div class="parser-help-wrapper">
-    <div class="parser-help-body" id="parserHelpBody">
-      <h4>Available Extractors</h4>
-      <div class="parser-help-item"><strong>Text Advanced</strong><br>12-line AYSO block format.</div>
-      <div class="parser-help-item"><strong>Arbiter GameView</strong><br>Paste full ArbiterSports “Game Details”.</div>
-      <div class="parser-help-item"><strong>Arbiter Email</strong><br>Paste entire ArbiterSports email notification.</div>
-      <div class="parser-help-item"><strong>Google Sheets / CSV</strong><br>One row per game.</div>
-      <div class="parser-help-item"><strong>Compact</strong><br>Single-line formats.</div>
-      <div class="parser-help-item"><strong>AYSO Schedule</strong><br>Region spreadsheet formats.</div>
-    </div>
-  </div>
+	<!-- ========================= -->
+	<!-- Parser Help (Static) -->
+	<!-- ========================= -->
+	<div class="parser-help-wrapper">
+	<div class="parser-help-body" id="parserHelpBody">
+	  <h4>Available Extractors</h4>
+	  <div class="parser-help-item"><strong>Text Advanced</strong><br>12-line AYSO block format.</div>
+	  <div class="parser-help-item"><strong>Arbiter GameView</strong><br>Paste full ArbiterSports “Game Details”.</div>
+	  <div class="parser-help-item"><strong>Arbiter Email</strong><br>Paste entire ArbiterSports email notification.</div>
+	  <div class="parser-help-item"><strong>Google Sheets / CSV</strong><br>One row per game.</div>
+	  <div class="parser-help-item"><strong>Compact</strong><br>Single-line formats.</div>
+	  <div class="parser-help-item"><strong>AYSO Schedule</strong><br>Region spreadsheet formats.</div>
+	</div>
+	</div>
 
- 	<!-- ======================= -->
+	<!-- ============================================================ -->
+	<!-- Colllaspible Sections -->
+	<!-- ============================================================ -->
+	<!-- ======================= -->
 	<!-- 1. Schedule Import -->
 	<!-- ======================= -->
 	<section class="collapsible-panel" id="section-schedule-import">
@@ -82,34 +86,34 @@
 		</div>
 	  </div>
 	</section>
-  <!-- ============================ -->
-  <!-- 2. Saved Schedule -->
-  <!-- ============================ -->
-  <section class="collapsible-panel" id="section-schedule">
-    <button type="button" class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">2. Load or Save Schedules</span>
-    </button>
+	<!-- ============================ -->
+	<!-- 2. Saved Schedule -->
+	<!-- ============================ -->
+	<section class="collapsible-panel" id="section-schedule">
+	<button type="button" class="collapsible-header">
+	  <span class="collapsible-icon">+</span>
+	  <span class="collapsible-title">2. Load or Save Schedules</span>
+	</button>
 
-    <p class="section-subtitle">Manage saved schedule sets below.</p>
-    <div class="collapsible-body">
+	<p class="section-subtitle">Manage saved schedule sets below.</p>
+	<div class="collapsible-body">
 
-      <label for="currentScheduleDisplay">Current Schedule:</label>
-      <textarea id="currentScheduleDisplay"
+	  <label for="currentScheduleDisplay">Current Schedule:</label>
+	  <textarea id="currentScheduleDisplay"
 		  style="width:66%; height:300px; font-family:monospace; font-size:14px;"
 		  readonly
 		  placeholder="Parsed games will appear here…"></textarea>
 
-      <div class="schedule-controls">
-        <label for="scheduleSelect">Saved Schedules:</label>
-        <select id="scheduleSelect"></select>
-
-        <button id="loadScheduleBtn" class="btn">Load</button>
-        <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-		<button id="saveScheduleBtnLibrary" class="btn primary">💾 Save Schedule</button>
+		<div class="schedule-controls">
+			<label for="savedScheduleDropdown">Saved Schedules:</label>
+			<!--	<select id="savedScheduleDropdown"></select>-->
+			<select id="scheduleSelect"></select>
+			<button id="loadScheduleBtn" class="btn">Load</button>
+			<button id="deleteScheduleBtn" class="btn secondary">Delete</button>
+			<button id="saveScheduleBtnLibrary" class="btn primary">💾 Save Schedule</button>
+		</div>
 	</div>
-    </div>
-  </section>
+	</section>
 
   <!-- ========================================================= -->
   <!-- 3. Select & Filter Games -->
@@ -239,9 +243,32 @@
 
 </div> <!-- /.container -->
 
-<!-- Save Schedule Modal -->
+<!-- ========================= -->
+<!-- Shared Edit Modal -->
+<!-- ========================= -->
+<div id="sharedEditModal" class="modal-backdrop hidden">
+  <div class="modal-content">
+    <h3>Edit Game</h3>
+
+    <!-- Show/Hide Empty Fields Toggle -->
+    <div class="modal-toggle-row" style="text-align:right; margin-bottom: 1em;">
+      <button id="toggleHiddenFieldsBtn" class="btn small">Show Empty Fields</button>
+    </div>
+
+    <!-- Modal Body Content Injected Here -->
+    <div id="sharedEditModalBody"></div>
+
+    <!-- Modal Action Buttons -->
+    <div class="modal-buttons">
+      <button id="sharedSaveEditBtn" class="btn">Save</button>
+      <button id="sharedCancelEditBtn" class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========================= -->
 <!-- Save Schedule Modal -->
+<!-- ========================= -->
 <div id="scheduleSaveModal" class="modal hidden">
   <div class="modal-content">
     <h2>Save Schedule</h2>
@@ -254,25 +281,6 @@
     <div class="modal-actions">
       <button id="saveScheduleConfirmBtn" class="btn primary">Save</button>
       <button id="saveScheduleCancelBtn" class="btn secondary">Cancel</button>
-    </div>
-  </div>
-</div>
-<!-- ========================= -->
-<!-- ========================= -->
-<!-- Edit Game Modal -->
-<!-- ========================= -->
-<div id="editModal" class="modal hidden">
-  <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
-    <h2>Edit Game</h2>
-
-    <div id="editModalBody">
-      <!-- 🧠 JS inserts rows like: -->
-      <!-- <div class="edit-row">...</div> -->
-    </div>
-
-    <div class="modal-actions">
-      <button id="saveEditBtn" class="btn primary">💾 Save</button>
-      <button id="cancelEditBtn" class="btn secondary">Cancel</button>
     </div>
   </div>
 </div>
