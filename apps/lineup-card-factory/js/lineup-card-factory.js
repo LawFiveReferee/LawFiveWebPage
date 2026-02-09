@@ -43,9 +43,7 @@ import { handleParseSchedule } from "../../shared/utils.js";
 document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
   handleParseSchedule({
     onAfterParse: () => {
-      renderCards();
-      updateStatusLines?.();
-      updateSelectedCountUI?.();
+      updateStatusLines();
     }
   });
 });
@@ -95,7 +93,7 @@ document.getElementById("addPlayerBtn")?.addEventListener("click", () => {
 /* ============================================================
    Render Cards
 ============================================================ */
-function renderCards() {
+export function renderLineupCards() {
   const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
   const container = document.getElementById("previewCardContainer");
   if (!container) return;
@@ -107,23 +105,28 @@ function renderCards() {
 
   const selectedTeam = window.TeamStore.getCurrentTeam();
   if (!selectedTeam) {
-    container.innerHTML = "<p>No team selected. Please select a team to view lineup cards.</p>";
+    container.innerHTML =
+      "<p>No team selected. Please select a team to view lineup cards.</p>";
     return;
   }
 
-  const selectedTeamId = selectedTeam.teamId?.trim();
-  const selectedTeamName = selectedTeam.teamName?.trim().toLowerCase();
 
-  const getTeamInfoByIdOrName = (id, name) => {
-    const teams = window.TeamStore.getAllTeams();
-    return (
-      teams.find(t => t.teamId === id) ||
-      teams.find(t => t.teamName?.trim().toLowerCase() === name?.trim().toLowerCase()) ||
-      {}
-    );
-  };
 
-  let renderedCount = 0;
+
+	window.renderLineupCards = renderLineupCards;
+	  const selectedTeamId = selectedTeam.teamId?.trim();
+	  const selectedTeamName = selectedTeam.teamName?.trim().toLowerCase();
+
+	  const getTeamInfoByIdOrName = (id, name) => {
+		const teams = window.TeamStore.getAllTeams();
+		return (
+		  teams.find(t => t.teamId === id) ||
+		  teams.find(t => t.teamName?.trim().toLowerCase() === name?.trim().toLowerCase()) ||
+		  {}
+		);
+	  };
+
+	  let renderedCount = 0;
 
   games.forEach((g, i) => {
     const homeName = g.home_team?.trim().toLowerCase();
@@ -215,11 +218,13 @@ function renderCards() {
     renderedCount++;
   });
 
-  if (!renderedCount) {
-    container.innerHTML = "<p>No games found for the selected team.</p>";
-  }
-}
-window.renderCards = renderCards;
+	  if (!renderedCount) {
+		container.innerHTML =
+		  "<p>No games found for the selected team.</p>";
+	  }
+	}
+window.renderLineupCards = renderLineupCards;
+
 /* ============================================================
   sorting roster
 ============================================================ */
@@ -342,37 +347,9 @@ function applyFilter() {
 			g.match_date.toLowerCase().includes(kw);
 	});
 
-	updateStatusLines();
+	onSelectionChanged();
 }
 
-/* ============================================================
-   STATUS
-============================================================ */
-
-function updateStatusLines() {
-	const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-	window.games = games; // ✅ expose globally
-	const total = games.length;
-	const selectedGames = games.filter(g => g.selectedInPreview).length;
-
-	const s3 = document.getElementById("status-section-3");
-	if (s3) {
-		s3.textContent = total ?
-			`Extracted ${total} games.` :
-			"No games extracted.";
-	}
-
-	const s5 = document.getElementById("status-section-5");
-	if (s5) {
-		// +1 for roster card
-		const rosterSelected = 1;
-		const totalSelected = rosterSelected + selectedGames;
-		s5.textContent = total ?
-			`Previewing ${totalSelected} of ${total + 1} cards.` :
-			"No lineup cards to preview.";
-	}
-}
-window.updateStatusLines = updateStatusLines;
 
 /* ============================================================
    PREVIEW CARDS
@@ -652,9 +629,8 @@ function renderInputField(label, id, value = "") {
     </div>
   `;
   // After updating the game object...
-renderCards();
-updateStatusLines?.();
-updateSelectedCountUI?.();
+		updateStatusLines();
+
 }
 
 function enterEditModeInline(card, team, game) {
@@ -1140,7 +1116,8 @@ window.initUI = function initUI() {
 
 		window.GAME_LIST = parsedGames.map(g => normalizeParsedGame(g, selectedParserKey));
 		renderPreviewCards();
-		updateStatusLines?.();
+		updateStatusLines();
+
 
 		const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
 		window.showSaveScheduleModal(defaultName);
@@ -1159,8 +1136,8 @@ window.initUI = function initUI() {
 	document.getElementById("clearScheduleBtn")?.addEventListener("click", () => {
 		document.getElementById("rawInput").value = "";
 		window.GAME_LIST = [];
-		updateStatusLines?.();
-		renderPreviewCards();
+		updateStatusLines();
+
 	});
 
 	// 8. Filter controls
@@ -1191,7 +1168,7 @@ window.initUI = function initUI() {
 
 	window.addEventListener("scheduleImported", () => {
 		renderPreviewCards?.();
-		updateStatusLines?.();
+		updateStatusLines();
 	});
 };
 

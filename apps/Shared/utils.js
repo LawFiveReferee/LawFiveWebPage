@@ -68,52 +68,59 @@ export function handleParseSchedule(options = {}) {
     onAfterParse = () => {}
   } = options;
 
+  // ---- Elements
   const rawInputEl = document.getElementById(rawInputId);
   const parserSelectEl = document.getElementById(parserSelectId);
+  const displayEl = document.getElementById(outputDisplayId);
 
+  // ---- Validate input
   const rawText = rawInputEl?.value?.trim();
   if (!rawText) {
-    alert("⚠️ Paste schedule text first.");
-    return;
+    throw new Error("No schedule text provided");
   }
 
   const parserKey = parserSelectEl?.value;
+  if (!parserKey) {
+    throw new Error("No parser selected");
+  }
+
+  // ---- Persist parser selection
   window.selectedParserKey = parserKey;
   localStorage.setItem("selectedScheduleParserKey", parserKey);
-  console.log("🛠 Parsing schedule using parser key:", parserKey);
+  console.log("🛠 Parsing schedule using parser:", parserKey);
 
+  // ---- Parse
   const { games, errors } = ScheduleParser.parse(rawText, parserKey);
 
   if (errors?.length) {
-    console.warn("⚠️ Parse warnings/errors:", errors);
+    console.warn("⚠️ Parse warnings:", errors);
   }
 
   if (!Array.isArray(games) || games.length === 0) {
-    console.error("❌ No games were parsed from the schedule.");
-    alert("No games were parsed — check the format or selected parser.");
-    return;
+    throw new Error("No games parsed from schedule");
   }
 
- // ✅ Save games globally
-window.GAME_LIST = games;
+  // ---- Persist results (intentional global)
+  window.GAME_LIST = games;
 
-console.log(`✅ Parsed ${games.length} games using parser "${parserKey}".`);
+  console.log(`✅ Parsed ${games.length} games`);
 
-// Show JSON in the schedule text area
-const displayEl = document.getElementById("currentScheduleDisplay");
-if (displayEl) {
-  displayEl.value = JSON.stringify(games, null, 2); // Pretty print
-}
+  // ---- Show JSON preview
+  if (displayEl) {
+    displayEl.value = JSON.stringify(games, null, 2);
+  }
 
-// ✅ Expand the schedule panel so user sees parsed result and Save button
-const schedulePanel = document.getElementById("section-schedule");
-if (schedulePanel && schedulePanel.classList.contains("collapsed")) {
-  schedulePanel.classList.remove("collapsed");
-}
+  // ---- Ensure schedule panel is visible
+  const schedulePanel = document.getElementById("section-schedule");
+  if (schedulePanel?.classList.contains("collapsed")) {
+    schedulePanel.classList.remove("collapsed");
+  }
 
-// Render cards, update status lines, etc.
-
+  // ---- Callback (UI orchestration lives OUTSIDE this function)
   onAfterParse(games);
+
+  // ---- Return value for async / direct callers
+  return games;
 }
 
 export function applyFilter(filterInputId = "filterInput") {
@@ -131,9 +138,9 @@ export function applyFilter(filterInputId = "filterInput") {
   });
 
   if (typeof window.updateGameCountUI === "function") window.updateGameCountUI();
-  if (typeof window.renderCards === "function") window.renderCards();
+  if (typeof window.renderGameCards === "function") window.renderGameCards();
   if (typeof window.renderPreviewCards === "function") window.renderPreviewCards();
-  if (typeof window.updateStatusLines === "function") window.updateStatusLines();
+		updateStatusLines();
   if (typeof window.updateSelectedCountUI === "function") window.updateSelectedCountUI();
 }
 

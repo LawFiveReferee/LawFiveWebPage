@@ -51,9 +51,8 @@ applyBulkBtn.addEventListener("click", () => {
   });
 
   // Refresh UI then save if applicable
-  renderCards();
-  updateStatusLines();
-  updateSelectedCountUI();
+	onSelectionChanged();
+
 
   alert("Bulk settings applied.");
 });
@@ -65,9 +64,10 @@ function updateBulkPanelVisibility() {
 
 // Call after selection changes
 function onSelectionChanged() {
-  updateSelectedCountUI();
-  renderCards();
-  updateBulkPanelVisibility();
+  	updateSelectedCountUI();
+  	renderGameCards();
+    renderLineupCards();
+	updateBulkPanelVisibility();
 }
 
 // Make sure your selection logic calls onSelectionChanged()

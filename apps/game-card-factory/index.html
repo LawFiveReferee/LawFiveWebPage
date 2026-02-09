@@ -56,97 +56,126 @@
 	</div>
 
 	<!-- ============================================================ -->
-	<!-- Colllaspible Sections -->
-	<!-- ============================================================ -->
-	<!-- ======================= -->
-	<!-- 1. Schedule Import -->
-	<!-- ======================= -->
-	<section class="collapsible-panel" id="section-schedule-import">
-	  <button type="button" class="collapsible-header">
-		<span class="collapsible-icon">+</span>
-		<span class="collapsible-title">1. Import & Extract Schedule</span>
-	  </button>
+<!-- Collapsible Sections -->
+<!-- ============================================================ -->
 
-	  <p class="section-subtitle">Paste a schedule and extract game data.</p>
-
-	  <div class="collapsible-body">
-
-		<!-- Parser Selector -->
-		<label for="parserSelect">Parser:</label>
-		<select id="parserSelect" class="parser-select"></select>
-
-		<!-- Paste Area -->
-		<label for="rawInput">Paste Schedule Text:</label>
-		<textarea id="rawInput" class="import-textarea" placeholder="Paste schedule text here…"></textarea>
-
-		<!-- Parse Buttons -->
-		<div class="button-group">
-		  <button id="parseScheduleBtn" class="btn">Extract Games</button>
-		  <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
-		</div>
-	  </div>
-	</section>
-	<!-- ============================ -->
-	<!-- 2. Saved Schedule -->
-	<!-- ============================ -->
-	<section class="collapsible-panel" id="section-schedule">
-	<button type="button" class="collapsible-header">
-	  <span class="collapsible-icon">+</span>
-	  <span class="collapsible-title">2. Load or Save Schedules</span>
-	</button>
-
-	<p class="section-subtitle">Manage saved schedule sets below.</p>
-	<div class="collapsible-body">
-
-	  <label for="currentScheduleDisplay">Current Schedule:</label>
-	  <textarea id="currentScheduleDisplay"
-		  style="width:66%; height:300px; font-family:monospace; font-size:14px;"
-		  readonly
-		  placeholder="Parsed games will appear here…"></textarea>
-
-		<div class="schedule-controls">
-			<label for="savedScheduleDropdown">Saved Schedules:</label>
-			<!--	<select id="savedScheduleDropdown"></select>-->
-			<select id="scheduleSelect"></select>
-			<button id="loadScheduleBtn" class="btn">Load</button>
-			<button id="deleteScheduleBtn" class="btn secondary">Delete</button>
-			<button id="saveScheduleBtnLibrary" class="btn primary">💾 Save Schedule</button>
-		</div>
-	</div>
-	</section>
-
-  <!-- ========================================================= -->
-  <!-- 3. Select & Filter Games -->
-  <!-- ========================================================= -->
-  <section class="collapsible-panel" id="section-2">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">3. Select & Filter Games</span>
-    </button>
-    <p class="section-subtitle">Build rules to select or deselect games.</p>
-
-    <div class="collapsible-body">
-      <!-- filter UI -->
-      <div id="filterRulesContainer" class="filter-rules-container"></div>
-      <!-- other filter UI omitted for brevity -->
-    </div>
-  </section>
-
-<!-- ======================= -->
-<!-- 3. Bulk Edit Section -->
-<!-- ======================= -->
-<section class="collapsible-panel" id="section-3">
+<!-- ============================================================ -->
+<!-- 1. Import & Extract Schedule -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-schedule-import">
   <button type="button" class="collapsible-header">
     <span class="collapsible-icon">+</span>
-    <span class="collapsible-title">3. Bulk Edit Selected Cards</span>
+    <span class="collapsible-title">1. Import & Extract Schedule</span>
   </button>
 
-  <p class="section-subtitle">Edit fields in ALL selected game cards at once.</p>
+  <p class="section-subtitle">Paste a schedule and extract game data.</p>
+
+  <div class="collapsible-body">
+
+    <label for="parserSelect">Parser:</label>
+    <select id="parserSelect" class="parser-select"></select>
+
+    <label for="rawInput">Paste Schedule Text:</label>
+    <textarea
+      id="rawInput"
+      class="import-textarea"
+      placeholder="Paste schedule text here…"></textarea>
+
+    <div class="button-group">
+      <button id="parseScheduleBtn" class="btn">Extract Games</button>
+      <span id="scheduleParseStatus" class="parse-status">
+        No schedule parsed
+      </span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- 2. Load or Save Schedules -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-schedule">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">2. Load or Save Schedules</span>
+  </button>
+
+  <p class="section-subtitle">Manage saved schedule sets below.</p>
+
+  <div class="collapsible-body">
+
+    <label for="currentScheduleDisplay">Current Schedule:</label>
+    <textarea
+      id="currentScheduleDisplay"
+      readonly
+      placeholder="Parsed games will appear here…"
+      style="width:66%; height:300px; font-family:monospace; font-size:14px;">
+    </textarea>
+
+    <div class="schedule-controls">
+      <label for="scheduleSelect">Saved Schedules:</label>
+      <select id="scheduleSelect"></select>
+
+      <button id="loadScheduleBtn" class="btn">Load</button>
+      <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
+      <button id="saveScheduleBtnLibrary" class="btn primary">
+        💾 Save Schedule
+      </button>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- 3. Select & Filter Games -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-filter">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">3. Select & Filter Games</span>
+  </button>
+
+  <p class="section-subtitle">
+    Build rules to select or deselect games.
+  </p>
+
+  <div class="collapsible-body">
+    <div
+      id="filterRulesContainer"
+      class="filter-rules-container">
+    </div>
+
+    <div class="filter-controls">
+      <button id="applyFilterBtn" class="btn">Apply Filter</button>
+      <button id="clearFilterBtn" class="btn secondary">Clear</button>
+
+      <button id="selectMatchingBtn" class="btn">
+        ✔ Select Matching
+      </button>
+      <button id="deselectMatchingBtn" class="btn secondary">
+        ✖ Deselect Matching
+      </button>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- 4. Bulk Edit Selected Cards -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-bulk-edit">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">
+      4. Bulk Edit Selected Cards
+    </span>
+  </button>
+
+	<p class="section-subtitle" id="bulkEditStatus"></p>
 
   <div class="collapsible-body">
     <div class="macos-bulk-panel">
 
-      <!-- Date + Division -->
       <div class="macos-row two-columns">
         <div class="column">
           <label for="bulkDate">Date</label>
@@ -158,7 +187,6 @@
         </div>
       </div>
 
-      <!-- Location + Field -->
       <div class="macos-row two-columns">
         <div class="column">
           <label for="bulkLocation">Location</label>
@@ -170,7 +198,6 @@
         </div>
       </div>
 
-      <!-- Assigner -->
       <div class="macos-row">
         <label>Assigner Info</label>
         <input id="bulkAssignName" class="macos-input" type="text" placeholder="Name">
@@ -178,7 +205,6 @@
         <input id="bulkAssignEmail" class="macos-input" type="text" placeholder="Email">
       </div>
 
-      <!-- Payer -->
       <div class="macos-row">
         <label>Payer Info</label>
         <input id="bulkPayerName" class="macos-input" type="text" placeholder="Name">
@@ -186,62 +212,81 @@
         <input id="bulkPayerEmail" class="macos-input" type="text" placeholder="Email">
       </div>
 
-      <!-- Action Buttons -->
       <div class="macos-button-row">
-        <button id="applyBulkEditBtn" class="btn">Apply to Selected Games</button>
-        <button id="clearBulkEditBtn" class="secondary">Clear Bulk Edit Fields</button>
+        <button id="applyBulkEditBtn" class="btn">
+          Apply to Selected Games
+        </button>
+        <button id="clearBulkEditBtn" class="btn secondary">
+          Clear Bulk Edit Fields
+        </button>
       </div>
 
     </div>
   </div>
 </section>
-  <!-- ========================================================= -->
-  <!-- Game Card Preview -->
-  <!-- ========================================================= -->
-  <section class="collapsible-panel" id="section-4">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">5. Game Card Preview</span>
-    </button>
 
-    <div class="collapsible-body">
-      <div id="cardsContainer" class="cards-container"></div>
+
+<!-- ============================================================ -->
+<!-- 5. Game Card Preview -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-preview">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">5. Game Card Preview</span>
+  </button>
+
+  <div id="previewStatus" class="section-status"></div>
+
+  <div class="collapsible-body">
+    <div id="cardsContainer" class="cards-container"></div>
+  </div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- 6. Choose Report Card Template -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-template">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">
+      6. Choose Report Card Template
+    </span>
+  </button>
+
+  <div id="templateStatus" class="section-status"></div>
+
+  <div class="collapsible-body">
+    <div id="templateCarousel">
+      <button id="prevTemplate">‹</button>
+      <img id="templateImage" alt="Template preview" style="max-width:200px;">
+      <button id="nextTemplate">›</button>
+
+      <div id="templateName"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ========================================================= -->
-  <!-- 6. Template Select -->
-  <!-- ========================================================= -->
-  <section class="collapsible-panel" id="section-5">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">6. Choose Report Card Template</span>
-    </button>
-    <div class="collapsible-body">
-		<div id="templateCarousel">
-		  <button id="prevTemplate">‹</button>
-		  <img id="templateImage" style="max-width: 200px;">
-		  <button id="nextTemplate">›</button>
-		  <div id="templateName"></div>
-		  <div id="templateStatus"></div>
-		</div>
-    </div>
-  </section>
 
-  <!-- ========================================================= -->
-  <!-- 7. Generate PDF -->
-  <!-- ========================================================= -->
-  <section class="collapsible-panel" id="section-6">
-    <button class="collapsible-header">
-      <span class="collapsible-icon">+</span>
-      <span class="collapsible-title">7. Generate PDF Game Cards</span>
-    </button>
-    <div class="collapsible-body">
-      <!-- generate PDF UI here -->
-    </div>
-  </section>
+<!-- ============================================================ -->
+<!-- 7. Generate PDF Game Cards -->
+<!-- ============================================================ -->
+<section class="collapsible-panel" id="section-generate">
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">+</span>
+    <span class="collapsible-title">
+      7. Generate PDF Game Cards
+    </span>
+  </button>
 
-</div> <!-- /.container -->
+  <div id="generateStatus" class="section-status"></div>
+
+  <div class="collapsible-body">
+    <!-- PDF generation UI goes here -->
+  </div>
+</section>
+</div>
+<!-- /.container -->
 
 <!-- ========================= -->
 <!-- Shared Edit Modal -->

@@ -311,10 +311,7 @@ function initBulkEditControls() {
 		}
 
 		// Re-render preview and status lines
-		if (window.renderCards) window.renderCards()
-		updateSelectedCountUI()
-		updateStatusLines();
-		if (window.updateStatusLines) window.updateStatusLines();
+		onSelectionChanged();
 	});
 
 	/* ============================================================

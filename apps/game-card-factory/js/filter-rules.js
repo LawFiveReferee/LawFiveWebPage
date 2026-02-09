@@ -418,11 +418,10 @@ function applyFilters(selectMatches) {
     }
   });
 
-  if (typeof window.renderCards === "function") window.renderCards()
-updateSelectedCountUI()
-updateStatusLines()
+	onSelectionChanged();
+
 ;
-  if (typeof window.updateStatusLines === "function") window.updateStatusLines();
+	onSelectionChanged();
 }
 
 /* ============================================================
@@ -453,11 +452,10 @@ window.initFilterControls = function initFilterControls() {
   if (btnSelectAll) {
     btnSelectAll.onclick = () => {
       (window.games || []).forEach(g => g.selected = true);
-      if (typeof window.renderCards === "function") window.renderCards()
-updateSelectedCountUI()
-updateStatusLines()
+	onSelectionChanged();
+
 ;
-      if (typeof window.updateStatusLines === "function") window.updateStatusLines();
+	onSelectionChanged();
     };
   }
 
@@ -465,11 +463,11 @@ updateStatusLines()
   if (btnDeselectAll) {
     btnDeselectAll.onclick = () => {
       (window.games || []).forEach(g => g.selected = false);
-      if (typeof window.renderCards === "function") window.renderCards()
-updateSelectedCountUI()
-updateStatusLines()
+      if (typeof window.renderGameCards === "function") window.renderGameCards()
+	onSelectionChanged();
+
 ;
-      if (typeof window.updateStatusLines === "function") window.updateStatusLines();
+	onSelectionChanged();
     };
   }
 

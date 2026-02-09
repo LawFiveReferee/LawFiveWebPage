@@ -20,11 +20,12 @@
 
 
 // carousel-ui.js (below the IMPORT_SOURCES + importSelectedIndex initialization)
-
-window.handleImportSelection = function(item) {
+window.handleImportSelection = function (item) {
   console.log("🎯 handleImportSelection called:", item);
 
-  // If this is a saved schedule
+  // ─────────────────────────────
+  // Saved schedule
+  // ─────────────────────────────
   if (item.type === "savedSchedule") {
     const rawText = item.rawText || "";
     const parserKey = item.parserKey || "generic";
@@ -34,38 +35,34 @@ window.handleImportSelection = function(item) {
       const games = parseAndImport(rawText, parserKey);
       window.GAME_LIST = games || [];
 
-      console.log(`🎉 Loaded schedule '${item.displayName}' with ${games.length} games.`);
+      console.log(
+        `🎉 Loaded schedule '${item.displayName}' with ${window.GAME_LIST.length} games.`
+      );
     } else {
       console.warn("⚠️ ScheduleImport.parseAndImport not available.");
     }
 
-    // If you’re in the Game Card Factory:
-    if (typeof renderPreviewCards === "function") {
-      renderPreviewCards();
-    }
-    if (typeof updateStatusLines === "function") {
-      updateStatusLines();
-    }
-
+    // 🔁 Unified refresh
+    window.onSelectionChanged?.();
     return;
   }
 
-  // If this is a built‑in or custom parser
+  // ─────────────────────────────
+  // Parser selection
+  // ─────────────────────────────
   if (item.type === "parser" || item.type === "customParser") {
-    const parserKey = item.parserKey;
-    window.selectedParserKey = parserKey;
+    window.selectedParserKey = item.parserKey;
+    console.log(`✨ Parser selected: ${item.parserKey}`);
 
-    console.log(`✨ Parser selected: ${parserKey}`);
-
-    // Update parser UI if present
     if (typeof refreshParserCarousel === "function") {
       refreshParserCarousel();
     }
-
     return;
   }
 
-  // If “New Parser”
+  // ─────────────────────────────
+  // New parser
+  // ─────────────────────────────
   if (item.type === "newParser") {
     if (typeof window.showParserEditor === "function") {
       window.showParserEditor();
@@ -75,7 +72,9 @@ window.handleImportSelection = function(item) {
     return;
   }
 
+  // ─────────────────────────────
   // Fallback
+  // ─────────────────────────────
   console.warn("⚠️ Unknown import item type:", item);
 };
 // Lazy getters for shared store functions

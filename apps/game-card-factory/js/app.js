@@ -97,15 +97,53 @@ window.registerGenericMapperProfile = registerGenericMapperProfile;
  * populate global GAME_LIST, update UI and fill JSON textarea.
  */
 import { handleParseSchedule } from "../../shared/utils.js";
-document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
-  handleParseSchedule({
-    onAfterParse: () => {
-      renderCards();
-      updateStatusLines?.();
-      updateSelectedCountUI?.();
+
+document
+  .getElementById("parseScheduleBtn")
+  ?.addEventListener("click", onParseScheduleClicked);
+
+async function onParseScheduleClicked() {
+  // --- STATUS: parsing started
+  updateStatusLines(
+    "scheduleParseStatus",
+    "Parsing schedule…",
+    "info"
+  );
+
+  try {
+    const games = await handleParseSchedule({
+      onAfterParse: null // we handle UI updates here
+    });
+
+    if (!games || games.length === 0) {
+      updateStatusLines(
+        "scheduleParseStatus",
+        "❌ No games found",
+        "error"
+      );
+      return;
     }
-  });
-});
+
+    // --- STATUS: parsing complete
+    updateStatusLines(
+      "scheduleParseStatus",
+      `✔ ${games.length} games extracted`,
+      "success"
+    );
+
+    // --- Render + downstream UI
+    renderGameCards(games);
+    updateSelectedCountUI?.();
+
+  } catch (err) {
+    console.error(err);
+    updateStatusLines(
+      "scheduleParseStatus",
+      `❌ Parse failed: ${err.message}`,
+      "error"
+    );
+  }
+}
 
 /* ============================================================
    Parser Carousel
@@ -281,45 +319,7 @@ window.initParserCarouselControls = initParserCarouselControls;
 /* ============================================================
    Status Lines
 ============================================================ */
-function updateStatusLines() {
-	const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-	window.games = games; // ✅ now globally available to all modules
-	const total = games.length;
-	const selected = games.filter(g => g.selected).length;
 
-	const s1 = document.getElementById("status-section-1");
-	const s2 = document.getElementById("status-section-2");
-	const s4 = document.getElementById("status-section-4");
-	updateSelectedCountUI();
-
-	if (s1) {
-		s1.textContent = total ?
-			`Extracted ${total} game${total !== 1 ? "s" : ""}.` :
-			"Paste schedule text and select an extractor.";
-	}
-
-	if (s2) {
-		if (!total) {
-			s2.textContent = "No games extracted.";
-		} else if (selected === 0) {
-			s2.textContent = `No games selected. (${total} extracted)`;
-		} else {
-			s2.textContent = `Selected ${selected} of ${total} extracted game${total !== 1 ? "s" : ""}.`;
-		}
-	}
-
-	if (s4) {
-		s4.textContent = total ?
-			`Previewing ${selected} of ${total} game${total !== 1 ? "s" : ""}.` :
-			"No games to preview.";
-	}
-
-	console.log("🔄 Status lines updated:", {
-		total,
-		selected
-	});
-}
-window.updateStatusLines = updateStatusLines;
 
 function updateGameCountUI() {
 	const total = window.GAME_LIST?.length || 0;
@@ -339,11 +339,8 @@ function deleteGameById(gameId) {
 	if (idx < 0) return;
 
 	games.splice(idx, 1);
-	renderCards()
-	updateSelectedCountUI()
-	updateStatusLines();
-	updateSelectedCountUI();
-	updateStatusLines();
+
+	onSelectionChanged();
 }
 
 function deleteSelectedGames() {
@@ -352,21 +349,20 @@ function deleteSelectedGames() {
 	window.GAME_LIST = window.GAME_LIST || [];
 	const removed = before - games.length;
 	if (removed > 0) {
-		renderCards()
-		updateSelectedCountUI()
-		updateStatusLines();
-		updateSelectedCountUI();
-		updateStatusLines();
+		onSelectionChanged();
 	}
 }
 /* ============================================================
    Render Cards
 ============================================================ */
 
-function renderCards() {
-  const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+export function renderGameCards() {
   const container = document.getElementById("cardsContainer");
   if (!container) return;
+
+  const games = Array.isArray(window.GAME_LIST)
+    ? window.GAME_LIST.filter(g => g.selected)
+    : [];
 
   container.innerHTML = "";
   container.style.display = "flex";
@@ -374,7 +370,7 @@ function renderCards() {
   container.style.gap = "1rem";
 
   if (!games.length) {
-    container.innerHTML = "<p>No games to display.</p>";
+    container.innerHTML = "<p>No selected games to preview.</p>";
     return;
   }
 
@@ -445,7 +441,7 @@ function renderCards() {
     container.appendChild(card);
   });
 }
-window.renderCards = renderCards;
+window.renderGameCards = renderGameCards;
 
 import { enterEditMode } from "../../shared/ui-helpers.js";
 
@@ -566,11 +562,7 @@ function editGroup(title, rowsHtml, groupId) {
 		window.GAME_LIST = Array.isArray(parsedGames) ? parsedGames : [];
 
 		// Render downstream UI
-		updateStatusLines();
-		renderCards()
-		updateSelectedCountUI()
-		updateStatusLines(); // Optional: refresh game list table
-		renderGamePreview(); // Rebuild preview panel
+		onSelectionChanged();
 
 		// Log a warning if no games are valid
 		if (parsedGames.length === 0) {
@@ -709,8 +701,7 @@ try {
       window.initBulkEditControls();
     }
 
-    updateSelectedCountUI();
-    updateStatusLines();
+	onSelectionChanged();
   } catch (err) {
     console.error("Boot failed:", err);
   }

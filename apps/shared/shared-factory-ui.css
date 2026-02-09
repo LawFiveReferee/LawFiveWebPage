@@ -176,3 +176,21 @@
 label {
   font-weight: 600;
 }
+
+.section-status {
+  margin: 6px 0 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.section-status.success {
+  color: #2e7d32;
+}
+
+.section-status.error {
+  color: #c62828;
+}
+
+.section-status.info {
+  color: #555;
+}

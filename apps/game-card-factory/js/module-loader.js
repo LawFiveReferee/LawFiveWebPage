@@ -50,13 +50,25 @@ console.log("✅ Shared team + parser store loaded");
 
 // Shared UI (carousel + DOM helpers)
 import "../../shared/carousel-ui.js";
+console.log("✅ Shared carousel  loaded");
+
+
 import "../../shared/dom-helpers.js";
+console.log("✅ DOM helpers loaded");
+
 import { refreshImportCarousel } from "../../shared/carousel-ui.js";
 console.log("✅ Shared carousel + DOM helpers loaded");
 
 // Shared schedule UI (after everything else)
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ Shared schedule-ui-v2.js loaded");
+
+import "../../shared/filtering.js";
+console.log("✅ shared/filtering.js loaded");
+
+
+import "../../shared/status.js";
+console.log("✅ shared/status.js loaded");
 
 import { refreshScheduleDropdown } from "../../shared/utils.js";
 import  "../../shared/game-normalizer.js";

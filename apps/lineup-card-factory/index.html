@@ -36,6 +36,7 @@
 	<div class="container">
 
 	<h1>Lineup Card Factory</h1>
+	<div id="generateStatus" class="section-status"></div>
   <p class="intro-blurb">
     <strong>Paste a schedule, Enter team info and plyaer lineup, preview game cards, and lineup card or rosterPDFs.</strong>
   </p>
@@ -80,6 +81,7 @@
 		</button>
 
 		<p class="section-subtitle">Manage saved schedule sets below.</p>
+
 		<div class="collapsible-body">
 
 			<label for="currentScheduleDisplay">Current Schedule:</label>
@@ -158,6 +160,7 @@
 			<span class="collapsible-title">4. Select & Filter Games</span>
 		</button>
 		<p class="section-subtitle" id="status-section-3">Filter games involving this team.</p>
+		<p>	<div id="filterStatus" class="section-status"></div></p>
 		<div class="collapsible-body">
 			<input id="filterInput" class="macos-input" placeholder="Filter by opponent, date, etc">
 			<div class="filter-buttons">
@@ -170,33 +173,35 @@
 <!-- ============================================================
 BULK EDIT SELECTED LINEUPS
 ============================================================ -->
-<section class="collapsible-panel" id="section-4">
-<button class="collapsible-header">
-<span class="collapsible-icon">+</span>
-<span class="collapsible-title">5. Bulk Edit Selected Lineups</span>
-</button>
-<p class="section-subtitle" id="status-section-4">Edit selected games/lineups.</p>
-<div class="collapsible-body">
-<div class="macos-bulk-panel">
-<div class="macos-row">
-<label>Date</label>
-<input id="bulkDate" type="date" class="macos-input">
-</div>
-<div class="macos-row">
-<label>Location/Field</label>
-<input id="bulkLocation" type="text" class="macos-input">
-</div>
-<div class="macos-row two-columns">
-<div class="column"><label>Opponent</label><input id="bulkOpponent" class="macos-input"></div>
-<div class="column"><label>Notes</label><input id="bulkNotes" class="macos-input"></div>
-</div>
-<div class="macos-button-row">
-<button id="applyBulkBtn" class="btn">Apply to Selected</button>
-<button id="clearBulkBtn" class="secondary">Clear</button>
-</div>
-</div>
-</div>
-</section>
+	<section class="collapsible-panel" id="section-4">
+		<button class="collapsible-header">
+			<span class="collapsible-icon">+</span>
+			<span class="collapsible-title">5. Bulk Edit Selected Lineups</span>
+		</button>
+		<p class="section-subtitle" id="status-section-4">Edit selected games/lineups.</p>
+		<p><div id="bulkEditStatus" class="section-status"></div></p>
+
+		<div class="collapsible-body">
+			<div class="macos-bulk-panel">
+				<div class="macos-row">
+					<label>Date</label>
+					<input id="bulkDate" type="date" class="macos-input">
+				</div>
+					<div class="macos-row">
+						<label>Location/Field</label>
+						<input id="bulkLocation" type="text" class="macos-input">
+					</div>
+					<div class="macos-row two-columns">
+						<div class="column"><label>Opponent</label><input id="bulkOpponent" class="macos-input"></div>
+						<div class="column"><label>Notes</label><input id="bulkNotes" class="macos-input"></div>
+					</div>
+					<div class="macos-button-row">
+						<button id="applyBulkBtn" class="btn">Apply to Selected</button>
+						<button id="clearBulkBtn" class="secondary">Clear</button>
+				</div>
+			</div>
+		</div>
+	</section>
 
 <!-- ============================================================
 LINEUP CARD PREVIEW
@@ -206,7 +211,8 @@ LINEUP CARD PREVIEW
     <span class="collapsible-icon">+</span>
     <span class="collapsible-title">5. Lineup Card Preview</span>
   </button>
-  <p class="section-subtitle" id="status-section-5">No cards to preview yet.</p>
+  <p><div id="previewStatus" class="section-status"></div></p>
+	<p class="section-subtitle" id="status-section-5">No cards to preview yet.</p>
   <div class="collapsible-body">
     <div id="previewCardContainer" class="card-container"></div>
   </div>
@@ -221,6 +227,7 @@ LINEUP CARD PREVIEW
 		<span class="collapsible-title">6. Choose Template</span>
 	</button>
 	<p class="section-subtitle" id="status-section-6">Select lineup or roster template.</p>
+	<p><div id="templateStatus" class="section-status"></div></p>
 
 	<div class="collapsible-body">
 		<!-- Template carousel -->

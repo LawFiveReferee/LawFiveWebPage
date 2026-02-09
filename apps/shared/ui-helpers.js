@@ -44,15 +44,20 @@ export function saveEditChanges(gameId) {
   /* ----------------------------------
      1. Save standard game fields
   ---------------------------------- */
-  modal.querySelectorAll("[data-field]").forEach(input => {
-    const path = input.dataset.field;
+  modal.querySelectorAll("[data-field]").forEach(el => {
+    const value =
+      typeof el.value === "string" ? el.value : null;
+    if (value === null) return;
+
+    const path = el.dataset.field;
+    if (!path) return;
+
     const parts = path.split(".");
     let target = game;
 
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
 
-      // Numeric segment → array index
       if (/^\d+$/.test(part)) {
         const idx = Number(part);
         if (!Array.isArray(target)) return;
@@ -64,7 +69,7 @@ export function saveEditChanges(gameId) {
       }
     }
 
-    target[parts.at(-1)] = input.value;
+    target[parts.at(-1)] = value;
   });
 
   /* ----------------------------------
@@ -81,11 +86,15 @@ export function saveEditChanges(gameId) {
     if (rosterInputs.length) {
       const rosterMap = {};
 
-      rosterInputs.forEach(input => {
-        const idx = input.dataset.rosterIndex;
-        const field = input.dataset.rosterField;
+      rosterInputs.forEach(el => {
+        if (typeof el.value !== "string") return;
+
+        const idx = el.dataset.rosterIndex;
+        const field = el.dataset.rosterField;
+        if (!idx || !field) return;
+
         rosterMap[idx] ??= {};
-        rosterMap[idx][field] = input.value.trim();
+        rosterMap[idx][field] = el.value.trim();
       });
 
       const roster = Object.values(rosterMap).filter(
@@ -95,7 +104,10 @@ export function saveEditChanges(gameId) {
       game.lineupOverrides ??= {};
       game.lineupOverrides[teamId] = roster;
 
-      console.log("[saveEditChanges] Updated lineup override:", roster);
+      console.log(
+        "[saveEditChanges] Updated lineup override:",
+        roster
+      );
     }
   }
 
@@ -109,11 +121,15 @@ export function saveEditChanges(gameId) {
   if (refInputs.length) {
     const refMap = {};
 
-    refInputs.forEach(input => {
-      const idx = input.dataset.refIndex;
-      const field = input.dataset.refField;
+    refInputs.forEach(el => {
+      if (typeof el.value !== "string") return;
+
+      const idx = el.dataset.refIndex;
+      const field = el.dataset.refField;
+      if (!idx || !field) return;
+
       refMap[idx] ??= {};
-      refMap[idx][field] = input.value.trim();
+      refMap[idx][field] = el.value.trim();
     });
 
     game.referees = Object.values(refMap).filter(
@@ -122,10 +138,10 @@ export function saveEditChanges(gameId) {
   }
 
   /* ----------------------------------
-     4. Close modal & refresh UI
+     4. Close modal & refresh UI (single entry point)
   ---------------------------------- */
   closeEditModal();
-  renderCards?.();
+  onSelectionChanged();
 }
 window.saveEditChanges = saveEditChanges;
 

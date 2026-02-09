@@ -330,9 +330,8 @@ function initBulkEditControls() {
       }
     }
 
-    if (window.renderCards) window.renderCards();
-    if (window.updateSelectedCountUI) window.updateSelectedCountUI();
-    if (window.updateStatusLines) window.updateStatusLines();
+	onSelectionChanged();
+
   });
 
   /* ============================================================

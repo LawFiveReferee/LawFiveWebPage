@@ -38,6 +38,11 @@ console.log("✅ shared/schedule-store-v2.js loaded");
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ shared/schedule-ui-v2.js loaded");
 
+import "../../shared/filtering.js";
+console.log("✅ shared/filtering.js loaded");
+
+import "../../shared/status.js";
+console.log("✅ shared/status.js loaded");
 
 
 /* ================================

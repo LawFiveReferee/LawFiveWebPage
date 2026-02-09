@@ -186,9 +186,8 @@ export function setupScheduleParser({ parseBtnId, rawInputId }) {
     window.GAME_LIST = games;
 
     // Update global UI
-    renderCards?.();
-    updateStatusLines?.();
-    updateSelectedCountUI?.();
+	updateStatusLines();
+
 
     // Update current schedule display if present
     const schedDisplay = document.getElementById("currentScheduleDisplay");
