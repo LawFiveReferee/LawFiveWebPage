@@ -189,3 +189,15 @@ function splitEmailBlocks(text) {
 }
 
 window.parseArbiterEmail = parseArbiterEmail;
+
+ScheduleParser.registerParser({
+  key: "arbiter-email",
+  name: "Arbiter – Assignment Email",
+  parse: parseArbiterEmail
+});
+
+ScheduleParser.registerParser({
+  key: "arbiter-email",
+  name: "Arbiter – Assignment Email",
+  parse: parseArbiterEmail
+});

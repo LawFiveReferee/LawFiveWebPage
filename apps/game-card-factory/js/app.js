@@ -675,10 +675,6 @@ window.buildEditModalContent = buildEditModalContent;
 async function bootGameCardFactory() {
   	console.log("📦 DOM ready — booting Game Card Factory");
 try {
-    // Parser dropdown
-    if (typeof populateParserSelect === "function") {
-      populateParserSelect();
-    }
 
     // Collapsibles + parser carousel
     initCollapsibles();

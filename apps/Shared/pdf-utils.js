@@ -536,3 +536,22 @@ export {
   pdfProgressHide,
   initPdfButtons
 };
+
+document.addEventListener("click", event => {
+  const btn = event.target.closest(".pdf-btn");
+  if (!btn) return;
+
+  const gameId = btn.dataset.gameid;
+  if (!gameId) {
+    console.warn("[PDF] No gameId on button");
+    return;
+  }
+
+  console.log("[PDF] Clicked for game:", gameId);
+
+  if (typeof window.generatePdfForGame === "function") {
+    window.generatePdfForGame(gameId);
+  } else {
+    console.error("[PDF] generatePdfForGame is not available");
+  }
+});

@@ -1,4 +1,3 @@
-import ScheduleParser from "./schedule-parser.js";
 
 /**
  * CSV line parser that respects quoted commas.

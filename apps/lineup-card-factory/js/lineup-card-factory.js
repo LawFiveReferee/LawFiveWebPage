@@ -94,6 +94,8 @@ document.getElementById("addPlayerBtn")?.addEventListener("click", () => {
    Render Cards
 ============================================================ */
 export function renderLineupCards() {
+	console.log("[Lineup] current team:", window.TeamStore.getCurrentTeam());
+	console.log("[Lineup] sample game:", window.GAME_LIST[0]);
   const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
   const container = document.getElementById("previewCardContainer");
   if (!container) return;
@@ -766,195 +768,6 @@ function exportGameToPDF(gameId) {
 
 
 
-async function generatePDFs() {
-	const team = window.TeamStore.getCurrentTeam();
-	if (!team) {
-		alert("Select a team first.");
-		return;
-	}
-
-	const selectedGames = window.GAME_LIST.filter(g => g.selected);
-	const outputList = [];
-
-	// Always include roster-only card
-	outputList.push({
-		team,
-		game: null
-	});
-
-	// Add selected game cards
-	selectedGames.forEach(game => {
-		const match = [game.home_team, game.away_team]
-			.some(t => t?.toLowerCase().includes(team.teamId?.toLowerCase()));
-		if (match) {
-			outputList.push({
-				team,
-				game
-			});
-		}
-	});
-
-	const zip = new JSZip();
-
-	for (const {
-			team,
-			game
-		}
-		of outputList) {
-		const bytes = await createPdfForLineup(team, game);
-		const opp = game?.home_team === team.teamId ? game.away_team : game?.home_team;
-		const filename = game ?
-			`${team.teamName}-vs-${opp || "Opponent"}.pdf` :
-			`${team.teamName}-Roster.pdf`;
-		zip.file(filename, bytes);
-	}
-
-	const blob = await zip.generateAsync({
-		type: "blob"
-	});
-	saveAs(blob, `${team.teamName}-LineupCards.zip`);
-}
-window.generatePDFs = generatePDFs;
-
-window.createPdfForLineup = async function(team, game) {
-	const tpl = window.TEMPLATE_LIST?.[window.selectedTemplateIndex];
-	if (!tpl) throw new Error("No template selected.");
-
-	const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
-		.then((r) => r.arrayBuffer());
-
-	const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
-	const form = pdfDoc.getForm();
-
-	function setField(name, value) {
-		try {
-			const field = form.getTextField(name);
-			if (field) {
-				field.setText(value || "");
-				console.log(`✅ Set field "${name}" =`, `"${value}"`);
-			} else {
-				console.warn(`⚠️ Field "${name}" not found`);
-			}
-		} catch (err) {
-			console.warn(`⚠️ Field "${name}" not found or not writable`);
-		}
-	}
-
-	// --- Game Info ---
-	if (game) {
-		setField("GameDate", game.gameDate);
-		setField("GameTime", game.gameTime);
-		setField("GameLocation", game.gameLocation);
-		setField("AgeDiv", game.ageDiv);
-
-		// Determine if team is home or away
-		const isHome = team.teamId === game.homeTeamRaw;
-		const opponentId = isHome ? game.awayTeamRaw : game.homeTeamRaw;
-
-		setField("HomeX", isHome ? "X" : "");
-		setField("VisitorX", isHome ? "" : "X");
-
-		setField("HomeID", isHome ? team.teamId : opponentId);
-		setField("VisitorID", isHome ? opponentId : team.teamId);
-	}
-
-	// --- Team Info ---
-	setField("TeamName", team.teamName);
-	setField("TeamColors", team.teamColors);
-	setField("TeamCoach", team.teamCoach);
-	setField("TeamAsstCoach", team.teamAsstCoach);
-	setField("TeamID", team.teamId);
-	setField("AgeDiv", team.ageDiv); // backup in case it's not in game
-
-	// --- Roster (up to 15) ---
-	const roster = game?.customRoster || team.roster || [];
-	for (let i = 0; i < 15; i++) {
-		const p = roster[i] || {
-			number: "",
-			name: ""
-		};
-		setField(`Player${i + 1}_Name`, p.name);
-		setField(`Player${i + 1}_Number`, p.number);
-	}
-
-	form.flatten();
-	return await pdfDoc.save();
-};
-async function generateAllLineupPDFs() {
-	const team = getCurrentTeam();
-	if (!team) {
-		alert("Please select a team first.");
-		return;
-	}
-
-	// Filter only games that match this team
-	const teamIdLower = String(team.teamId || "").toLowerCase();
-	const selectedGames = Array.isArray(window.GAME_LIST) ?
-		window.GAME_LIST.filter(g => g.selected &&
-			(String(g.home_team || "").toLowerCase().includes(teamIdLower) ||
-				String(g.away_team || "").toLowerCase().includes(teamIdLower))) : [];
-
-	// Always include roster‑only card
-	const items = [{
-		team,
-		game: null
-	}];
-
-	// Add games
-	selectedGames.forEach(game => {
-		items.push({
-			team,
-			game
-		});
-	});
-
-	if (!items.length) {
-		alert("No games selected to generate.");
-		return;
-	}
-
-	// Use JSZip to make a zip with all PDFs
-	const zip = new JSZip();
-
-	for (const item of items) {
-		const {
-			team,
-			game
-		} = item;
-
-		try {
-			const pdfBytes = await window.createPdfForLineup(team, game);
-
-			// Determine filename
-			const filename = game ?
-				`${team.teamName}-vs-${(game.home_team === team.teamId
-            ? game.away_team
-            : game.home_team)
-          }.pdf` :
-				`${team.teamName}-Roster.pdf`;
-
-			zip.file(filename, pdfBytes);
-		} catch (err) {
-			console.error("Error generating PDF for", game, err);
-			alert(`Error generating PDF for ${game?.match_date} ${game?.match_time}`);
-			return;
-		}
-	}
-
-	// Generate and download zip
-	try {
-		const blob = await zip.generateAsync({
-			type: "blob"
-		});
-		saveAs(blob, `${team.teamName}-LineupCards.zip`);
-	} catch (err) {
-		console.error("Error generating ZIP", err);
-		alert("Failed to generate ZIP.");
-	}
-}
-
-window.generateAllLineupPDFs = generateAllLineupPDFs;
-
 async function loadTemplates() {
 	try {
 		const resp = await fetch("templates.json", {
@@ -1147,9 +960,11 @@ window.initUI = function initUI() {
 		applyFilter();
 	});
 
-	// 9. Generate PDFs
-	document.getElementById("generateBtn")?.addEventListener("click", generatePDFs);
-
+	// 9. Generate PDFs (Lineup Card Factory)
+	document.getElementById("generateBtn")
+	  ?.addEventListener("click", () => {
+		window.generateLineupPDFs?.();
+	  });
 	// 10. Template navigation
 	document.getElementById("prevTemplate")?.addEventListener("click", () => {
 		if (!window.TEMPLATE_LIST.length) return;

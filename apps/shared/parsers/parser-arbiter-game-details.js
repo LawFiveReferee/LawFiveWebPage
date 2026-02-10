@@ -1,4 +1,3 @@
-import ScheduleParser from "./schedule-parser.js";
 
 function parseArbiterGameDetails(rawText) {
   const lines = rawText

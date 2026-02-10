@@ -31,22 +31,22 @@ window.$ = (sel) => document.querySelector(sel);
 /* ================================
    1. Load Shared Core Modules
 ================================== */
+// Core schedule parser registry (defines window.ScheduleParser)
+import "../../shared/schedule-parser.js";
+console.log("✅ ScheduleParser loaded");
 
-// Shared parsers (must come first)
-import "../../shared/parser-arbiter-game-details.js";
-import "../../shared/parser-arbiter-plain-text.js";
-console.log("✅ Shared basic parsers loaded");
+// Register all built-in + user parsers
+import "../../shared/parsers/index.js";
+console.log("✅ Parsers registered");
 
 // Shared schedule parser + store
-import "../../shared/schedule-parser.js";
-import "../../shared/schedule-store-v2.js";
+ import "../../shared/schedule-store-v2.js";
 ScheduleStoreV2 ||= ScheduleStore; // ← Ensure attached to window
 console.log("✅ Shared schedule parser/store loaded");
 
 // Shared team + parser registry
 import "../../shared/team-store.js";
-import "../../shared/parser-store.js";
-console.log("✅ Shared team + parser store loaded");
+ console.log("✅ Shared team loaded");
 
 // Shared UI (carousel + DOM helpers)
 import "../../shared/carousel-ui.js";
@@ -79,25 +79,18 @@ window.updateSelectedCountUI = updateSelectedCountUI;
 import "../../shared/pdf-utils.js";
 console.log("✅ pdf-utils loaded");
 
+import "../../shared/pdf-controller.js";
+console.log("✅ pdf-controller loaded");
+
+import "../../shared/pdf-engine.js";
+console.log("✅ pdf-engine loaded");
+
 /* ================================
    2. Factory-specific Modules
 ================================== */
 
-// Helpers + standardizers
-import "./parser-standardizer.js";
 
-// Shared parsers
-import "../../shared/parser-arbiter-game-details.js";
-import "../../shared/parser-arbiter-plain-text.js";
-//import "../../shared/parser-arbiter-csv-schedule.js";
-import "../../shared/parser-arbiter.js";
-import "../../shared/parser-ayso.js";
-import "../../shared/parser-csv.js";
-import "../../shared/parser-compact.js";
-import "../../shared/parser-glendale-table.js";
-import "../../shared/parser-generic-mapper.js";
 
-console.log("✅ GameCard parsers loaded");
 
 import "../../shared/utils.js";
 
@@ -123,12 +116,9 @@ console.log("✅ app.js loaded via module-loader");
   try {
     // Wait for required elements to appear in DOM
     await waitForElement("#rawInput");
-    await waitForElement("#parserSelect");
     await waitForElement("#parseScheduleBtn");
 
-    if (typeof populateParserSelect === "function") {
-      populateParserSelect();
-    }
+
 
     if (typeof initSharedScheduleUIv2 === "function") {
       initSharedScheduleUIv2();

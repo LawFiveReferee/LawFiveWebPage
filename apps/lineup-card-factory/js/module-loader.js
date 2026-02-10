@@ -26,10 +26,25 @@ function waitForElement(selector, timeout = 1000) {
 /* ================================
    Shared Modules (must load first)
 ================================== */
+
 window.games = games; // wherever `games` is defined
 window.$ = (sel) => document.querySelector(sel);
 import "../../shared/pdf-utils.js";
 console.log("✅ pdf-utils loaded");
+
+// Core schedule parser registry (defines window.ScheduleParser)
+import "../../shared/schedule-parser.js";
+console.log("✅ ScheduleParser loaded");
+
+// Register all built-in + user parsers
+import "../../shared/parsers/index.js";
+console.log("✅ Parsers registered");
+
+import "../../shared/pdf-controller.js";
+console.log("✅ pdf-controller loaded");
+
+import "../../shared/pdf-engine.js";
+console.log("✅ pdf-engine loaded");
 
 
 import "../../shared/schedule-store-v2.js";
@@ -45,32 +60,17 @@ import "../../shared/status.js";
 console.log("✅ shared/status.js loaded");
 
 
-/* ================================
-   Shared Parsers
-================================== */
-import "../../shared/parser-arbiter-game-details.js";
-console.log("✅ parser-arbiter-game-details loaded");
-
-
-import "../../shared/parser-arbiter-plain-text.js";
-console.log("✅ parser-arbiter-plain-text.js loaded");
 
 // Shared constants (if needed)
 import "../../shared/constants.js";
 console.log("✅ shared/constants.js loaded");
 
-// Shared schedule parser + schedule store v2 + shared schedule UI v2
-import "../../shared/schedule-parser.js";
-console.log("✅ shared/schedule-parser.js loaded");
 
 if (typeof populateParserSelect === "function") populateParserSelect();
 
 // Shared team store, parser store, etc.
 import "../../shared/team-store.js";
 console.log("✅ shared/team-store.js loaded");
-
-import "../../shared/parser-store.js";
-console.log("✅ shared/parser-store.js loaded");
 
 // Shared UI support
 import "../../shared/carousel-ui.js";
@@ -95,20 +95,8 @@ console.log("✅ dom-helpers.js (shared)loaded");
 import { refreshScheduleDropdown } from "../../shared/utils.js";
 
 
-// Parser standardization (legacy)
-//import "./parser-standardizer.js";
-//console.log("✅ parser-standardizer.js loaded");
 
 // Legacy parser mappings (if still used)
-//import "./parser.js";
-//console.log("✅ parser.js loaded");
-
-//import "./parser-ayso.js";
-//console.log("✅ parser-ayso.js loaded");
-
-// Generic mapper and other parser support
-//import "./parser-generic-mapper.js";
-//console.log("✅ parser-generic-mapper.js loaded");
 
 import "../../shared/team-store.js"
 console.log("✅ team-store.js loaded");

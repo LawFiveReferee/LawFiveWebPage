@@ -5,8 +5,11 @@ window.$ = $;
 window.$all = $all;
 
 /* ============================================================
-   Collapsible Panels — robust and DOM‑safe
+// Legacy no-op (parser dropdown removed)
 ============================================================ */
+window.populateParserSelect = function () {
+  console.warn("⚠️ populateParserSelect() called, but parser dropdown is deprecated.");
+};
 
 /* ============================================================
    Collapsible Panels — robust initializer
