@@ -38,7 +38,7 @@ export function parseGenericSchedule(rawText) {
 	}
 	return rawList.map(normalizeGameObject);
 }
-
+window.parseGenericSchedule = parseGenericSchedule;
 // Add other shared parser wrappers here if needed.
 // Example:
 // export function parseArbiterSchedule(rawText) { ... }

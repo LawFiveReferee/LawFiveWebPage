@@ -39,6 +39,8 @@ console.log("✅ ScheduleParser loaded");
 import "../../shared/parsers/index.js";
 console.log("✅ Parsers registered");
 
+
+
 // Shared schedule parser + store
  import "../../shared/schedule-store-v2.js";
 ScheduleStoreV2 ||= ScheduleStore; // ← Ensure attached to window
@@ -49,15 +51,14 @@ import "../../shared/team-store.js";
  console.log("✅ Shared team loaded");
 
 // Shared UI (carousel + DOM helpers)
+
 import "../../shared/carousel-ui.js";
-console.log("✅ Shared carousel  loaded");
+console.log("✅ shared/carousel-ui.js loaded");
 
 
 import "../../shared/dom-helpers.js";
 console.log("✅ DOM helpers loaded");
 
-import { refreshImportCarousel } from "../../shared/carousel-ui.js";
-console.log("✅ Shared carousel + DOM helpers loaded");
 
 // Shared schedule UI (after everything else)
 import "../../shared/schedule-ui-v2.js";
@@ -95,7 +96,7 @@ console.log("✅ pdf-engine loaded");
 import "../../shared/utils.js";
 
 // UI modules
-import "./mapping-ui.js";
+import "../../shared/mapping-ui.js";
 import "./filter-rules.js";
 import "./bulk-edit.js";
 console.log("✅ GameCard UI modules loaded");
@@ -116,8 +117,7 @@ console.log("✅ app.js loaded via module-loader");
   try {
     // Wait for required elements to appear in DOM
     await waitForElement("#rawInput");
-    await waitForElement("#parseScheduleBtn");
-
+	await waitForElement("#parseBtn");
 
 
     if (typeof initSharedScheduleUIv2 === "function") {

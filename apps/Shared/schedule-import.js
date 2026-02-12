@@ -2,33 +2,10 @@
  * Handles parsing a raw schedule string using a selected parser
  */
 
-(function(global) {
-  "use strict";
+(function(global)   "use strict";
 
-  function parseAndImport(rawText, parserKey) {
-    if (!rawText || !parserKey) {
-      console.warn("parseAndImport called without required inputs.");
-      return [];
-    }
 
-    var selectedParser = (global.BUILT_IN_PARSERS || []).find(function(p) {
-      return p.key === parserKey;
-    });
 
-    if (!selectedParser || typeof selectedParser.parse !== "function") {
-      console.error("Parser not found or invalid:", parserKey);
-      return [];
-    }
-
-    try {
-      var games = selectedParser.parse(rawText);
-      console.log("✅ Parsed " + games.length + " games");
-      return games;
-    } catch (err) {
-      console.error("Error while parsing with " + parserKey + ":", err);
-      return [];
-    }
-  }
 function renderPreviewCards() {
   const container = document.getElementById("previewCardContainer");
   console.log("🔄 renderPreviewCards() called…");

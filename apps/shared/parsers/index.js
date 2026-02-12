@@ -6,46 +6,27 @@
 import "../schedule-parser.js";
 
 // --------------------------------------------------
-// Built-in parsers (self-registering)
+// Built-in parsers (side-effect registration)
 // --------------------------------------------------
 import "./parser-arbiter-plain-text.js";
+import "./parser-arbiter-game-details.js";
 import "./parser-arbiter-email.js";
 import "./parser-arbiter-csv-schedule.js";
-import "./parser-arbiter-game-details.js";
-import "./parser-arbiter.js";
-
 import "./parser-ayso.js";
 import "./parser-ayso-playoffs.js";
-
 import "./parser-compact.js";
 import "./parser-csv.js";
-import "./parser-glendale-table.js";
+import "./parser-generic-mapper.js"; // registers generic + mapper
+
+console.log("✅ All parsers registered");
 
 // --------------------------------------------------
-// User-defined mapping parsers (via ParserStore)
+// Thin helpers for UI
 // --------------------------------------------------
-try {
-  const store = window.ParserStore;
-
-  if (store?.loadSavedParsers) {
-    const mappings = store.loadSavedParsers() || [];
-
-    mappings.forEach(mapping => {
-      if (!mapping?.key || typeof mapping.parse !== "function") return;
-
-      ScheduleParser.registerParser({
-        key: mapping.key,
-        name: mapping.name || mapping.key,
-        parse: raw => mapping.parse(raw)
-      });
-    });
-
-    if (mappings.length) {
-      console.log(`🧩 Registered ${mappings.length} user parser mapping(s)`);
-    }
-  }
-} catch (err) {
-  console.error("❌ Failed to load user parser mappings:", err);
+export function getAllParsers() {
+  return ScheduleParser.getParserList();
 }
 
-console.log("✅ All parsers loaded and registered");
+export function getParserByKey(key) {
+  return ScheduleParser.findParser(key);
+}

@@ -23,7 +23,6 @@ console.log("App.js loaded");
 // Unified current game list for views & bulk edit UI
 // Parser key for schedule import / parsing
 window.selectedParserIndex = 0;
-window.selectedParserKey = null;
 
 // Unified current game list for views & bulk edit UI
 window.GAME_LIST = [];
@@ -32,7 +31,7 @@ window.games = games;
 // Templates (if used elsewhere)
 window.selectedTemplateIndex = 0;
 window.TEMPLATE_LIST = [];
-
+window.initParserCarouselControls?.();
 
 import {
   generalFields,
@@ -56,37 +55,6 @@ function loadSavedGenericMapperProfiles() {
 	return raw ? JSON.parse(raw) : []; // [{ key, name }]
 }
 
-function registerGenericMapperProfile(profileKey, profileName) {
-	if (!profileKey) return;
-
-const sel = document.getElementById("parserSelect");
-const parserKey = sel?.value || "generic";
-const existing = PARSER_LIST.find(p => p.key === parserKey);
-
-	if (!existing) {
-		PARSER_LIST.push({
-			key: parserKey,
-			name: `User Defined Mapper (TSV/CSV): ${profileName}`,
-			description: "User-saved column mapping profile.",
-			parseFn: (raw) => window.parseGenericMapped(raw, profileKey),
-			mappingProfileKey: profileKey
-		});
-	} else {
-		existing.name = `User Defined Mapper (TSV/CSV): ${profileName}`;
-		existing.description = "User-saved column mapping profile.";
-		existing.parseFn = (raw) => window.parseGenericMapped(raw, profileKey);
-		existing.mappingProfileKey = profileKey;
-	}
-
-	const idx = PARSER_LIST.findIndex(p => p.key === parserKey);
-	if (idx >= 0) {
-		selectedParserIndex = idx;
-		selectedParserKey = PARSER_LIST[idx].key;
-		refreshParserCarousel();
-	}
-}
-
-window.registerGenericMapperProfile = registerGenericMapperProfile;
 
 /* ============================================================
    Load parsers from JSON and bind to window functions
@@ -145,177 +113,7 @@ async function onParseScheduleClicked() {
   }
 }
 
-/* ============================================================
-   Parser Carousel
-============================================================ */
 
-
-function refreshParserCarousel() {
-  const list = window.ParserStore?.getParserList?.() || [];
-
-  const nameEl = document.getElementById("parserName");
-  const descEl = document.getElementById("parserDescription");
-
-  if (!list.length) {
-    if (nameEl) nameEl.textContent = "(No parsers available)";
-    if (descEl) descEl.textContent = "";
-    selectedParserIndex = 0;
-    selectedParserKey = null;
-    return;
-  }
-
-  // Clamp index safely
-  if (
-    typeof selectedParserIndex !== "number" ||
-    selectedParserIndex < 0 ||
-    selectedParserIndex >= list.length
-  ) {
-    selectedParserIndex = 0;
-  }
-
-  const parser = list[selectedParserIndex];
-  if (!parser) return;
-
-  selectedParserKey = parser.key;
-
-  // Update visible UI
-  if (nameEl) {
-    nameEl.textContent = parser.name || parser.key || "(Unnamed parser)";
-  }
-
-  if (descEl) {
-    descEl.textContent = parser.description || "";
-  }
-
-  // Attach parser key to raw input for import logic
-  const rawInputEl = document.getElementById("rawInput");
-  if (rawInputEl && parser.key) {
-    rawInputEl.setAttribute("data-parser-key", parser.key);
-  }
-
-  // Update mapping / delete buttons if present
-  if (typeof window.updateMappingButtons === "function") {
-    window.updateMappingButtons();
-  }
-}
-
-window.refreshParserCarousel = refreshParserCarousel;
-
-
-
-function initParserCarouselControls() {
-	const prevBtn = $("#prevParser");
-	const nextBtn = $("#nextParser");
-
-	const editBtn = document.getElementById("editMappingBtn");
-	const deleteBtn = document.getElementById("deleteMappingProfileBtn");
-
-	if (!prevBtn || !nextBtn) return;
-
-	function isGenericMapperParser(p) {
-		return !!p && (
-			p.key === "generic-mapper" ||
-			(typeof p.key === "string" && p.key.startsWith("generic-mapper:"))
-		);
-	}
-
-	function isCustomGenericProfile(p) {
-		return !!p && (typeof p.key === "string" && p.key.startsWith("generic-mapper:"));
-	}
-
-	function getProfileKeyFromParser(p) {
-		if (!p || typeof p.key !== "string") return null;
-		if (!p.key.startsWith("generic-mapper:")) return null;
-		return p.key.slice("generic-mapper:".length);
-	}
-
-	function loadGenericMapperProfiles() {
-		try {
-			const raw = localStorage.getItem("genericMapperProfiles");
-			const arr = raw ? JSON.parse(raw) : [];
-			return Array.isArray(arr) ? arr : [];
-		} catch {
-			return [];
-		}
-	}
-
-	function saveGenericMapperProfiles(arr) {
-		localStorage.setItem("genericMapperProfiles", JSON.stringify(Array.isArray(arr) ? arr : []));
-	}
-
-	function updateMappingButtons() {
-		const list = window.ParserStore?.getParserList?.() || [];
-		if (!list.length) return;
-
-		const parser = list[selectedParserIndex];
-		if (!parser) return;
-
-		// You can add UI updates here if needed (e.g., enabling/disabling buttons)
-	}
-	window.updateMappingButtons = updateMappingButtons;
-
-	function selectIndex(newIndex) {
-		const parserList = window.ParserStore?.getParserList?.() || [];
-		if (!parserList.length) return;
-
-		selectedParserIndex = (newIndex + parserList.length) % parserList.length;
-		selectedParserKey = parserList[selectedParserIndex].key;
-
-		const rawInputEl = document.getElementById("rawInput");
-		if (rawInputEl && parserList[selectedParserIndex]) {
-			rawInputEl.setAttribute("data-parser-key", parserList[selectedParserIndex].key);
-		}
-
-		refreshParserCarousel?.();
-		updateMappingButtons?.();
-	}
-
-	prevBtn.addEventListener("click", () => selectIndex(selectedParserIndex - 1));
-	nextBtn.addEventListener("click", () => selectIndex(selectedParserIndex + 1));
-
-	if (deleteBtn) {
-		deleteBtn.addEventListener("click", () => {
-			const parserList = window.ParserStore?.getParserList?.() || [];
-			if (!parserList.length) return;
-
-			const p = parserList[selectedParserIndex];
-			if (!isCustomGenericProfile(p)) return;
-
-			const profileKey = getProfileKeyFromParser(p);
-			if (!profileKey) return;
-
-			const profileName = (p.name || "").replace(/^User Defined Mapper \(TSV\/CSV\):\s*/i, "") || profileKey;
-			const ok = confirm(`Delete saved mapper "${profileName}"?`);
-			if (!ok) return;
-
-			const profiles = loadGenericMapperProfiles();
-			const nextProfiles = profiles.filter(x => x && x.key !== profileKey);
-			saveGenericMapperProfiles(nextProfiles);
-
-			// Remove from in-memory list
-			window.ParserStore?.removeParserByKey?.("generic-mapper:" + profileKey);
-
-			// Update selection
-			const updatedList = window.ParserStore?.getParserList?.() || [];
-			if (!updatedList.length) {
-				selectedParserIndex = 0;
-				selectedParserKey = null;
-			} else {
-				selectedParserIndex = Math.min(selectedParserIndex, updatedList.length - 1);
-				selectedParserKey = updatedList[selectedParserIndex].key;
-			}
-
-			refreshParserCarousel?.();
-			updateMappingButtons?.();
-
-			alert("Mapper deleted.");
-		});
-	}
-
-	// Initial state
-	updateMappingButtons();
-}
-window.initParserCarouselControls = initParserCarouselControls;
 /* ============================================================
    Status Lines
 ============================================================ */
@@ -679,8 +477,9 @@ try {
     // Collapsibles + parser carousel
     initCollapsibles();
     initParserCarouselControls();
-    refreshParserCarousel();
-
+	window.updateMappingButtons?.();
+	window.refreshParserCarousel?.();
+	window.updateParserSample?.();
     // Templates
     await loadTemplates();
     initCarouselControls();
@@ -740,15 +539,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Buttons
-  const parseBtn = document.getElementById("parseScheduleBtn");
-  const applyFilterBtn = document.getElementById("applyFilterBtn");
-  const clearFilterBtn = document.getElementById("clearFilterBtn");
-  const mapBtn = document.getElementById("openMappingPanelBtn");
+   const applyFilterBtn = document.getElementById("applyFilterBtn");
 
-  if (parseBtn && typeof handleParseSchedule === "function") {
-    parseBtn.addEventListener("click", handleParseSchedule);
-  }
+   const mapBtn = document.getElementById("openMappingPanelBtn");
 
+
+if (parseBtn && typeof handleParseSchedule === "function") {
+  parseBtn.addEventListener("click", handleParseSchedule);
+}
 
   if (applyFilterBtn && typeof applyFilter === "function") {
     applyFilterBtn.addEventListener("click", applyFilter);
@@ -783,8 +581,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const parseBtn = document.getElementById("parseScheduleBtn");
-  if (parseBtn) {
+  const parseBtn = document.getElementById("parseBtn");
+
+  if (parseBtn && typeof handleParseSchedule === "function") {
     parseBtn.addEventListener("click", handleParseSchedule);
   }
 });

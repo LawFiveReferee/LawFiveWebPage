@@ -76,8 +76,9 @@ console.log("✅ shared/team-store.js loaded");
 import "../../shared/carousel-ui.js";
 console.log("✅ shared/carousel-ui.js loaded");
 
-import { refreshImportCarousel } from "../../shared/carousel-ui.js";
-console.log("✅ refreshImportCarousel function loaded");
+
+import "../../shared/carousel-ui.js";
+console.log("✅ shared/carousel-ui.js loaded");
 
 import  "../../shared/game-normalizer.js";
 
@@ -102,7 +103,7 @@ import "../../shared/team-store.js"
 console.log("✅ team-store.js loaded");
 
 // UI modules
-import "./mapping-ui.js";
+import "../../shared/mapping-ui.js";
 console.log("✅ mapping-ui.js loaded");
 
 import "./filter-rules.js";
@@ -120,25 +121,22 @@ console.log("✅ lineup-card-factory.js loaded");
    — This runs once DOMContentLoaded fires before bootLineupCardFactory()
 ================================================================= */
 
+/* ================================================================
+   INITIALIZE SHARED UI
+================================================================= */
+
 function initializeUI() {
-  // Populate parser dropdown (shared v2 UI)
+  // Legacy dropdown support (safe fallback)
   if (typeof populateParserSelect === "function") {
     populateParserSelect();
   }
 
-
-  // Refresh any legacy import carousels
-  if (typeof refreshImportCarousel === "function") {
-    refreshImportCarousel();
+  // Refresh shared import carousel
+  if (typeof window.refreshImportCarousel === "function") {
+    window.refreshImportCarousel();
   }
 }
 
-// Attach initializeUI on DOMContentLoaded
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initializeUI, { once: true });
-} else {
-  initializeUI();
-}
 
 /* ================================================================
    BOOTSTRAP: Boot the rest of the Lineup Card Factory
@@ -160,12 +158,22 @@ function bootLineupCardFactory() {
   }
 }
 
-// Only call once when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bootLineupCardFactory, { once: true });
-} else {
+
+/* ================================================================
+   DOM READY HANDLING (SINGLE ENTRY POINT)
+================================================================= */
+
+function onDomReady() {
+  initializeUI();
   bootLineupCardFactory();
+
+  if (typeof refreshScheduleDropdown === "function") {
+    refreshScheduleDropdown();
+  }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  refreshScheduleDropdown();
-});
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", onDomReady, { once: true });
+} else {
+  onDomReady();
+}

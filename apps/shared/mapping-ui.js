@@ -1,5 +1,4 @@
 console.log("Mapping UI loaded…");
-
 /* ============================================================
    Standardized Fields
 ============================================================ */
@@ -97,37 +96,88 @@ function openGenericMappingUI(headers, profileKey, raw) {
 
 window.openGenericMappingUI = openGenericMappingUI;
 
-/* ============================================================
-   SAVE MAPPING  ✅ FIXED
-============================================================ */
 function saveCurrentMapping() {
+  const state = window._mappingUIState;
+  if (!state) {
+    console.warn("Mapping state missing.");
+    return;
+  }
+
   const tableHost = document.getElementById("mappingTable");
   if (!tableHost) return;
 
+  const selects = tableHost.querySelectorAll("select[data-col-index]");
   const mappingArr = [];
 
-  tableHost.querySelectorAll("select[data-col-index]").forEach(sel => {
-    const idx = Number(sel.dataset.colIndex); // ✅ CORRECT
+  selects.forEach(sel => {
+    const idx = Number(sel.dataset.colIndex);
     mappingArr[idx] = sel.value || "";
   });
 
+  const profileKey = state.profileKey;
+  const profileName =
+    document.getElementById("mappingProfileNameInput")?.value?.trim() ||
+    profileKey;
+
   const payload = {
-    version: 1,
-    profileKey: currentProfileKey,
-    headers: currentHeaders,
+    version: 2,
+    profileKey,
+    name: profileName,
+    headers: state.headers,
+    sampleRaw: state.rawText,
     mapping: mappingArr,
     savedAt: new Date().toISOString()
   };
 
+  /* ============================================================
+     1️⃣ Save to localStorage
+  ============================================================ */
   localStorage.setItem(
-    "mapping_" + currentProfileKey,
+    "mapping_" + profileKey,
     JSON.stringify(payload)
   );
 
   console.log("✅ Mapping saved", payload);
 
-  closeMappingPanel(); // ✅ NOW EXECUTES
+  /* ============================================================
+     2️⃣ Register parser with ScheduleParser
+  ============================================================ */
+  if (window.ScheduleParser && window.parseGenericSchedule) {
+    window.ScheduleParser.registerParser({
+      key: "generic-mapper:" + profileKey,
+      name: `User Defined Mapper: ${profileName}`,
+      parse: rawText =>
+        window.parseGenericSchedule(rawText, profileKey)
+    });
+  }
 
+  console.log("✅ Parser registered:", "generic-mapper:" + profileKey);
+
+  /* ============================================================
+     3️⃣ Refresh carousel
+  ============================================================ */
+  window.refreshParserCarousel?.();
+
+  /* ============================================================
+     4️⃣ Auto-select new parser
+  ============================================================ */
+  const parsers = window.ScheduleParser?.getParserList?.() || [];
+  const idx = parsers.findIndex(
+    p => p.key === "generic-mapper:" + profileKey
+  );
+
+  if (idx >= 0) {
+    window.selectedParserIndex = idx;
+    window.selectedParserKey = parsers[idx].key;
+    window.refreshParserCarousel?.();
+  }
+
+  /* ============================================================
+     5️⃣ Close panel
+  ============================================================ */
+  closeMappingPanel();
+
+  /* Optional hook */
   if (typeof window.onMappingSaved === "function") {
     window.onMappingSaved(payload);
   }

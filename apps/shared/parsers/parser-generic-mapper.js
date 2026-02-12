@@ -20,7 +20,7 @@ function loadMapping(key) {
 }
 
 /* Main parser function */
-function parseGenericSchedule(rawText) {
+function parseGenericSchedule(rawText, profileKeyOverride){
   if (!rawText || !rawText.trim()) return [];
 
   const delimiter = "\t";
@@ -32,7 +32,7 @@ function parseGenericSchedule(rawText) {
   if (!lines.length) return [];
 
   const headers = lines[0].split(delimiter).map(h => h.trim());
-  const profileKey = "generic-default-profile";
+	const profileKey = profileKeyOverride || "generic-default-profile";
   const saved = loadMapping(profileKey);
 
   if (!saved || looksLikeData(headers)) {
@@ -77,6 +77,7 @@ function parseGenericSchedule(rawText) {
 
   return games;
 }
+window.parseGenericSchedule = parseGenericSchedule;
 
 /* Register parsers */
 ScheduleParser.registerParser({
@@ -90,3 +91,50 @@ ScheduleParser.registerParser({
   name: "Generic Schedule Mapper",
   parse: parseGenericSchedule
 });
+
+// ----------------------------------------
+// Register a mapping profile as a live parser
+// ----------------------------------------
+export function registerMappingParser(profile) {
+  if (!profile?.id || !profile.mappings) {
+    console.warn("⚠️ Invalid mapping profile:", profile);
+    return;
+  }
+
+  const parserKey = `generic-mapper:${profile.id}`;
+
+  ScheduleParser.registerParser({
+    key: parserKey,
+    name: profile.label || "Custom Parser",
+    parse(rawText) {
+      return parseWithMapping(rawText, profile);
+    }
+  });
+
+  console.log("🧩 Registered mapping parser:", parserKey);
+}
+
+// Expose globally for UI → engine bridge
+window.registerMappingParser = registerMappingParser;
+
+function registerSavedGenericProfiles() {
+  try {
+    const raw = localStorage.getItem("genericMapperProfiles");
+    const profiles = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(profiles)) return;
+
+    profiles.forEach(profile => {
+      if (!profile?.key) return;
+
+      ScheduleParser.registerParser({
+        key: "generic-mapper:" + profile.key,
+        name: `User Defined Mapper (TSV/CSV): ${profile.name || profile.key}`,
+        parse: rawText => parseGenericSchedule(rawText, profile.key)
+      });
+    });
+  } catch (err) {
+    console.warn("Failed to load saved generic profiles:", err);
+  }
+}
+
+registerSavedGenericProfiles();

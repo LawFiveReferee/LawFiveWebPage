@@ -874,119 +874,175 @@ document.getElementById("inspectTemplateBtn")?.addEventListener("click", async (
    INIT UI
 ============================================================ */
 window.initUI = function initUI() {
-	console.log("🟢 initUI() starting…");
+  console.log("🟢 initUI() starting…");
 
-	// 1. Initialize shared schedule UI (v2)
-	window.initSharedScheduleUIv2?.();
+  // --------------------------------------------------
+  // 1. Shared schedule + parser UI
+  // --------------------------------------------------
+  window.initSharedScheduleUIv2?.();
+  window.initParserCarouselControls?.();
+  window.refreshParserCarousel?.();
+  window.refreshImportCarousel?.();
 
-	// 2. Load and initialize team data
-	window.TeamStore.loadTeamsFromStorage();
-	window.initTeamDropdown?.();
+  // --------------------------------------------------
+  // 2. Load teams + ensure a selection
+  // --------------------------------------------------
+  const TeamStore = window.TeamStore;
+  if (!TeamStore) {
+    console.error("❌ TeamStore not available");
+    return;
+  }
 
-	let team = window.TeamStore.getCurrentTeam();
-	if (!team) {
-		const all = window.TeamStore.getAllTeams();
-		if (all.length > 0) {
-			window.TeamStore.selectTeamById(all[0].teamId);
-			window.initTeamDropdown?.();
-			team = window.TeamStore.getCurrentTeam();
-		}
-	}
-	renderCurrentTeamUI();
+  TeamStore.loadTeamsFromStorage();
+  window.initTeamDropdown?.();
 
-	// 3. Update section status
-	const status = document.getElementById("status-section-1-team");
-	if (status) {
-		status.textContent = team
-			? `${team.teamName?.trim() || team.teamId?.trim() || "(unnamed team)"} — Currently selected. Expand to change, view or edit teams.`
-			: "No team selected — create or load a team.";
-	}
+  let team = TeamStore.getCurrentTeam();
+  if (!team) {
+    const allTeams = TeamStore.getAllTeams();
+    if (allTeams.length) {
+      TeamStore.selectTeamById(allTeams[0].teamId);
+      team = TeamStore.getCurrentTeam();
+      window.initTeamDropdown?.();
+    }
+  }
 
-	console.log("🧠 Loaded teams:", window.TeamStore.getAllTeams());
+  renderCurrentTeamUI?.();
 
-	// 4. Team selector dropdown
-	document.getElementById("teamSelect")?.addEventListener("change", (e) => {
-		const newId = e.target.value;
-		if (newId) {
-			window.TeamStore.selectTeamById(newId);
-			renderCurrentTeamUI();
-		}
-	});
+  // Section 1 status
+  const teamStatus = document.getElementById("status-section-1-team");
+  if (teamStatus) {
+    teamStatus.textContent = team
+      ? `${team.teamName?.trim() || team.teamId} — Currently selected`
+      : "No team selected — create or load a team.";
+  }
 
+  console.log("🧠 Loaded teams:", TeamStore.getAllTeams());
 
-	// 6. Parse schedule input and prompt to save
-	document.getElementById("parseBtn")?.addEventListener("click", () => {
-		const raw = document.getElementById("rawInput")?.value.trim() || "";
-		if (!raw) return alert("Paste schedule text first.");
+  // --------------------------------------------------
+  // 3. Team selector change
+  // --------------------------------------------------
+  document.getElementById("teamSelect")?.addEventListener("change", e => {
+    const id = e.target.value;
+    if (!id) return;
+    TeamStore.selectTeamById(id);
+    renderCurrentTeamUI?.();
+  });
 
-		const selectedParserKey = window.selectedParserKey || "generic";
-		const result = ScheduleParser.parse(raw, selectedParserKey);
-		const parsedGames = result.games || [];
-		const errors = result.errors || [];
+  // --------------------------------------------------
+  // 4. Parse / Extract schedule (single authoritative path)
+  // --------------------------------------------------
+  document.getElementById("parseScheduleBtn")
+    ?.addEventListener("click", () => {
+      const raw = document.getElementById("rawInput")?.value?.trim();
+      if (!raw) {
+        alert("Paste schedule text first.");
+        return;
+      }
 
-		if (errors.length) console.warn("Parse errors:", errors);
-		if (!parsedGames.length) return;
+      const parserKey = window.selectedParserKey || "generic";
+      console.log("🛠 Parsing schedule using:", parserKey);
 
-		window.GAME_LIST = parsedGames.map(g => normalizeParsedGame(g, selectedParserKey));
-		renderPreviewCards();
-		updateStatusLines();
+      const result = ScheduleParser.parse(raw, parserKey);
+      const parsedGames = Array.isArray(result.games) ? result.games : [];
 
+      if (!parsedGames.length) {
+        console.warn("⚠️ No games parsed.");
+        updateStatusLines?.();
+        return;
+      }
 
-		const defaultName = raw.split(/\r?\n/)[0]?.trim() || `Schedule ${new Date().toLocaleDateString()}`;
-		window.showSaveScheduleModal(defaultName);
+      window.GAME_LIST = parsedGames.map(g =>
+        normalizeParsedGame(g, parserKey)
+      );
 
-		// Auto-select a team if none selected
-		const currentTeam = window.TeamStore?.getCurrentTeam?.();
-		const allTeams = window.TeamStore?.getAllTeams?.() || [];
-		if (!currentTeam && allTeams.length > 0) {
-			console.log("🟢 No team selected — auto‑selecting first team");
-			window.TeamStore.selectTeamById(allTeams[0].teamId);
-			renderCurrentTeamUI();
-		}
-	});
+      renderPreviewCards?.();
+      updateStatusLines?.();
 
-	// 7. Clear schedule textarea
-	document.getElementById("clearScheduleBtn")?.addEventListener("click", () => {
-		document.getElementById("rawInput").value = "";
-		window.GAME_LIST = [];
-		updateStatusLines();
+      // Prompt save
+      const defaultName =
+        raw.split(/\r?\n/)[0]?.trim() ||
+        `Schedule ${new Date().toLocaleDateString()}`;
 
-	});
+      window.showSaveScheduleModal?.(defaultName);
 
-	// 8. Filter controls
-	document.getElementById("applyFilterBtn")?.addEventListener("click", applyFilter);
-	document.getElementById("clearFilterBtn")?.addEventListener("click", () => {
-		document.getElementById("filterInput").value = "";
-		applyFilter();
-	});
+      // Ensure a team is selected
+      if (!TeamStore.getCurrentTeam()) {
+        const all = TeamStore.getAllTeams();
+        if (all.length) {
+          TeamStore.selectTeamById(all[0].teamId);
+          renderCurrentTeamUI?.();
+        }
+      }
+    });
 
-	// 9. Generate PDFs (Lineup Card Factory)
-	document.getElementById("generateBtn")
-	  ?.addEventListener("click", () => {
-		window.generateLineupPDFs?.();
-	  });
-	// 10. Template navigation
-	document.getElementById("prevTemplate")?.addEventListener("click", () => {
-		if (!window.TEMPLATE_LIST.length) return;
-		window.selectedTemplateIndex = (window.selectedTemplateIndex + window.TEMPLATE_LIST.length - 1) % window.TEMPLATE_LIST.length;
-		refreshTemplateCarousel();
-	});
-	document.getElementById("nextTemplate")?.addEventListener("click", () => {
-		if (!window.TEMPLATE_LIST.length) return;
-		window.selectedTemplateIndex = (window.selectedTemplateIndex + 1) % window.TEMPLATE_LIST.length;
-		refreshTemplateCarousel();
-	});
+  // --------------------------------------------------
+  // 5. Clear schedule
+  // --------------------------------------------------
+  document.getElementById("clearScheduleBtn")
+    ?.addEventListener("click", () => {
+      const raw = document.getElementById("rawInput");
+      if (raw) raw.value = "";
+      window.GAME_LIST = [];
+      updateStatusLines?.();
+    });
 
-	// 11. Final refresh
-	loadTemplates().then(refreshTemplateCarousel);
-	refreshImportCarousel();
+  // --------------------------------------------------
+  // 6. Filters
+  // --------------------------------------------------
+  document.getElementById("applyFilterBtn")
+    ?.addEventListener("click", applyFilter);
 
-	window.addEventListener("scheduleImported", () => {
-		renderPreviewCards?.();
-		updateStatusLines();
-	});
+  document.getElementById("clearFilterBtn")
+    ?.addEventListener("click", () => {
+      const input = document.getElementById("filterInput");
+      if (input) input.value = "";
+      applyFilter();
+    });
+
+  // --------------------------------------------------
+  // 7. PDF generation (Lineup factory)
+  // --------------------------------------------------
+  document.getElementById("generateBtn")
+    ?.addEventListener("click", () => {
+      window.generateLineupPDFs?.();
+    });
+
+  // --------------------------------------------------
+  // 8. Template navigation
+  // --------------------------------------------------
+  document.getElementById("prevTemplate")
+    ?.addEventListener("click", () => {
+      if (!window.TEMPLATE_LIST?.length) return;
+      window.selectedTemplateIndex =
+        (window.selectedTemplateIndex - 1 + window.TEMPLATE_LIST.length) %
+        window.TEMPLATE_LIST.length;
+      refreshTemplateCarousel?.();
+    });
+
+  document.getElementById("nextTemplate")
+    ?.addEventListener("click", () => {
+      if (!window.TEMPLATE_LIST?.length) return;
+      window.selectedTemplateIndex =
+        (window.selectedTemplateIndex + 1) %
+        window.TEMPLATE_LIST.length;
+      refreshTemplateCarousel?.();
+    });
+
+  // --------------------------------------------------
+  // 9. Templates + final refresh
+  // --------------------------------------------------
+  loadTemplates()
+    .then(() => refreshTemplateCarousel?.())
+    .catch(err => console.error("Template load failed:", err));
+
+  // React to saved schedule import
+  window.addEventListener("scheduleImported", () => {
+    renderPreviewCards?.();
+    updateStatusLines?.();
+  });
+
+  console.log("✅ initUI() complete");
 };
-
 // Refresh UI
 // ─── LOAD SAVED SCHEDULES ───────────────────────────────────
 

@@ -38,36 +38,111 @@
 	<h1>Lineup Card Factory</h1>
 	<div id="generateStatus" class="section-status"></div>
   <p class="intro-blurb">
-    <strong>Paste a schedule, Enter team info and plyaer lineup, preview game cards, and lineup card or rosterPDFs.</strong>
+    <strong>Paste a schedule, Enter team info and player lineup, preview game cards, and lineup card or rosterPDFs.</strong>
   </p>
 	<!-- ============================================================ -->
 	<!-- Colllaspible Sections -->
 	<!-- ============================================================ -->
-	<!-- ======================= -->
-	<!-- 1. Schedule Import -->
-	<!-- ======================= -->
+	<!-- ============================================================ -->
+	<!-- 1. Import & Extract Schedule -->
+	<!-- ============================================================ -->
+
 	<section class="collapsible-panel" id="section-schedule-import">
-	  <button type="button" class="collapsible-header">
-		<span class="collapsible-icon">+</span>
-		<span class="collapsible-title">1. Import & Extract Schedule</span>
-	  </button>
 
-	  <p class="section-subtitle">Paste a schedule and extract game data.</p>
+  <button type="button" class="collapsible-header">
+    <span class="collapsible-icon">−</span>
+    <span class="collapsible-title">
+      1. Import & Extract Schedule
+    </span>
+  </button>
 
-	  <div class="collapsible-body">
+  <div class="collapsible-body">
 
+	<!-- ===============================
+			 Parser Carousel
+	================================ -->
+	<div class="parser-carousel">
 
-		<!-- Paste Area -->
-		<label for="rawInput">Paste Schedule Text:</label>
-		<textarea id="rawInput" class="import-textarea" placeholder="Paste schedule text here…"></textarea>
+		<button id="prevParser" class="carousel-arrow left">
+			◀
+		</button>
 
-		<!-- Parse Buttons -->
-		<div class="button-group">
-		  <button id="parseScheduleBtn" class="btn">Extract Games</button>
-		  <span id="scheduleParseStatus" class="parse-status">No schedule parsed</span>
+		<div class="parser-info">
+			<div id="parserName" class="parser-name">
+				(No parsers available)
+			</div>
+			<div id="parserDescription" class="parser-description"></div>
 		</div>
-	  </div>
-	</section>
+
+		<button id="nextParser" class="carousel-arrow right">
+			▶
+		</button>
+
+	</div>
+    <!-- ===============================
+         Mapping Action Buttons
+         (Only visible for custom mappers)
+    ================================ -->
+	<div id="mappingActionBar" class="mapping-action-bar" style="display:none;">
+      <button id="editMappingBtn" class="btn small">
+        ✏️ Edit Mapping
+      </button>
+
+      <button id="deleteMappingProfileBtn" class="btn small danger">
+        🗑 Delete Mapping
+      </button>
+
+    </div>
+
+
+    <!-- ===============================
+         Raw Schedule Input
+    ================================ -->
+    <label for="rawInput" class="section-label">
+      Paste Schedule Text:
+    </label>
+
+    <textarea
+      id="rawInput"
+      class="import-textarea"
+      placeholder="Paste schedule text here…"
+      data-parser-key="">
+    </textarea>
+
+
+    <!-- ===============================
+         Extract Button + Status
+    ================================ -->
+    <div class="button-group">
+
+      <button id="parseBtn" class="btn primary">
+        Extract Games
+      </button>
+
+      <span id="scheduleParseStatus" class="parse-status">
+        No schedule parsed
+      </span>
+
+    </div>
+
+
+    <!-- ===============================
+         Parser Sample Preview
+         (Step 6)
+    ================================ -->
+    <div id="parserSample" class="parser-sample" hidden>
+
+      <h4>Parsed Output (raw)</h4>
+      <pre id="parsedPreview"></pre>
+
+      <h4>Normalized Output (final schema)</h4>
+      <pre id="normalizedPreview"></pre>
+
+    </div>
+
+  </div>
+</section>
+
 	<!-- ============================ -->
 	<!-- 2. Saved Schedule -->
 	<!-- ============================ -->

@@ -70,7 +70,7 @@ export function handleParseSchedule(options = {}) {
 
   // ---- Elements
   const rawInputEl = document.getElementById(rawInputId);
-  const parserSelectEl = document.getElementById(parserSelectId);
+
   const displayEl = document.getElementById(outputDisplayId);
 
   // ---- Validate input
@@ -79,11 +79,14 @@ export function handleParseSchedule(options = {}) {
     throw new Error("No schedule text provided");
   }
 
-  const parserKey = parserSelectEl?.value;
-  if (!parserKey) {
-    throw new Error("No parser selected");
-  }
+	const parserKey =
+	  window.selectedParserKey ||
+	  document.getElementById("rawInput")?.dataset?.parserKey;
 
+	if (!parserKey) {
+	  console.warn("⚠️ No parser selected.");
+	  return;
+	}
   // ---- Persist parser selection
   window.selectedParserKey = parserKey;
   localStorage.setItem("selectedScheduleParserKey", parserKey);
