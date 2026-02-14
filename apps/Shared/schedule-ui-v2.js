@@ -32,6 +32,7 @@
       sel.value = lastSelected;
     }
   }
+
 function loadScheduleByName(name) {
   if (!name) {
     alert("Select a schedule first.");
@@ -44,30 +45,45 @@ function loadScheduleByName(name) {
     return;
   }
 
-  // 1. Load games (single source of truth)
-  window.GAME_LIST = Array.isArray(sched.parsedGames)
-    ? sched.parsedGames
+  console.log("📦 Loading schedule:", sched);
+
+  // Persist active schedule
+  if (sched.id) {
+    localStorage.setItem("currentScheduleIdV2", sched.id);
+  }
+
+  // Clone parsed games
+  const cloned = Array.isArray(sched.parsedGames)
+    ? JSON.parse(JSON.stringify(sched.parsedGames))
     : [];
 
-  // 2. Initialize selection (sets g.selected = true)
-  initializeGameSelection(window.GAME_LIST);
+  window.GAME_LIST = cloned;
 
-  // 3. Optional UI sync
+  console.log("🎮 GAME_LIST length:", window.GAME_LIST.length);
+
+  // 🔥 IMPORTANT: Initialize selection explicitly
+  window.GAME_LIST.forEach(g => {
+    g.selected = true;
+  });
+
+  // Sync raw input
   const rawInput = document.getElementById("rawInput");
   if (rawInput) {
     rawInput.value = sched.rawText || "";
   }
 
+  // Update JSON display
   const display = document.getElementById("currentScheduleDisplay");
   if (display) {
     display.value = JSON.stringify(window.GAME_LIST, null, 2);
   }
 
-  // 4. Persist last selection
   localStorage.setItem("lastSelectedSchedule", name);
 
-  // 5. Render + status (single unified hook)
-  onSelectionChanged();
+  // Render
+  if (typeof window.onSelectionChanged === "function") {
+    window.onSelectionChanged();
+  }
 }
   function attachLoadListener() {
     const btn = document.getElementById(loadBtnId);
@@ -95,6 +111,11 @@ function loadScheduleByName(name) {
       refreshScheduleDropdown();
 
       window.GAME_LIST = loadedGames;
+      const loadStatus = document.getElementById("scheduleLoadStatus");
+		if (loadStatus) {
+		  loadStatus.textContent =
+			`${window.GAME_LIST.length} games loaded from schedule.`;
+		}
 		initializeGameSelection(window.GAME_LIST);
 		onSelectionChanged();
 
@@ -115,13 +136,20 @@ function loadScheduleByName(name) {
 
       const schedule = ScheduleStoreV2.getScheduleByName(oldName);
       if (!schedule) return alert("Schedule not found.");
-
+		if (sched?.id) {
+  			localStorage.setItem("currentScheduleIdV2", sched.id);
+		}
       ScheduleStoreV2.deleteScheduleByName(oldName);
       schedule.name = newName.trim();
       ScheduleStoreV2.saveSchedule(schedule);
 
       refreshScheduleDropdown();
 		window.GAME_LIST = loadedGames;
+		const loadStatus = document.getElementById("scheduleLoadStatus");
+		if (loadStatus) {
+		  loadStatus.textContent =
+			`${window.GAME_LIST.length} games loaded from schedule.`;
+		}
 		initializeGameSelection(window.GAME_LIST);
 		onSelectionChanged();
 
@@ -129,45 +157,73 @@ function loadScheduleByName(name) {
     });
   }
 
-  function attachSaveModalLogic() {
-    const confirmBtn = document.getElementById(saveConfirmBtnId);
-    const cancelBtn = document.getElementById(saveCancelBtnId);
-    const input = document.getElementById(scheduleNameInputId);
-    const modal = document.getElementById(saveModalId);
+ function attachSaveModalLogic() {
+  const confirmBtn = document.getElementById(saveConfirmBtnId);
+  const cancelBtn  = document.getElementById(saveCancelBtnId);
+  const input      = document.getElementById(scheduleNameInputId);
+  const modal      = document.getElementById(saveModalId);
 
-    if (!modal || !input || !confirmBtn || !cancelBtn) {
-      console.warn("⚠️ Save schedule modal elements missing.");
+  if (!modal || !input || !confirmBtn || !cancelBtn) {
+    console.warn("⚠️ Save schedule modal elements missing.");
+    return;
+  }
+
+  // Prevent duplicate bindings if init runs twice
+  if (confirmBtn.dataset.bound === "1") return;
+  confirmBtn.dataset.bound = "1";
+  cancelBtn.dataset.bound = "1";
+
+  const hideModal = () => {
+    modal.classList.add("hidden");
+    input.value = "";
+  };
+
+  cancelBtn.addEventListener("click", () => {
+    hideModal();
+  });
+
+  confirmBtn.addEventListener("click", () => {
+    const name = (input.value || "").trim();
+    if (!name) {
+      alert("Schedule name required.");
+      input.focus();
       return;
     }
 
-    confirmBtn.addEventListener("click", () => {
-      const name = input.value.trim();
-      if (!name) {
-        alert("Schedule name required.");
-        return;
-      }
+    const rawText = document.getElementById("rawInput")?.value || "";
+    const parserKey = window.selectedParserKey || "";
 
-      const rawText = document.getElementById("rawInput")?.value || "";
+    // Defensive clone so later UI edits don't mutate the stored schedule
+    const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+    const parsedGames = JSON.parse(JSON.stringify(games));
 
-      ScheduleStoreV2.saveSchedule({
-        name,
-        rawText,
-        parserKey: window.selectedParserKey || "",
-        parsedGames: window.GAME_LIST || [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-
-      modal.classList.add("hidden");
-      refreshScheduleDropdown();
-      alert(`✅ Schedule "${name}" saved.`);
+    const saved = ScheduleStoreV2.saveSchedule({
+      name,
+      rawText,
+      parserKey,
+      parsedGames
     });
 
-    cancelBtn.addEventListener("click", () => {
-      modal.classList.add("hidden");
-    });
-  }
+    if (!saved || !saved.id) {
+      alert("⚠️ Could not save schedule.");
+      return;
+    }
 
+    // ✅ Persist the active schedule so navigation between factories stays in sync
+    try {
+      localStorage.setItem("currentScheduleIdV2", saved.id);
+    } catch (err) {
+      console.warn("⚠️ Could not persist currentScheduleIdV2:", err);
+    }
+
+    hideModal();
+    refreshScheduleDropdown();
+
+    // If you have a central "set current schedule display" helper, call it here.
+    // Otherwise, the dropdown refresh + existing display logic will update on next load.
+    alert(`✅ Schedule "${saved.name}" saved.`);
+  });
+}
   // 🟢 Public API
   window.refreshScheduleDropdown = refreshScheduleDropdown;
 
@@ -178,26 +234,14 @@ function loadScheduleByName(name) {
     attachRenameListener();
     attachSaveModalLogic();
 
+    // 🔄 Auto-load active schedule across factories
+    const activeId = localStorage.getItem("currentScheduleIdV2");
+    if (activeId) {
+      const active = ScheduleStoreV2.getScheduleById(activeId);
+      if (active) {
+        loadScheduleByName(active.name);
+      }
+    }
   };
+
 })();
-
-window.initializeGameSelection = function (games) {
-  if (!Array.isArray(games)) {
-    console.warn("⚠️ initializeGameSelection called with no games");
-    return;
-  }
-
-  let selectedCount = 0;
-
-  games.forEach(g => {
-    g.selected = true;   // ✅ THIS IS THE KEY
-    selectedCount++;
-  });
-
-  console.log(
-    "✅ Selection initialized:",
-    selectedCount,
-    "of",
-    games.length
-  );
-};

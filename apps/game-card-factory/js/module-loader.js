@@ -25,8 +25,7 @@ function waitForElement(selector, timeout = 1000) {
   });
 }
 // Early in your main app.js or shared script
-window.games = games; // wherever `games` is defined
-window.$ = (sel) => document.querySelector(sel);
+ window.$ = (sel) => document.querySelector(sel);
 
 /* ================================
    1. Load Shared Core Modules
@@ -64,8 +63,6 @@ console.log("✅ DOM helpers loaded");
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ Shared schedule-ui-v2.js loaded");
 
-import "../../shared/filtering.js";
-console.log("✅ shared/filtering.js loaded");
 
 
 import "../../shared/status.js";
@@ -87,7 +84,7 @@ import "../../shared/pdf-engine.js";
 console.log("✅ pdf-engine loaded");
 
 /* ================================
-   2. Factory-specific Modules
+   2. Factory-specific and shared modules
 ================================== */
 
 
@@ -97,7 +94,11 @@ import "../../shared/utils.js";
 
 // UI modules
 import "../../shared/mapping-ui.js";
-import "./filter-rules.js";
+
+import { initFilterEngine } from "../../shared/filter-engine.js";
+console.log("✅ shared/filter-engine.js loaded");
+
+
 import "./bulk-edit.js";
 console.log("✅ GameCard UI modules loaded");
 

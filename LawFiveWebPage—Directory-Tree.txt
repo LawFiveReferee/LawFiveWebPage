@@ -1,0 +1,214 @@
+LawFiveWebPage/
+├── Law Five Referee Website – Content Update Guide.md
+├── index.html
+├── rule-of-six-verifier.html
+├── /css/
+│   ├── style.css
+├── contact.html
+├── /images/
+│   ├── favicon.ico
+│   ├── /faq/
+│   │   ├── icon-plusminus.svg
+│   │   ├── icon-question-circle-hover.svg
+│   │   ├── icon-plus.svg
+│   │   ├── icon-minus.svg
+│   │   ├── icon-minus.png
+│   │   ├── icon-plus.png
+│   │   ├── icon-question-circle.svg
+│   │   ├── icon-faq.png
+│   ├── /penalty-shootout/
+│   │   ├── icon-large.png
+│   │   ├── preview.png
+│   │   ├── appstore-badge.png
+│   │   ├── /Not Used/
+│   │   │   ├── PenaltyShootoutSimulator - 13_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 12_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 14_2688.PNG
+│   │   │   ├── icon-placeholder.png
+│   │   ├── appstore-badge.svg
+│   │   ├── icon-placeholder.png
+│   │   ├── /gallery-images/
+│   │   │   ├── PenaltyShootoutSimulator - 10_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 11_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 1_2688.PNG
+│   │   │   ├── gallery.json
+│   │   │   ├── PenaltyShootoutSimulator - 6_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 7_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 2_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 3_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 8_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 9_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 5_2688.PNG
+│   │   │   ├── PenaltyShootoutSimulator - 4_2688.PNG
+│   ├── soccerfield.jpg
+│   ├── /quicklook-today/
+│   │   ├── icon-large.png
+│   │   ├── preview.png
+│   │   ├── appstore-badge.png
+│   │   ├── IMG_9769_2688.PNG
+│   │   ├── /Not Used/
+│   │   │   ├── IMG_9770_2688.PNG
+│   │   │   ├── IMG_9771_2688.PNG
+│   │   │   ├── screenshot1.jpg
+│   │   │   ├── screenshot2.jpg
+│   │   │   ├── IMG_9778_2688.PNG
+│   │   ├── appstore-badge.svg
+│   │   ├── icon-placeholder.png
+│   │   ├── /gallery-images/
+│   │   │   ├── IMG_9785_2688.PNG
+│   │   │   ├── IMG_9784_2688.PNG
+│   │   │   ├── IMG_9777_2688.PNG
+│   │   │   ├── IMG_9776_2688.PNG
+│   │   │   ├── IMG_9792_2688.PNG
+│   │   │   ├── IMG_9793_2688.PNG
+│   │   │   ├── IMG_9794_2688.PNG
+│   │   │   ├── IMG_9782_2688.PNG
+│   │   │   ├── IMG_9783_2688.PNG
+│   │   │   ├── gallery.json
+│   │   │   ├── IMG_9775_2688.PNG
+│   │   │   ├── IMG_9791_2688.PNG
+│   │   │   ├── IMG_9790_2688.PNG
+│   │   │   ├── IMG_9781_2688.PNG
+│   │   │   ├── IMG_9780_2688.PNG
+│   │   │   ├── IMG_9779_2688.PNG
+│   │   │   ├── IMG_9772_2688.PNG
+│   ├── appstore-badge.png
+│   ├── soccerfield-2.jpg
+│   ├── Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg
+│   ├── appstore-badge.svg
+│   ├── /downloads/
+│   │   ├── Two-Penalty-Shoot-out-Scorecards-thumbnail.jpg
+│   │   ├── Penalty-Shoot-out-Scorecard-thumbnail.jpg
+│   ├── favicon.svg
+├── quicklook-faq.html
+├── penalty-shootout.html
+├── quicklook-today.html
+├── downloads.html
+├── /scripts/
+│   ├── penalty-faq.json
+│   ├── downloads-loader.js
+│   ├── quicklook-today-testimonials.json
+│   ├── downloads.json
+│   ├── quicklook-today-images.json
+│   ├── gallery.js
+│   ├── penalty-shootout-testimonials.json
+│   ├── lightbox.js
+│   ├── quicklook-faq.json
+│   ├── testimonial-loader.js
+│   ├── gallery-loader.js
+│   ├── faq-loader.js
+│   ├── penalty-shootout-images.json
+├── /downloads/
+│   ├── Penalty-Shoot-out-Scorecard.pdf
+│   ├── Two-Penalty-Shoot-out-Scorecards.pdf
+│   ├── downloads.json
+│   ├── /thumbnails/
+│   │   ├── Two-Penalty-Shoot-out-Scorecards-thumbnail.png
+│   │   ├── Penalty-Shoot-out-Scorecard-thumbnail.png
+├── /apps/
+│   ├── /game-card-factory/
+│   │   ├── index.html
+│   │   ├── /css/
+│   │   │   ├── mapping-ui.css
+│   │   │   ├── fast-card-factory.css
+│   │   ├── /images/
+│   │   │   ├── soccerfield.jpg
+│   │   │   ├── favicon.svg
+│   │   ├── /js/
+│   │   │   ├── filter-rules.js
+│   │   │   ├── module-loader.js
+│   │   │   ├── dom-helpers.js
+│   │   │   ├── bulk-edit.js
+│   │   │   ├── app.js
+│   │   ├── templates.json
+│   │   ├── /components/
+│   │   │   ├── mapping-ui.html
+│   │   ├── /templates/
+│   │   │   ├── custom-blank-card.pdf
+│   │   │   ├── letter-background.pdf
+│   │   │   ├── special-blank-card.pdf
+│   │   │   ├── special-blank-card.png
+│   │   │   ├── custom-blank-card.png
+│   │   │   ├── highschool-blank-card.pdf
+│   │   │   ├── highschool-blank-card.png
+│   │   │   ├── ayso-blank-card.png
+│   │   │   ├── ayso-blank-card.pdf
+│   ├── /lineup-card-factory/
+│   │   ├── index.html
+│   │   ├── /css/
+│   │   │   ├── mapping-ui.css
+│   │   │   ├── fast-card-factory.css
+│   │   ├── /images/
+│   │   │   ├── soccerfield.jpg
+│   │   │   ├── favicon.svg
+│   │   ├── /js/
+│   │   │   ├── lineup-card-factory.js
+│   │   │   ├── filter-rules.js
+│   │   │   ├── module-loader.js
+│   │   │   ├── dom-helpers.js
+│   │   │   ├── bulk-edit.js
+│   │   ├── templates.json
+│   │   ├── /components/
+│   │   │   ├── mapping-ui.html
+│   │   ├── /templates/
+│   │   │   ├── custom-lineupcard.pdf
+│   │   │   ├── 2026-area1c-allstars-lineup.pdf
+│   │   │   ├── custom-lineupcard.png
+│   │   │   ├── /2026 AYSO All Stars Blank GlendaleFC copy/
+│   │   │   │   ├── 2026 AYSO All Stars Blank GlendaleFC copy.1.png
+│   │   │   ├── ayso-official.png
+│   │   │   ├── default.html
+│   │   │   ├── ayso-official.pdf
+│   │   │   ├── total-template.pdf
+│   │   │   ├── total-template.png
+│   │   │   ├── 2026 AYSO All Stars Blank GlendaleFC copy.pdf
+│   │   │   ├── ayso-a1sc-all-stars-lineup-card-2026.pdf
+│   │   │   ├── ayso-a1sc-all-stars-lineup-card-2026.png
+│   ├── /shared/
+│   │   ├── constants.js
+│   │   ├── schedule-ui-v2.js
+│   │   ├── filtering.js
+│   │   ├── /parsers/
+│   │   │   ├── parser-store.js
+│   │   │   ├── parser-arbiter-email.js
+│   │   │   ├── parser-standardizer.js
+│   │   │   ├── parser-ayso-playoffs.js
+│   │   │   ├── parser-glendale-table.js
+│   │   │   ├── parser-arbiter-game-details.js
+│   │   │   ├── parser-arbiter-plain-text.js
+│   │   │   ├── parser-core.js
+│   │   │   ├── parser-compact.js
+│   │   │   ├── index.js
+│   │   │   ├── parser-csv.js
+│   │   │   ├── parser-ui.js
+│   │   │   ├── parser-generic-mapper.js
+│   │   │   ├── parser-arbiter.js
+│   │   │   ├── parser-utils.js
+│   │   │   ├── parser-arbiter-csv-schedule.js
+│   │   │   ├── parser.js
+│   │   │   ├── parser-ayso.js
+│   │   ├── mapping-ui.js
+│   │   ├── carousel-ui.js
+│   │   ├── schedule-store-v2.js
+│   │   ├── schedule-parser.js
+│   │   ├── schedule-store.js
+│   │   ├── field-groups.js
+│   │   ├── game-schema.js
+│   │   ├── ui-helpers.js
+│   │   ├── team-store.js
+│   │   ├── pdf-engine.js
+│   │   ├── /components/
+│   │   │   ├── mapping-ui.js
+│   │   │   ├── mapping-ui.html
+│   │   ├── game-normalizer.js
+│   │   ├── game-utils copy.js
+│   │   ├── status.js
+│   │   ├── bulk-edit-ui.js
+│   │   ├── dom-helpers.js
+│   │   ├── utils.js
+│   │   ├── shared-factory-ui.css
+│   │   ├── schedule-import.js
+│   │   ├── pdf-controller.js
+│   │   ├── pdf-utils.js
+├── penalty-faq.html
+├── privacy.html

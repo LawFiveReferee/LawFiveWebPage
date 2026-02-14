@@ -1,11 +1,12 @@
 /* ============================================================
-   FILTER RULES — Game Card Factory
-   - Builds filter rule UI in Section 2
-   - Applies rules to window.games selection state
-   - No global $/$$ collisions
+   SHARED FILTER ENGINE
+   - Builds filter rule UI
+   - Applies rules to window.GAME_LIST selection state
+   - Used by both Game & Lineup factories
+   - IMPORTANT: No DOM work on import. Call initFilterEngine() after DOM ready.
 ============================================================ */
 
-console.log("Filter rules loading…");
+console.log("Shared filter-engine module loaded (no init yet).");
 
 /* ============================================================
    Helpers (namespaced)
@@ -13,26 +14,42 @@ console.log("Filter rules loading…");
 const FR$  = (sel) => document.querySelector(sel);
 const FR$$ = (sel) => Array.from(document.querySelectorAll(sel));
 
+function getGameList() {
+  return Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+}
+
 /* ============================================================
    Vocabulary collection (optional)
 ============================================================ */
+
 window.collectFilterVocabulary = function collectFilterVocabulary() {
   const refs  = new Set();
   const teams = new Set();
 
-  const list = window.games || [];
-  list.forEach(g => {
-    if (g.referee1) refs.add(g.referee1);
-    if (g.referee2) refs.add(g.referee2);
-    if (g.referee3) refs.add(g.referee3);
+  const list = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
 
-    if (g.home_team) teams.add(g.home_team);
-    if (g.away_team) teams.add(g.away_team);
+  list.forEach(g => {
+
+    // Collect referee names
+    if (Array.isArray(g.referees)) {
+      g.referees.forEach(r => {
+        if (r?.name) refs.add(r.name.trim());
+      });
+    }
+
+    // Collect team names
+    if (g.home_team) teams.add(g.home_team.trim());
+    if (g.away_team) teams.add(g.away_team.trim());
   });
 
-  window._refNames  = Array.from(refs).sort();
-  window._teamNames = Array.from(teams).sort();
+  window._refNames  = Array.from(refs).sort((a,b) => a.localeCompare(b));
+  window._teamNames = Array.from(teams).sort((a,b) => a.localeCompare(b));
+
+  console.log("🔎 Referee vocabulary:", window._refNames);
 };
+
+// keep backward compat with your existing global name
+window.collectFilterVocabulary = collectFilterVocabulary;
 
 /* ============================================================
    Presets (localStorage)
@@ -77,6 +94,13 @@ function deletePreset(name) {
 /* ============================================================
    Date parsing (for date rules)
 ============================================================ */
+function isoDate(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function parseIsoDateOnly(s) {
   if (!s) return null;
   const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -86,21 +110,17 @@ function parseIsoDateOnly(s) {
 }
 
 function getGameDateObj(g) {
-  // Support either match_date_obj or match_date string
   if (g && g.match_date_obj instanceof Date) return g.match_date_obj;
 
   const raw = g?.match_date || g?.date || "";
-  // try YYYY-MM-DD
   const iso = parseIsoDateOnly(raw);
   if (iso) return iso;
 
-  // try MM/DD/YYYY
   const m = String(raw).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (m) {
     const d = new Date(+m[3], +m[1] - 1, +m[2]);
     return isNaN(d.getTime()) ? null : d;
   }
-
   return null;
 }
 
@@ -109,15 +129,27 @@ function getGameDateObj(g) {
 ============================================================ */
 function textForField(g, field) {
   switch (field) {
-    case "age_division": return g.age_division || "";
+
+    case "age_division":	return g.age_division || "";
+
     case "referee":
-    case "refereeName":  return `${g.referee1 || ""} ${g.referee2 || ""} ${g.referee3 || ""}`.trim();
-    case "team":         return `${g.home_team || ""} ${g.away_team || ""}`.trim();
-    case "home":         return g.home_team || "";
-    case "away":         return g.away_team || "";
-    case "field":        return g.field || "";
-    case "location":     return g.location || "";
-    default:             return "";
+    case "refereeName":
+      if (Array.isArray(g.referees)) {
+        return g.referees
+          .map(r => r?.name || "")
+          .join(" ")
+          .trim();
+      }
+      return "";
+
+    case "team":		return `${g.home_team || ""} ${g.away_team || ""}`.trim();
+    case "home":		return g.home_team || "";
+    case "away":		return g.away_team || "";
+    case "location":	return g.location || "";
+    case "field":		return g.field || "";
+
+    default:
+      return "";
   }
 }
 
@@ -142,7 +174,6 @@ function matchDateRule(g, rule) {
   const end   = parseIsoDateOnly(rule.end);
   if (!start || !end) return false;
 
-  // normalize to date-only range
   start.setHours(0,0,0,0);
   end.setHours(23,59,59,999);
 
@@ -156,7 +187,7 @@ function gameMatchesRule(g, rule) {
 }
 
 /* ============================================================
-   Preset date ranges for date rule UI
+   Date presets (UI helper)
 ============================================================ */
 function presetDateRange(op) {
   const today = new Date();
@@ -186,16 +217,18 @@ function presetDateRange(op) {
   return null;
 }
 
-function isoDate(d) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+/* ============================================================
+   UI builders
+============================================================ */
+function escapeHtml(s) {
+  return String(s || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-/* ============================================================
-   Build one rule row
-============================================================ */
 function buildOperatorOptions(field) {
   if (field === "date") {
     return [
@@ -216,24 +249,22 @@ function buildOperatorOptions(field) {
 }
 
 function buildValueBox(field, op) {
-  // dropdown from vocabulary for refereeName/team if available
   if (field === "refereeName") {
     const list = window._refNames || [];
     const options = list.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-    return `<select class="filter-value-input">${options}</select>`;
+    return `<select class="filter-value-input"><option value=""></option>${options}</select>`;
   }
 
   if (field === "team") {
     const list = window._teamNames || [];
     const options = list.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-    return `<select class="filter-value-input">${options}</select>`;
+    return `<select class="filter-value-input"><option value=""></option>${options}</select>`;
   }
 
   if (field === "date") {
     const preset = presetDateRange(op);
     const startVal = preset ? preset.start : "";
     const endVal   = preset ? preset.end : "";
-
     return `
       <input type="date" class="date-start filter-value-input" value="${startVal}">
       <input type="date" class="date-end filter-value-input" value="${endVal}">
@@ -243,18 +274,9 @@ function buildValueBox(field, op) {
   return `<input class="filter-value-input" type="text" value="">`;
 }
 
-function escapeHtml(s) {
-  return String(s || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 function addRuleRow(afterRow = null) {
-  const cont = FR$("#filterRulesContainer");
-  if (!cont) return;
+  const cont = document.getElementById("filterRulesContainer");
+  if (!cont) return null;
 
   const row = document.createElement("div");
   row.className = "filter-rule-row";
@@ -313,7 +335,10 @@ function addRuleRow(afterRow = null) {
 
   refreshOperators();
   refreshValueBox();
+
+  return row;
 }
+
 function clearAllRuleRows() {
   const cont = document.getElementById("filterRulesContainer");
   if (cont) cont.innerHTML = "";
@@ -326,18 +351,14 @@ function setRuleRowValues(row, rule) {
 
   if (!fieldSel || !opSel || !box) return;
 
-  // Field
   fieldSel.value = rule.field || fieldSel.value;
 
-  // Rebuild operators for that field
   const ops = buildOperatorOptions(fieldSel.value);
   opSel.innerHTML = ops.map(o => `<option value="${o.v}">${o.t}</option>`).join("");
   opSel.value = rule.op || opSel.value;
 
-  // Rebuild value UI
   box.innerHTML = buildValueBox(fieldSel.value, opSel.value);
 
-  // Apply value(s)
   if (fieldSel.value === "date") {
     const startEl = row.querySelector(".date-start");
     const endEl   = row.querySelector(".date-end");
@@ -350,16 +371,10 @@ function setRuleRowValues(row, rule) {
 }
 
 function addRuleRowAndSet(rule) {
-  addRuleRow(null);
-  const rows = Array.from(document.querySelectorAll(".filter-rule-row"));
-  const row = rows[rows.length - 1];
+  const row = addRuleRow(null);
   if (row) setRuleRowValues(row, rule);
 }
 
-
-/* ============================================================
-   Read rules from UI
-============================================================ */
 function getRulesFromUI() {
   const rows = FR$$(".filter-rule-row");
   const rules = [];
@@ -367,7 +382,6 @@ function getRulesFromUI() {
   rows.forEach(row => {
     const field = row.querySelector(".filter-field-select")?.value || "";
     const op    = row.querySelector(".filter-operator-select")?.value || "";
-
     if (!field || !op) return;
 
     if (field === "date") {
@@ -388,7 +402,7 @@ function getRulesFromUI() {
    Apply rules to selection
 ============================================================ */
 function applyFilters(selectMatches) {
-  const list = window.games || [];
+  const list = getGameList();
   if (!list.length) {
     alert("No games extracted yet.");
     return;
@@ -400,7 +414,7 @@ function applyFilters(selectMatches) {
     return;
   }
 
-  const modeEl = FR$("#filterMatchMode");
+  const modeEl = document.getElementById("filterMatchMode");
   const mode = modeEl ? modeEl.value : "all"; // "any" or "all"
 
   list.forEach(g => {
@@ -408,7 +422,6 @@ function applyFilters(selectMatches) {
 
     for (const r of rules) {
       const ok = gameMatchesRule(g, r);
-
       if (mode === "any" && ok) { match = true; break; }
       if (mode === "all" && !ok) { match = false; break; }
     }
@@ -418,76 +431,83 @@ function applyFilters(selectMatches) {
     }
   });
 
-	onSelectionChanged();
-
-;
-	onSelectionChanged();
+  window.onSelectionChanged?.();
 }
 
-/* ============================================================
-   INIT — builds the first blank rule row and wires buttons
-============================================================ */
-window.initFilterControls = function initFilterControls() {
-  console.log("initFilterControls() called");
+// keep backward compat
+window.applyFilters = applyFilters;
 
+/* ============================================================
+   Public init — call after DOM ready
+============================================================ */
+export function initFilterEngine() {
   const cont = document.getElementById("filterRulesContainer");
   if (!cont) {
-    console.warn("filterRulesContainer not found.");
+    console.warn("initFilterEngine(): #filterRulesContainer not found (filter UI will not initialize).");
     return;
   }
 
-  // Refresh vocab (optional; helps dropdowns)
-  if (typeof window.collectFilterVocabulary === "function") {
-    window.collectFilterVocabulary();
-  }
+  // Refresh vocab so dropdowns can use it
+  collectFilterVocabulary();
 
-  // Ensure at least one row exists
+  // Ensure at least one rule row exists
   if (cont.children.length === 0) {
-    cont.innerHTML = "";
+    clearAllRuleRows();
     addRuleRow(null);
   }
 
-  // Buttons (existing)
-  const btnSelectAll = document.getElementById("filterSelectAllGamesBtn");
-  if (btnSelectAll) {
-    btnSelectAll.onclick = () => {
-      (window.games || []).forEach(g => g.selected = true);
-	onSelectionChanged();
-
-;
-	onSelectionChanged();
-    };
+  // ---- Global Select/Deselect buttons (your IDs)
+  const selectAllBtn = document.getElementById("selectAllGamesBtn");
+  if (selectAllBtn && !selectAllBtn.dataset.bound) {
+    selectAllBtn.dataset.bound = "1";
+    selectAllBtn.addEventListener("click", () => {
+      getGameList().forEach(g => g.selected = true);
+      window.onSelectionChanged?.();
+    });
   }
 
-  const btnDeselectAll = document.getElementById("filterDeselectAllGamesBtn");
-  if (btnDeselectAll) {
-    btnDeselectAll.onclick = () => {
-      (window.games || []).forEach(g => g.selected = false);
-      if (typeof window.renderGameCards === "function") window.renderGameCards()
-	onSelectionChanged();
-
-;
-	onSelectionChanged();
-    };
+  const deselectAllBtn = document.getElementById("deselectAllGamesBtn");
+  if (deselectAllBtn && !deselectAllBtn.dataset.bound) {
+    deselectAllBtn.dataset.bound = "1";
+    deselectAllBtn.addEventListener("click", () => {
+      getGameList().forEach(g => g.selected = false);
+      window.onSelectionChanged?.();
+    });
   }
 
-  const btnSelect = document.getElementById("filterSelectBtn");
-  if (btnSelect) btnSelect.onclick = () => applyFilters(true);
+  // ---- Rule buttons (your IDs)
+  const applyBtn = document.getElementById("applyFilterBtn");
+  if (applyBtn && !applyBtn.dataset.bound) {
+    applyBtn.dataset.bound = "1";
+    applyBtn.addEventListener("click", () => {
+      // "Apply Filter" is ambiguous in your UI; keep it as "Select Matching"
+      // so users see an immediate effect.
+      applyFilters(true);
+    });
+  }
 
-  const btnDeselect = document.getElementById("filterDeselectBtn");
-  if (btnDeselect) btnDeselect.onclick = () => applyFilters(false);
-
-  const btnClear = document.getElementById("filterClearBtn");
-  if (btnClear) {
-    btnClear.onclick = () => {
-      cont.innerHTML = "";
+  const clearBtn = document.getElementById("clearFilterBtn");
+  if (clearBtn && !clearBtn.dataset.bound) {
+    clearBtn.dataset.bound = "1";
+    clearBtn.addEventListener("click", () => {
+      clearAllRuleRows();
       addRuleRow(null);
-    };
+    });
   }
 
-  // ---------------------------
-  // Presets UI
-  // ---------------------------
+  const selectMatchingBtn = document.getElementById("selectMatchingBtn");
+  if (selectMatchingBtn && !selectMatchingBtn.dataset.bound) {
+    selectMatchingBtn.dataset.bound = "1";
+    selectMatchingBtn.addEventListener("click", () => applyFilters(true));
+  }
+
+  const deselectMatchingBtn = document.getElementById("deselectMatchingBtn");
+  if (deselectMatchingBtn && !deselectMatchingBtn.dataset.bound) {
+    deselectMatchingBtn.dataset.bound = "1";
+    deselectMatchingBtn.addEventListener("click", () => applyFilters(false));
+  }
+
+  // ---- Presets UI (optional; only if elements exist)
   const presetSelect = document.getElementById("filterPresetSelect");
   const saveBtn      = document.getElementById("filterSavePresetBtn");
   const deleteBtn    = document.getElementById("filterDeletePresetBtn");
@@ -497,7 +517,8 @@ window.initFilterControls = function initFilterControls() {
     if (!presetSelect) return;
     const names = listPresetNames();
 
-    presetSelect.innerHTML = `<option value="">(none)</option>` +
+    presetSelect.innerHTML =
+      `<option value="">(none)</option>` +
       names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
 
     if (keepName && names.includes(keepName)) {
@@ -513,12 +534,10 @@ window.initFilterControls = function initFilterControls() {
     const preset = getPresetByName(name);
     if (!preset) return;
 
-    // match mode
     if (matchModeEl && (preset.matchMode === "any" || preset.matchMode === "all")) {
       matchModeEl.value = preset.matchMode;
     }
 
-    // rules
     clearAllRuleRows();
     const rules = Array.isArray(preset.rules) ? preset.rules : [];
 
@@ -530,8 +549,9 @@ window.initFilterControls = function initFilterControls() {
     rules.forEach(r => addRuleRowAndSet(r));
   }
 
-  if (presetSelect) {
-    presetSelect.onchange = () => {
+  if (presetSelect && !presetSelect.dataset.bound) {
+    presetSelect.dataset.bound = "1";
+    presetSelect.addEventListener("change", () => {
       const name = presetSelect.value;
       if (!name) {
         if (deleteBtn) deleteBtn.disabled = true;
@@ -539,11 +559,12 @@ window.initFilterControls = function initFilterControls() {
       }
       loadPresetIntoUI(name);
       if (deleteBtn) deleteBtn.disabled = false;
-    };
+    });
   }
 
-  if (saveBtn) {
-    saveBtn.onclick = () => {
+  if (saveBtn && !saveBtn.dataset.bound) {
+    saveBtn.dataset.bound = "1";
+    saveBtn.addEventListener("click", () => {
       const rules = getRulesFromUI();
       const matchMode = matchModeEl ? matchModeEl.value : "all";
 
@@ -563,13 +584,14 @@ window.initFilterControls = function initFilterControls() {
 
       upsertPreset(name, { matchMode, rules });
       refreshPresetDropdown(name);
-    };
+    });
   }
 
-  if (deleteBtn) {
+  if (deleteBtn && !deleteBtn.dataset.bound) {
+    deleteBtn.dataset.bound = "1";
     deleteBtn.disabled = !(presetSelect && presetSelect.value);
 
-    deleteBtn.onclick = () => {
+    deleteBtn.addEventListener("click", () => {
       if (!presetSelect || !presetSelect.value) return;
       const name = presetSelect.value;
 
@@ -578,13 +600,14 @@ window.initFilterControls = function initFilterControls() {
 
       deletePreset(name);
       refreshPresetDropdown("");
-    };
+    });
   }
 
   refreshPresetDropdown("");
-};
-// Expose for debugging/other modules
-window.addRuleRow = addRuleRow;
-window.applyFilters = applyFilters;
 
-console.log("Filter rules loaded…");
+  // Expose optional helpers for debugging
+  window.addRuleRow = addRuleRow;
+  window.initFilterControls = initFilterEngine;
+
+  console.log("initFilterEngine(): filter UI initialized.");
+}

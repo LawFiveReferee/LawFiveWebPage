@@ -65,7 +65,7 @@ function updateBulkPanelVisibility() {
 // Call after selection changes
 function onSelectionChanged() {
   	updateSelectedCountUI();
-  	renderGameCards();
+	window.onSelectionChanged?.();
     renderLineupCards();
 	updateBulkPanelVisibility();
 }

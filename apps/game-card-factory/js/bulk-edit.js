@@ -24,7 +24,7 @@ const DEFAULT_NOTES_PRESETS = [
    Helpers to access global games safely
 ============================================================ */
 function getGames() {
-  if (Array.isArray(window.games)) return window.games;
+  if (Array.isArray(window.GAME_LIST)) return window.GAME_LIST;
   return [];
 }
 

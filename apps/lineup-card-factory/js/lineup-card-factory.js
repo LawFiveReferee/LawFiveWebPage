@@ -1,19 +1,21 @@
 /* ============================================================
    Lineup Card Factory — lineup-card-factory.js
 ============================================================ */
+console.log("Lineup Card Factory loaded…");
+
 import("../../shared/pdf-utils.js").then(module => {
 	window.validatePdfTemplate = module.validatePdfTemplate;
 });
 
-console.log("Lineup Card Factory loaded…");
+import { handleParseSchedule } from "../../shared/utils.js";
 
+console.log("handleParseSchedule imported…");
 
 /* ============================================================
    GLOBAL STATE
 ============================================================ */
 window.GAME_LIST = [];
 const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-window.games = games;
 
 
 window.TEMPLATE_LIST = [];
@@ -35,10 +37,11 @@ import {
   deleteScheduleFromStorage,
   refreshScheduleDropdown
 } from "../../shared/utils.js";
+
+
 /* ============================================================
    Shared schedule import and parsing
 ============================================================ */
-import { handleParseSchedule } from "../../shared/utils.js";
 
 document.getElementById("parseScheduleBtn")?.addEventListener("click", () => {
   handleParseSchedule({
@@ -665,7 +668,7 @@ function enterEditModeInline(card, team, game) {
 		game.match_date = editPanel.querySelector(".inline-date").value.trim();
 		game.match_time = editPanel.querySelector(".inline-time").value.trim();
 		game.location = editPanel.querySelector(".inline-location").value.trim();
-		renderPreviewCards();
+		renderLineupCards();
 	});
 
 	editPanel.querySelector(".cancel-edit-btn")?.addEventListener("click", () => {
@@ -682,48 +685,6 @@ function enterEditModeInline(card, team, game) {
 	});
 }
 
-function renderPreviewCards() {
-	const container = document.getElementById("previewCardContainer");
-	console.log("🔄 renderPreviewCards() called…");
-	console.log("📋 GAME_LIST:", window.GAME_LIST);
-
-	if (!container) {
-		console.warn("⚠️ previewCardContainer not found in DOM");
-		return;
-	}
-
-	container.innerHTML = "";
-
-	const games = window.GAME_LIST || [];
-	games.forEach((g, idx) => {
-		const card = document.createElement("div");
-		card.className = "lineup-card";
-
-		card.innerHTML = `
-      <div class="card-header">
-        <strong>Game ${idx + 1}</strong>
-        <div class="card-buttons">
-          <button class="btn edit-btn" data-id="${g.id}">Edit</button>
-          <button class="btn pdf-btn" data-id="${g.id}">PDF</button>
-        </div>
-      </div>
-
-      <div class="card-body">
-        <div><strong>Date:</strong> ${g.date}</div>
-        <div><strong>Time:</strong> ${g.time}</div>
-        <div><strong>Home:</strong> ${g.homeTeam}</div>
-        <div><strong>Away:</strong> ${g.awayTeam}</div>
-        <div><strong>Location:</strong> ${g.location}</div>
-        <div><strong>Raw:</strong> ${g.raw}</div>
-      </div>
-    `;
-
-		container.appendChild(card);
-	});
-
-	initCardButtons();
-}
-window.renderPreviewCards = renderPreviewCards;
 
 function initCardButtons() {
 	document.querySelectorAll(".edit-btn").forEach(btn => {
@@ -921,60 +882,31 @@ window.initUI = function initUI() {
   // --------------------------------------------------
   // 3. Team selector change
   // --------------------------------------------------
-  document.getElementById("teamSelect")?.addEventListener("change", e => {
-    const id = e.target.value;
-    if (!id) return;
-    TeamStore.selectTeamById(id);
-    renderCurrentTeamUI?.();
-  });
+	document.getElementById("teamSelect")?.addEventListener("change", e => {
+	  const id = e.target.value;
+	  if (!id) return;
+
+	  TeamStore.selectTeamById(id);
+
+	  renderCurrentTeamUI?.();
+
+	  // 🔥 Re-render lineup cards when team changes
+	  if (typeof window.renderLineupCards === "function") {
+		window.renderLineupCards();
+	  }
+	});
 
   // --------------------------------------------------
   // 4. Parse / Extract schedule (single authoritative path)
   // --------------------------------------------------
-  document.getElementById("parseScheduleBtn")
-    ?.addEventListener("click", () => {
-      const raw = document.getElementById("rawInput")?.value?.trim();
-      if (!raw) {
-        alert("Paste schedule text first.");
-        return;
-      }
+ // --------------------------------------------------
+// 4. Parse / Extract schedule (shared handler)
+// --------------------------------------------------
+	const parseBtn = document.getElementById("parseBtn");
 
-      const parserKey = window.selectedParserKey || "generic";
-      console.log("🛠 Parsing schedule using:", parserKey);
-
-      const result = ScheduleParser.parse(raw, parserKey);
-      const parsedGames = Array.isArray(result.games) ? result.games : [];
-
-      if (!parsedGames.length) {
-        console.warn("⚠️ No games parsed.");
-        updateStatusLines?.();
-        return;
-      }
-
-      window.GAME_LIST = parsedGames.map(g =>
-        normalizeParsedGame(g, parserKey)
-      );
-
-      renderPreviewCards?.();
-      updateStatusLines?.();
-
-      // Prompt save
-      const defaultName =
-        raw.split(/\r?\n/)[0]?.trim() ||
-        `Schedule ${new Date().toLocaleDateString()}`;
-
-      window.showSaveScheduleModal?.(defaultName);
-
-      // Ensure a team is selected
-      if (!TeamStore.getCurrentTeam()) {
-        const all = TeamStore.getAllTeams();
-        if (all.length) {
-          TeamStore.selectTeamById(all[0].teamId);
-          renderCurrentTeamUI?.();
-        }
-      }
-    });
-
+	if (parseBtn && typeof handleParseSchedule === "function") {
+		parseBtn.addEventListener("click", handleParseSchedule);
+	}
   // --------------------------------------------------
   // 5. Clear schedule
   // --------------------------------------------------
@@ -989,8 +921,7 @@ window.initUI = function initUI() {
   // --------------------------------------------------
   // 6. Filters
   // --------------------------------------------------
-  document.getElementById("applyFilterBtn")
-    ?.addEventListener("click", applyFilter);
+  window.initFilterControls?.();
 
   document.getElementById("clearFilterBtn")
     ?.addEventListener("click", () => {
@@ -1036,11 +967,17 @@ window.initUI = function initUI() {
     .catch(err => console.error("Template load failed:", err));
 
   // React to saved schedule import
-  window.addEventListener("scheduleImported", () => {
-    renderPreviewCards?.();
-    updateStatusLines?.();
-  });
+window.addEventListener("scheduleImported", () => {
+  if (typeof window.renderGameCards === "function") {
+    window.renderGameCards();
+  }
 
+  if (typeof window.renderLineupCards === "function") {
+    window.renderLineupCards();
+  }
+
+  window.updateStatusLines?.();
+});
   console.log("✅ initUI() complete");
 };
 // Refresh UI
@@ -1091,8 +1028,8 @@ window.enterInlineEditMode = function(cardElement, team, game) {
 		modal.classList.add("hidden");
 
 		// Refresh preview
-		if (typeof renderPreviewCards === "function") renderPreviewCards();
-	};
+ if (typeof renderLineupCards === "function") renderLineupCards();
+ 	};
 
 	document.getElementById("cancelLineupEditBtn").onclick = () => {
 		modal.classList.add("hidden");
@@ -1126,23 +1063,42 @@ const confirmBtn = document.getElementById("saveScheduleConfirmBtn");
 cancelBtn?.addEventListener("click", () => {
   modal?.classList.add("hidden");
 });
-
 confirmBtn?.addEventListener("click", () => {
   const key = input?.value?.trim();
   const gameList = window.GAME_LIST;
 
   if (!key) {
-    alert("⚠️ Enter a schedule name.");
+    alert("Enter a schedule name.");
     return;
   }
 
-  if (!Array.isArray(gameList) || gameList.length === 0) {
-    alert("⚠️ No games to save — extract a schedule first.");
+  if (!Array.isArray(gameList) || !gameList.length) {
+    alert("No games to save.");
     return;
   }
 
-  saveScheduleToStorage(key, gameList);
+  const existing = localStorage.getItem(`schedule:${key}`);
+
+  if (existing) {
+    const choice = confirm(
+      `"${key}" already exists.\n\nOK = Overwrite\nCancel = Rename`
+    );
+
+    if (!choice) {
+      input.focus();
+      return;
+    }
+  }
+
+  localStorage.setItem(`schedule:${key}`, JSON.stringify(gameList));
+
   modal.classList.add("hidden");
+
+  const loadStatus = document.getElementById("scheduleLoadStatus");
+  if (loadStatus) {
+    loadStatus.textContent =
+      `Saved schedule "${key}" (${gameList.length} games).`;
+  }
 });
 /**
  * Create a single PDF byte array for one lineup card

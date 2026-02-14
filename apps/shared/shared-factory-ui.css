@@ -300,3 +300,119 @@ label {
 #nextParser {
   color: #ccc;
 }
+ /* ============================================================
+   Filter Rules Panel
+============================================================ */
+
+.filter-rules-panel {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  margin-bottom: 18px;
+}
+
+/* ------------------------------------------------------------
+   Shared row layout
+------------------------------------------------------------ */
+
+.filter-global-actions,
+.filter-global-actions-row,
+.filter-rules-header,
+.filter-actions-row,
+.filter-presets-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.filter-rules-header {
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.filter-rules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-rule-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------
+   Buttons
+------------------------------------------------------------ */
+
+.rule-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.35);
+  background: #ddd;
+  color: #111;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rule-btn:hover {
+  background: #c9c9c9;
+}
+
+.filter-global-actions button {
+  padding: 6px 14px;
+  font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------
+   Inputs
+------------------------------------------------------------ */
+
+.filter-rule-row select.filter-field-select,
+.filter-rule-row select.filter-operator-select,
+.filter-rule-row .filter-value-input,
+.filter-rule-row .filter-value-select {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.30);
+  background: #ffffff;
+  color: #111;
+}
+
+.filter-rule-row .filter-value-input,
+.filter-rule-row .filter-value-select {
+  flex: 1;
+}
+
+/* ------------------------------------------------------------
+   Preset pill select
+------------------------------------------------------------ */
+
+.filter-pill-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #dce8ff;
+  color: #111;
+  font-size: 0.9rem;
+  cursor: pointer;
+}

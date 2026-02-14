@@ -37,27 +37,27 @@
 
 	<h1>Game Card Factory</h1>
 	<p class="intro-blurb">
-	<strong>Paste a schedule, preview game cards, and generate match report PDFs.</strong>
+		<strong>Paste a schedule, preview game cards, and generate match report PDFs.</strong>
 	</p>
 
 	<!-- ========================= -->
 	<!-- Parser Help (Static) -->
 	<!-- ========================= -->
 	<div class="parser-help-wrapper">
-	<div class="parser-help-body" id="parserHelpBody">
-	  <h4>Available Extractors</h4>
-	  <div class="parser-help-item"><strong>Text Advanced</strong><br>12-line AYSO block format.</div>
-	  <div class="parser-help-item"><strong>Arbiter GameView</strong><br>Paste full ArbiterSports “Game Details”.</div>
-	  <div class="parser-help-item"><strong>Arbiter Email</strong><br>Paste entire ArbiterSports email notification.</div>
-	  <div class="parser-help-item"><strong>Google Sheets / CSV</strong><br>One row per game.</div>
-	  <div class="parser-help-item"><strong>Compact</strong><br>Single-line formats.</div>
-	  <div class="parser-help-item"><strong>AYSO Schedule</strong><br>Region spreadsheet formats.</div>
-	</div>
+		<div class="parser-help-body" id="parserHelpBody">
+		  <h4>Available Extractors</h4>
+		  <div class="parser-help-item"><strong>Text Advanced</strong><br>12-line AYSO block format.</div>
+		  <div class="parser-help-item"><strong>Arbiter GameView</strong><br>Paste full ArbiterSports “Game Details”.</div>
+		  <div class="parser-help-item"><strong>Arbiter Email</strong><br>Paste entire ArbiterSports email notification.</div>
+		  <div class="parser-help-item"><strong>Google Sheets / CSV</strong><br>One row per game.</div>
+		  <div class="parser-help-item"><strong>Compact</strong><br>Single-line formats.</div>
+		  <div class="parser-help-item"><strong>AYSO Schedule</strong><br>Region spreadsheet formats.</div>
+		</div>
 	</div>
 
 	<!-- ============================================================ -->
-<!-- Collapsible Sections -->
-<!-- ============================================================ -->
+	<!-- Collapsible Sections (Shared Structure) -->
+	<!-- ============================================================ -->
 
 	<!-- ============================================================ -->
 	<!-- 1. Import & Extract Schedule -->
@@ -65,132 +65,151 @@
 
 	<section class="collapsible-panel" id="section-schedule-import">
 
-  <button type="button" class="collapsible-header">
-    <span class="collapsible-icon">−</span>
-    <span class="collapsible-title">
-      1. Import & Extract Schedule
-    </span>
-  </button>
+	  <button type="button" class="collapsible-header">
+		<span class="collapsible-icon">+</span>
+		<span class="collapsible-title">
+		  1. Import & Extract Schedule
+		</span>
+	  </button>
 
-  <div class="collapsible-body">
+	  <div class="collapsible-body">
 
-	<!-- ===============================
+		<!-- ===============================
 			 Parser Carousel
-	================================ -->
-	<div class="parser-carousel">
+		================================ -->
+		<div class="parser-carousel">
 
-		<button id="prevParser" class="carousel-arrow left">
-			◀
-		</button>
+		  <button id="prevParser" class="carousel-arrow left">◀</button>
 
-		<div class="parser-info">
+		  <div class="parser-info">
 			<div id="parserName" class="parser-name">
-				(No parsers available)
+			  (No parsers available)
 			</div>
 			<div id="parserDescription" class="parser-description"></div>
+		  </div>
+
+		  <button id="nextParser" class="carousel-arrow right">▶</button>
+
 		</div>
 
-		<button id="nextParser" class="carousel-arrow right">
-			▶
-		</button>
+		<!-- ===============================
+			 Mapping Action Buttons
+		================================ -->
+		<div id="mappingActionBar" class="mapping-action-bar" style="display:none;">
 
-	</div>
-    <!-- ===============================
-         Mapping Action Buttons
-         (Only visible for custom mappers)
-    ================================ -->
-	<div id="mappingActionBar" class="mapping-action-bar" style="display:none;">
-      <button id="editMappingBtn" class="btn small">
-        ✏️ Edit Mapping
-      </button>
+		  <button id="newMappingBtn" class="btn small">
+			➕ New Custom Import
+		  </button>
 
-      <button id="deleteMappingProfileBtn" class="btn small danger">
-        🗑 Delete Mapping
-      </button>
+		  <button id="editMappingBtn" class="btn small">
+			✏️ Edit Mapping
+		  </button>
 
-    </div>
+		  <button id="deleteMappingProfileBtn" class="btn small danger">
+			🗑 Delete Mapping
+		  </button>
 
+		</div>
 
-    <!-- ===============================
-         Raw Schedule Input
-    ================================ -->
-    <label for="rawInput" class="section-label">
-      Paste Schedule Text:
-    </label>
+		<!-- ===============================
+			 Raw Schedule Input
+		================================ -->
+		<label for="rawInput" class="section-label">
+		  Paste Schedule Text:
+		</label>
 
-    <textarea
-      id="rawInput"
-      class="import-textarea"
-      placeholder="Paste schedule text here…"
-      data-parser-key="">
-    </textarea>
+		<textarea
+		  id="rawInput"
+		  class="import-textarea"
+		  placeholder="Paste schedule text here…"
+		  data-parser-key="">
+		</textarea>
 
+		<!-- ===============================
+			 Extract Button + Status
+		================================ -->
+		<div class="button-group">
 
-    <!-- ===============================
-         Extract Button + Status
-    ================================ -->
-    <div class="button-group">
+		  <button id="parseBtn" class="btn primary">
+			Extract Games
+		  </button>
 
-      <button id="parseBtn" class="btn primary">
-        Extract Games
-      </button>
+		  <span id="scheduleParseStatus" class="parse-status">
+			No schedule parsed
+		  </span>
 
-      <span id="scheduleParseStatus" class="parse-status">
-        No schedule parsed
-      </span>
+		</div>
 
-    </div>
+		<!-- ===============================
+			 Parser Sample Preview
+		================================ -->
+		<div id="parserSample" class="parser-sample" hidden>
 
+		  <h4>Parsed Output (raw)</h4>
+		  <pre id="parsedPreview"></pre>
 
-    <!-- ===============================
-         Parser Sample Preview
-         (Step 6)
-    ================================ -->
-    <div id="parserSample" class="parser-sample" hidden>
+		  <h4>Normalized Output (final schema)</h4>
+		  <pre id="normalizedPreview"></pre>
 
-      <h4>Parsed Output (raw)</h4>
-      <pre id="parsedPreview"></pre>
+		</div>
 
-      <h4>Normalized Output (final schema)</h4>
-      <pre id="normalizedPreview"></pre>
-
-    </div>
-
-  </div>
-</section>
+	  </div>
+	</section>
 
 
 	<!-- ============================================================ -->
 	<!-- 2. Load or Save Schedules -->
 	<!-- ============================================================ -->
+
 	<section class="collapsible-panel" id="section-schedule">
+
 	  <button type="button" class="collapsible-header">
 		<span class="collapsible-icon">+</span>
-		<span class="collapsible-title">2. Load or Save Schedules</span>
+		<span class="collapsible-title">
+		  2. Load or Save Schedules
+		</span>
 	  </button>
 
-	  <p class="section-subtitle">Manage saved schedule sets below.</p>
+	  <p class="section-subtitle">
+		Manage saved schedule sets below.
+	  </p>
 
 	  <div class="collapsible-body">
 
-		<label for="currentScheduleDisplay">Current Schedule:</label>
+		<div style="display:flex; justify-content:space-between; align-items:center;">
+		  <label for="currentScheduleDisplay">Current Schedule:</label>
+
+		  <button id="toggleScheduleViewBtn" class="btn small">
+			Toggle View
+		  </button>
+		</div>
+
 		<textarea
 		  id="currentScheduleDisplay"
 		  readonly
 		  placeholder="Parsed games will appear here…"
-		  style="width:66%; height:300px; font-family:monospace; font-size:14px;">
+		  style="width:100%; height:260px; font-family:monospace; font-size:14px;">
 		</textarea>
 
 		<div class="schedule-controls">
+
 		  <label for="scheduleSelect">Saved Schedules:</label>
+
 		  <select id="scheduleSelect"></select>
 
 		  <button id="loadScheduleBtn" class="btn">Load</button>
+
 		  <button id="deleteScheduleBtn" class="btn secondary">Delete</button>
+
 		  <button id="saveScheduleBtnLibrary" class="btn primary">
 			💾 Save Schedule
 		  </button>
+
 		</div>
+
+		<!-- Load feedback line -->
+		<div id="scheduleLoadStatus" class="schedule-load-status"></div>
+
 	  </div>
 	</section>
 
@@ -198,10 +217,14 @@
 	<!-- ============================================================ -->
 	<!-- 3. Select & Filter Games -->
 	<!-- ============================================================ -->
+
 	<section class="collapsible-panel" id="section-filter">
+
 	  <button type="button" class="collapsible-header">
 		<span class="collapsible-icon">+</span>
-		<span class="collapsible-title">3. Select & Filter Games</span>
+		<span class="collapsible-title">
+		  3. Select & Filter Games
+		</span>
 	  </button>
 
 	  <p class="section-subtitle">
@@ -209,25 +232,41 @@
 	  </p>
 
 	  <div class="collapsible-body">
-		<div
-		  id="filterRulesContainer"
-		  class="filter-rules-container">
+
+		<div class="filter-global-actions">
+		  <button id="selectAllGamesBtn" type="button">
+			Select All
+		  </button>
+
+		  <button id="deselectAllGamesBtn" type="button">
+			Deselect All
+		  </button>
 		</div>
 
+		<div id="filterRulesContainer" class="filter-rules-container"></div>
+
 		<div class="filter-controls">
-		  <button id="applyFilterBtn" class="btn">Apply Filter</button>
-		  <button id="clearFilterBtn" class="btn secondary">Clear</button>
+
+		  <button id="applyFilterBtn" class="btn">
+			Apply Filter
+		  </button>
+
+		  <button id="clearFilterBtn" class="btn secondary">
+			Clear
+		  </button>
 
 		  <button id="selectMatchingBtn" class="btn">
 			✔ Select Matching
 		  </button>
+
 		  <button id="deselectMatchingBtn" class="btn secondary">
 			✖ Deselect Matching
 		  </button>
+
 		</div>
+
 	  </div>
 	</section>
-
 
 <!-- ============================================================ -->
 <!-- 4. Bulk Edit Selected Cards -->

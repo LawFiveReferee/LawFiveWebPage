@@ -1,5 +1,5 @@
 /* ============================================================================
-   Shared Schedule Store V2
+   Shared Schedule Store V2: schedule-store-v2
    - Centralized save / load / rename / delete
    - Stable IDs (name is editable)
    - Stores parsed games + parserKey

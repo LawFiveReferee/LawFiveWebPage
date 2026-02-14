@@ -435,110 +435,6 @@ button:hover {
 
 
 
-/* ============================================================
-   Filter Rules Panel
-============================================================ */
-
-.filter-rules-panel {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-  margin-bottom: 18px;
-}
-
-.filter-global-actions-row,
-.filter-rules-header,
-.filter-actions-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  font-size: 1rem;
-  align-items: center;
-}
-
-.filter-rules-header {
-  gap: 8px;
-  font-size: 0.95rem;
-  color: #222;
-}
-
-.filter-rules-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.filter-rule-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.filter-rule-row select.filter-field-select,
-.filter-rule-row select.filter-operator-select,
-.filter-rule-row .filter-value-input,
-.filter-rule-row .filter-value-select {
-  font-size: 0.9rem;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.30);
-  background: #ffffff;
-  color: #111;
-}
-
-.filter-rule-row .filter-value-input,
-.filter-rule-row .filter-value-select {
-  flex: 1;
-}
-
-.filter-pill-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 2px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  background: #dce8ff;
-  color: #111;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.rule-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.35);
-  background: #ddd;
-  color: #111;
-  font-size: 18px;
-  line-height: 1;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.rule-btn:hover {
-  background: #c9c9c9;
-}
-
-/* Section 2 specific card look */
-
-#section-2 .filter-rules-panel {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-top: 0.5rem;
-}
 
 /* ============================================================
    Bulk Edit (C-1: macOS-style panel)
@@ -1267,18 +1163,7 @@ footer {
 /* Uses your existing .hidden convention, but define if missing */
 .hidden { display: none !important; }
 
-.filter-presets-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 0 12px;
-  flex-wrap: wrap;
-}
 
-.filter-presets-label {
-  font-size: 13px;
-  opacity: 0.85;
-}
 
 /* ============================================================
    Popup-style select (Saved Filters)

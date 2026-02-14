@@ -1,5 +1,5 @@
-//Template list and TEMPLATE_LIST
-let TEMPLATE_LIST = [];
+//Template list and window.TEMPLATE_LIST
+window.TEMPLATE_LIST = window.TEMPLATE_LIST || [];
 let selectedTemplateIndex = 0;
 // ─── PDF Template Validation ──────────────────────────────
 // validatePdfTemplate()
@@ -65,32 +65,30 @@ async function loadTemplates() {
 		});
 		if (!resp.ok) throw new Error("HTTP " + resp.status);
 
-		TEMPLATE_LIST = await resp.json();
-		window.TEMPLATE_LIST = TEMPLATE_LIST;
-
+		window.TEMPLATE_LIST = await resp.json();
 		const storedId = localStorage.getItem("fastCardFactoryTemplateId");
 		if (storedId) {
-			const idx = TEMPLATE_LIST.findIndex(t => String(t.id) === String(storedId));
+			const idx = window.TEMPLATE_LIST.findIndex(t => String(t.id) === String(storedId));
 			if (idx >= 0) selectedTemplateIndex = idx;
 		}
 
-		if (status) status.textContent = `Loaded ${TEMPLATE_LIST.length} template(s).`;
+		if (status) status.textContent = `Loaded ${window.TEMPLATE_LIST.length} template(s).`;
 	} catch (err) {
 		console.error("Error loading templates.json:", err);
-		TEMPLATE_LIST = [];
-		window.TEMPLATE_LIST = TEMPLATE_LIST;
+		window.TEMPLATE_LIST = [];
+		window.window.TEMPLATE_LIST = window.TEMPLATE_LIST;
 		if (status) status.textContent = "Error loading templates.";
 	}
 }
 // refreshTemplateCarousel()
 function refreshTemplateCarousel() {
 	const status = $("#templateStatus");
-	if (!TEMPLATE_LIST.length) {
+	if (!window.TEMPLATE_LIST.length) {
 		if (status) status.textContent = "No templates loaded yet.";
 		return;
 	}
 
-	const tpl = TEMPLATE_LIST[selectedTemplateIndex];
+	const tpl = window.TEMPLATE_LIST[selectedTemplateIndex];
 
 	const img = $("#templateImage");
 	const nameEl = $("#templateName");
@@ -98,7 +96,7 @@ function refreshTemplateCarousel() {
 	if (img) img.src = `./templates/${tpl.png}`;
 	if (nameEl) nameEl.textContent = tpl.name || "";
 
-	if (status) status.textContent = `Template ${selectedTemplateIndex + 1} of ${TEMPLATE_LIST.length}`;
+	if (status) status.textContent = `Template ${selectedTemplateIndex + 1} of ${window.TEMPLATE_LIST.length}`;
 
 	localStorage.setItem("fastCardFactoryTemplateId", tpl.id);
 }
@@ -109,16 +107,16 @@ function initCarouselControls() {
 
 		if (prev) {
 			prev.addEventListener("click", () => {
-				if (!TEMPLATE_LIST.length) return;
-				selectedTemplateIndex = (selectedTemplateIndex - 1 + TEMPLATE_LIST.length) % TEMPLATE_LIST.length;
+				if (!window.TEMPLATE_LIST.length) return;
+				selectedTemplateIndex = (selectedTemplateIndex - 1 + window.TEMPLATE_LIST.length) % window.TEMPLATE_LIST.length;
 				refreshTemplateCarousel();
 			});
 		}
 
 		if (next) {
 			next.addEventListener("click", () => {
-				if (!TEMPLATE_LIST.length) return;
-				selectedTemplateIndex = (selectedTemplateIndex + 1) % TEMPLATE_LIST.length;
+				if (!window.TEMPLATE_LIST.length) return;
+				selectedTemplateIndex = (selectedTemplateIndex + 1) % window.TEMPLATE_LIST.length;
 				refreshTemplateCarousel();
 			});
 		}
@@ -231,12 +229,12 @@ async function fillTemplatePdfForGame(templateBytes, tpl, g) {
 async function generateSinglePdf(g) {
 	if (!g) return;
 
-	if (!TEMPLATE_LIST.length) {
+	if (!window.TEMPLATE_LIST.length) {
 		alert("No templates loaded.");
 		return;
 	}
 
-	const tpl = TEMPLATE_LIST[selectedTemplateIndex];
+	const tpl = window.TEMPLATE_LIST[selectedTemplateIndex];
 	const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`).then(r => r.arrayBuffer());
 
 	const finalBytes = await fillTemplatePdfForGame(templateBytes, tpl, g);
@@ -247,23 +245,26 @@ async function generateSinglePdf(g) {
 
 // generate SinglePdfById()
 async function generateSinglePdfById(gameId) {
-	const status = $("#generateStatus");
-	if (status) status.textContent = "Generating single-game PDF…";
+  const status = $("#generateStatus");
+  if (status) status.textContent = "Generating single-game PDF…";
 
-	try {
-		const g = games.find(x => x.id === gameId);
-		if (!g) {
-			if (status) status.textContent = "Error: game not found.";
-			return;
-		}
-		await generateSinglePdf(g);
-		if (status) status.textContent = "Single-game PDF generated.";
-	} catch (err) {
-		console.error("Error generating single-game PDF:", err);
-		if (status) status.textContent = "Error generating single-game PDF.";
-	}
+  try {
+    const list = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+    const game = list.find(g => g.id === gameId);
+
+    if (!game) {
+      if (status) status.textContent = "Error: game not found.";
+      return;
+    }
+
+    await generateSinglePdf(game);
+
+    if (status) status.textContent = "Single-game PDF generated.";
+  } catch (err) {
+    console.error("Error generating single-game PDF:", err);
+    if (status) status.textContent = "Error generating single-game PDF.";
+  }
 }
-
 // generate CombinedPdf()
 async function generateCombinedPdf() {
 		const selected = games.filter(g => g.selected);
@@ -271,7 +272,7 @@ async function generateCombinedPdf() {
 			alert("No games selected.");
 			return;
 		}
-		if (!TEMPLATE_LIST.length) {
+		if (!window.TEMPLATE_LIST.length) {
 			alert("No templates loaded.");
 			return;
 		}
@@ -283,7 +284,7 @@ async function generateCombinedPdf() {
 		await tickUI();
 
 		try {
-			const tpl = TEMPLATE_LIST[selectedTemplateIndex];
+			const tpl = window.TEMPLATE_LIST[selectedTemplateIndex];
 
 			const [templateBytes, backgroundBytes] = await Promise.all([
 				fetch(`./templates/${tpl.pdf}?v=${Date.now()}`).then(r => r.arrayBuffer()),
@@ -354,7 +355,7 @@ async function generateIndividualPdfs() {
 		alert("No games selected.");
 		return;
 	}
-	if (!TEMPLATE_LIST.length) {
+	if (!window.TEMPLATE_LIST.length) {
 		alert("No templates loaded.");
 		return;
 	}
@@ -366,7 +367,7 @@ async function generateIndividualPdfs() {
 	await tickUI();
 
 	try {
-		const tpl = TEMPLATE_LIST[selectedTemplateIndex];
+		const tpl = window.TEMPLATE_LIST[selectedTemplateIndex];
 		const templateBytes = await fetch(`./templates/${tpl.pdf}?v=${Date.now()}`)
 			.then(r => r.arrayBuffer());
 

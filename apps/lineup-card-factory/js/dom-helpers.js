@@ -4,41 +4,4 @@ export const $all = (sel) => Array.from(document.querySelectorAll(sel));
 window.$ = $;
 window.$all = $all;
 
-/* ============================================================
-   Collapsible Panels — robust and DOM‑safe
-============================================================ */
-
-/* ============================================================
-   Collapsible Panels — robust initializer
-   Works regardless of DOM insertion order
-============================================================ */
-function initCollapsibles() {
-
-const panels = document.querySelectorAll(".collapsible-panel");
-  if (!panels.length) {
-    console.warn("initCollapsibles: no panels found");
-    return;
-  }
-
-  panels.forEach(panel => {
-    const header = panel.querySelector(".collapsible-header");
-    const body   = panel.querySelector(".collapsible-body");
-    const icon   = header?.querySelector(".collapsible-icon");
-
-    if (!header || !body) return;
-
-    // Start collapsed by default
-    body.style.display = "none";
-    if (icon) icon.textContent = "+";
-
-    header.addEventListener("click", () => {
-      const isClosed = body.style.display === "none";
-      body.style.display = isClosed ? "block" : "none";
-      if (icon) icon.textContent = isClosed ? "−" : "+";
-    });
-  });
-
-  console.log("✅ Collapsible panels initialized (" + panels.length + ")");
-}
-
-window.initCollapsibles = initCollapsibles;
+n

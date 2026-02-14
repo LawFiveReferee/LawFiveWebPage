@@ -27,7 +27,7 @@ function waitForElement(selector, timeout = 1000) {
    Shared Modules (must load first)
 ================================== */
 
-window.games = games; // wherever `games` is defined
+
 window.$ = (sel) => document.querySelector(sel);
 import "../../shared/pdf-utils.js";
 console.log("✅ pdf-utils loaded");
@@ -38,7 +38,7 @@ console.log("✅ ScheduleParser loaded");
 
 // Register all built-in + user parsers
 import "../../shared/parsers/index.js";
-console.log("✅ Parsers registered");
+console.log("✅ Parsers via parsers/index registered");
 
 import "../../shared/pdf-controller.js";
 console.log("✅ pdf-controller loaded");
@@ -53,8 +53,6 @@ console.log("✅ shared/schedule-store-v2.js loaded");
 import "../../shared/schedule-ui-v2.js";
 console.log("✅ shared/schedule-ui-v2.js loaded");
 
-import "../../shared/filtering.js";
-console.log("✅ shared/filtering.js loaded");
 
 import "../../shared/status.js";
 console.log("✅ shared/status.js loaded");
@@ -66,7 +64,6 @@ import "../../shared/constants.js";
 console.log("✅ shared/constants.js loaded");
 
 
-if (typeof populateParserSelect === "function") populateParserSelect();
 
 // Shared team store, parser store, etc.
 import "../../shared/team-store.js";
@@ -106,8 +103,6 @@ console.log("✅ team-store.js loaded");
 import "../../shared/mapping-ui.js";
 console.log("✅ mapping-ui.js loaded");
 
-import "./filter-rules.js";
-console.log("✅ filter-rules.js loaded");
 
 import "./bulk-edit.js";
 console.log("✅ bulk-edit.js loaded");
@@ -115,49 +110,55 @@ console.log("✅ bulk-edit.js loaded");
 // Primary App
 import "./lineup-card-factory.js";
 console.log("✅ lineup-card-factory.js loaded");
-
-/* ================================================================
-   INITIAL UI WIRING (before the factory boots)
-   — This runs once DOMContentLoaded fires before bootLineupCardFactory()
-================================================================= */
-
-/* ================================================================
-   INITIALIZE SHARED UI
-================================================================= */
-
-function initializeUI() {
-  // Legacy dropdown support (safe fallback)
-  if (typeof populateParserSelect === "function") {
-    populateParserSelect();
-  }
-
-  // Refresh shared import carousel
-  if (typeof window.refreshImportCarousel === "function") {
-    window.refreshImportCarousel();
-  }
-}
-
-
 /* ================================================================
    BOOTSTRAP: Boot the rest of the Lineup Card Factory
+================================================================= */
+/* ================================================================
+   IMPORT SHARED FILTER ENGINE
+================================================================= */
+
+import { initFilterEngine } from "../../shared/filter-engine.js";
+console.log("✅ shared/filter-engine.js loaded");
+
+
+/* ================================================================
+   FACTORY BOOT
 ================================================================= */
 
 function bootLineupCardFactory() {
   console.log("✅ DOM ready — booting Lineup Card Factory…");
 
+  // Collapsibles
   if (typeof initCollapsibles === "function") {
     initCollapsibles();
   } else {
     console.warn("⚠️ initCollapsibles() not found");
   }
 
+  // Core UI
   if (typeof initUI === "function") {
     initUI();
   } else {
     console.warn("⚠️ initUI() not found");
   }
+
+  // 🔥 IMPORTANT — initialize shared filter engine
+  if (typeof initFilterEngine === "function") {
+    initFilterEngine();
+  } else {
+    console.warn("⚠️ initFilterEngine() not found");
+  }
 }
 
+/* ================================================================
+   INITIAL UI WIRING (before factory boots)
+================================================================= */
+
+function initializeUI() {
+  if (typeof window.refreshImportCarousel === "function") {
+    window.refreshImportCarousel();
+  }
+}
 
 /* ================================================================
    DOM READY HANDLING (SINGLE ENTRY POINT)

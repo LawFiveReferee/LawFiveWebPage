@@ -59,73 +59,122 @@ window.makeGameId = makeGameId;
 
 
 // shared/util.js
-
 export function handleParseSchedule(options = {}) {
   const {
     rawInputId = "rawInput",
-    parserSelectId = "parserSelect",
     outputDisplayId = "currentScheduleDisplay",
     onAfterParse = () => {}
   } = options;
 
-  // ---- Elements
+  // --------------------------------------------------
+  // Resolve DOM elements
+  // --------------------------------------------------
   const rawInputEl = document.getElementById(rawInputId);
+  const displayEl  = document.getElementById(outputDisplayId);
 
-  const displayEl = document.getElementById(outputDisplayId);
-
-  // ---- Validate input
-  const rawText = rawInputEl?.value?.trim();
-  if (!rawText) {
-    throw new Error("No schedule text provided");
+  if (!rawInputEl) {
+    console.warn("handleParseSchedule: raw input element not found.");
+    return [];
   }
 
-	const parserKey =
-	  window.selectedParserKey ||
-	  document.getElementById("rawInput")?.dataset?.parserKey;
+  const rawText = rawInputEl.value?.trim();
+  if (!rawText) {
+    console.warn("No schedule text provided.");
+    window.GAME_LIST = [];
+    window.onSelectionChanged?.();
+    return [];
+  }
 
-	if (!parserKey) {
-	  console.warn("⚠️ No parser selected.");
-	  return;
-	}
-  // ---- Persist parser selection
+  // --------------------------------------------------
+  // Determine parser
+  // --------------------------------------------------
+  const parserKey =
+    window.selectedParserKey ||
+    rawInputEl.dataset?.parserKey;
+
+  if (!parserKey) {
+    console.warn("⚠️ No parser selected.");
+    return [];
+  }
+
   window.selectedParserKey = parserKey;
   localStorage.setItem("selectedScheduleParserKey", parserKey);
+
   console.log("🛠 Parsing schedule using parser:", parserKey);
 
-  // ---- Parse
-  const { games, errors } = ScheduleParser.parse(rawText, parserKey);
+  // --------------------------------------------------
+  // Parse
+  // --------------------------------------------------
+  let result;
+  try {
+    result = ScheduleParser.parse(rawText, parserKey);
+  } catch (err) {
+    console.error("ScheduleParser.parse failed:", err);
+    window.GAME_LIST = [];
+    window.onSelectionChanged?.();
+    return [];
+  }
 
-  if (errors?.length) {
+  const games  = Array.isArray(result?.games) ? result.games : [];
+  const errors = result?.errors || [];
+
+  if (errors.length) {
     console.warn("⚠️ Parse warnings:", errors);
   }
 
-  if (!Array.isArray(games) || games.length === 0) {
-    throw new Error("No games parsed from schedule");
-  }
+	if (!games.length) {
+	  window.GAME_LIST = [];
+	  window.onSelectionChanged?.();
 
-  // ---- Persist results (intentional global)
-  window.GAME_LIST = games;
+	  const statusEl = document.getElementById("scheduleParseStatus");
+	  if (statusEl) {
+		statusEl.textContent =
+		  "⚠️ No games parsed. You may be using the wrong parser.";
+		statusEl.classList.add("warning");
+	  }
 
-  console.log(`✅ Parsed ${games.length} games`);
+	  return [];
+	}
+  // --------------------------------------------------
+  // Replace GAME_LIST (single source of truth)
+  // --------------------------------------------------
+  window.GAME_LIST = games.map(g => ({
+    ...g,
+    selected: true // auto-select on extract
+  }));
 
-  // ---- Show JSON preview
+  console.log(`✅ Parsed ${window.GAME_LIST.length} games`);
+	const statusEl = document.getElementById("scheduleParseStatus");
+	if (statusEl) {
+	  statusEl.textContent = `${window.GAME_LIST.length} games loaded`;
+	  statusEl.classList.remove("warning");
+	}
+  // --------------------------------------------------
+  // Update JSON preview
+  // --------------------------------------------------
   if (displayEl) {
-    displayEl.value = JSON.stringify(games, null, 2);
+    displayEl.value = JSON.stringify(window.GAME_LIST, null, 2);
   }
 
-  // ---- Ensure schedule panel is visible
-  const schedulePanel = document.getElementById("section-schedule");
-  if (schedulePanel?.classList.contains("collapsed")) {
-    schedulePanel.classList.remove("collapsed");
+  // --------------------------------------------------
+  // Trigger unified UI refresh
+  // --------------------------------------------------
+  window.onSelectionChanged?.();
+
+  // Notify listeners (schedule save UI, etc.)
+  window.dispatchEvent(new Event("scheduleImported"));
+
+  // --------------------------------------------------
+  // Optional callback hook
+  // --------------------------------------------------
+  try {
+    onAfterParse(window.GAME_LIST);
+  } catch (err) {
+    console.warn("onAfterParse callback failed:", err);
   }
 
-  // ---- Callback (UI orchestration lives OUTSIDE this function)
-  onAfterParse(games);
-
-  // ---- Return value for async / direct callers
-  return games;
+  return window.GAME_LIST;
 }
-
 export function applyFilter(filterInputId = "filterInput") {
   const keyword = document.getElementById(filterInputId)?.value?.toLowerCase() || "";
   if (!Array.isArray(window.GAME_LIST)) return;
@@ -141,9 +190,15 @@ export function applyFilter(filterInputId = "filterInput") {
   });
 
   if (typeof window.updateGameCountUI === "function") window.updateGameCountUI();
-  if (typeof window.renderGameCards === "function") window.renderGameCards();
-  if (typeof window.renderPreviewCards === "function") window.renderPreviewCards();
-		updateStatusLines();
+	window.onSelectionChanged?.();
+
+	 if (typeof window.renderGameCards === "function") {
+	  window.renderGameCards();
+	}
+
+	if (typeof window.renderLineupCards === "function") {
+	  window.renderLineupCards();
+	}
   if (typeof window.updateSelectedCountUI === "function") window.updateSelectedCountUI();
 }
 
@@ -292,3 +347,35 @@ function hideModal(id) {
   modal.classList.add("hidden");
   modal.style.display = "none";
 }
+function formatSchedulePretty(games) {
+  return games.map((g, i) => {
+    return `
+Game ${i + 1}
+Game #: ${g.game_number || ""}
+Date: ${g.match_date || ""}
+Time: ${g.match_time || ""}
+Home: ${g.home_team || ""}
+Away: ${g.away_team || ""}
+Location: ${g.location || ""}
+Division: ${g.age_division || ""}
+----------------------------------------
+`.trim();
+  }).join("\n\n");
+}
+
+let scheduleViewMode = "json";
+
+document.getElementById("toggleScheduleViewBtn")?.addEventListener("click", () => {
+  const displayEl = document.getElementById("currentScheduleDisplay");
+  if (!displayEl) return;
+
+  if (!window.GAME_LIST?.length) return;
+
+  if (scheduleViewMode === "json") {
+    displayEl.value = formatSchedulePretty(window.GAME_LIST);
+    scheduleViewMode = "pretty";
+  } else {
+    displayEl.value = JSON.stringify(window.GAME_LIST, null, 2);
+    scheduleViewMode = "json";
+  }
+});

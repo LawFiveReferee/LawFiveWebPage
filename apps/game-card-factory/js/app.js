@@ -13,7 +13,7 @@ console.log("App.js loaded");
 		initCarouselControls,
 		refreshTemplateCarousel,
 		initPdfButtons } from "../../shared/pdf-utils.js";
-
+	import { initFilterEngine } from "../../shared/filter-engine.js";
 
 /* ============================================================
    GLOBAL STATE
@@ -22,16 +22,19 @@ console.log("App.js loaded");
 // Parser key for schedule import / parsing
 // Unified current game list for views & bulk edit UI
 // Parser key for schedule import / parsing
+/* ============================================================
+   GLOBAL STATE (single source of truth)
+============================================================ */
+
+// Current schedule parser selection
 window.selectedParserIndex = 0;
 
-// Unified current game list for views & bulk edit UI
+// Unified game list used by rendering, filtering, bulk edit
 window.GAME_LIST = [];
-const games = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
-window.games = games;
-// Templates (if used elsewhere)
+
+// Template state
 window.selectedTemplateIndex = 0;
 window.TEMPLATE_LIST = [];
-window.initParserCarouselControls?.();
 
 import {
   generalFields,
@@ -100,8 +103,8 @@ async function onParseScheduleClicked() {
     );
 
     // --- Render + downstream UI
-    renderGameCards(games);
-    updateSelectedCountUI?.();
+ 	window.onSelectionChanged?.();
+     updateSelectedCountUI?.();
 
   } catch (err) {
     console.error(err);
@@ -142,12 +145,16 @@ function deleteGameById(gameId) {
 }
 
 function deleteSelectedGames() {
-	const before = games.length;
-	games = games.filter(g => !g.selected);
-	window.GAME_LIST = window.GAME_LIST || [];
-	const removed = before - games.length;
-	if (removed > 0) {
-		onSelectionChanged();
+	const list = Array.isArray(window.GAME_LIST) ? window.GAME_LIST : [];
+
+	const before = list.length;
+
+	window.GAME_LIST = list.filter(g => !g.selected);
+
+	const removed = before - window.GAME_LIST.length;
+
+	if (removed > 0 && typeof window.onSelectionChanged === "function") {
+		window.onSelectionChanged();
 	}
 }
 /* ============================================================
@@ -239,6 +246,7 @@ export function renderGameCards() {
     container.appendChild(card);
   });
 }
+console.log("🔥 renderGameCards running", window.GAME_LIST.length);
 window.renderGameCards = renderGameCards;
 
 import { enterEditMode } from "../../shared/ui-helpers.js";
@@ -470,60 +478,88 @@ window.buildEditModalContent = buildEditModalContent;
 /* ============================================================
    BOOT — called by module-loader.js after DOM ready
 ============================================================ */
-async function bootGameCardFactory() {
-  	console.log("📦 DOM ready — booting Game Card Factory");
-try {
+/* ============================================================
+   BOOT — Game Card Factory
+============================================================ */
 
-    // Collapsibles + parser carousel
-    initCollapsibles();
-    initParserCarouselControls();
-	window.updateMappingButtons?.();
-	window.refreshParserCarousel?.();
-	window.updateParserSample?.();
+/* ============================================================
+   BOOT — Game Card Factory
+============================================================ */
+
+async function bootGameCardFactory() {
+  console.log("📦 Booting Game Card Factory…");
+
+  try {
+
+    // Collapsibles
+	if (typeof initCollapsibles === "function") {
+		initCollapsibles()
+		console.log("📦 initCollapsibles from boot…")
+	} else {
+		console.warn("initCollapsibles not found");
+	}
+
+    // Parser carousel
+    if (typeof initParserCarouselControls === "function") {
+      initParserCarouselControls();
+    }
+    window.updateMappingButtons?.();
+    window.refreshParserCarousel?.();
+    window.updateParserSample?.();
+
     // Templates
-    await loadTemplates();
-    initCarouselControls();
-    refreshTemplateCarousel();
+    if (typeof loadTemplates === "function") {
+      await loadTemplates();
+    }
+    if (typeof initCarouselControls === "function") {
+      initCarouselControls();
+    }
+    if (typeof refreshTemplateCarousel === "function") {
+      refreshTemplateCarousel();
+    }
 
     // PDFs
-    initPdfButtons();
-
-    // Filters & bulk edit
-    if (typeof window.initFilterControls === "function") {
-      window.initFilterControls();
+    if (typeof initPdfButtons === "function") {
+      initPdfButtons();
     }
+
+    // Shared filter engine
+    if (typeof initFilterEngine === "function") {
+      initFilterEngine();
+    }
+
+    // Bulk edit
     if (typeof window.initBulkEditControls === "function") {
       window.initBulkEditControls();
     }
 
-	onSelectionChanged();
+    // Initial render
+    window.onSelectionChanged?.();
+
   } catch (err) {
     console.error("Boot failed:", err);
   }
-  // —————————————————————————
-// Schedule Save Modal Logic
-// —————————————————————————
-const saveModal = document.getElementById("saveScheduleModal");
-const cancelSaveBtn = document.getElementById("saveScheduleCancelBtn");
 
+  // Schedule Save Modal
+  const saveModal = document.getElementById("saveScheduleModal");
+  const cancelSaveBtn = document.getElementById("saveScheduleCancelBtn");
 
-cancelSaveBtn?.addEventListener("click", () => {
-  saveModal?.classList.add("hidden");
-});
+  cancelSaveBtn?.addEventListener("click", () => {
+    saveModal?.classList.add("hidden");
+  });
 }
 
 window.bootGameCardFactory = bootGameCardFactory;
-
 /* ============================================================
-   DOMContentLoaded — initialize after DOM ready
-
- /* ============================================================
    DOM READY — SINGLE ENTRY POINT
 ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("📦 DOM ready — booting Game Card Factory");
 
-  // Main boot
+import { saveScheduleToStorage } from "../../shared/utils.js";
+
+function onDomReady() {
+  console.log("📦 DOM ready — Game Card Factory");
+
+  // Boot factory
   if (typeof bootGameCardFactory === "function") {
     bootGameCardFactory();
   }
@@ -533,73 +569,27 @@ document.addEventListener("DOMContentLoaded", () => {
     window.initSharedScheduleUIv2();
   }
 
-  // Collapsibles
-  if (typeof initCollapsibles === "function") {
-    initCollapsibles();
-  }
-
-  // Buttons
-   const applyFilterBtn = document.getElementById("applyFilterBtn");
-
-   const mapBtn = document.getElementById("openMappingPanelBtn");
-
-
-if (parseBtn && typeof handleParseSchedule === "function") {
-  parseBtn.addEventListener("click", handleParseSchedule);
-}
-
-  if (applyFilterBtn && typeof applyFilter === "function") {
-    applyFilterBtn.addEventListener("click", applyFilter);
-  }
-
-  if (clearFilterBtn && typeof applyFilter === "function") {
-    clearFilterBtn.addEventListener("click", () => {
-      const filterInput = document.getElementById("filterInput");
-      if (filterInput) filterInput.value = "";
-      applyFilter();
-    });
-  }
-
-  if (mapBtn) {
-    mapBtn.addEventListener("click", () => {
-      const raw = document.getElementById("rawInput")?.value?.trim();
-      if (!raw) {
-        alert("Paste schedule text first.");
-        return;
-      }
-
-      const delimiter = raw.includes("\t") ? "\t" : raw.includes("|") ? "|" : ",";
-      const headers = raw.split(/\r?\n/)[0].split(delimiter).map(h => h.trim());
-
-      if (typeof window.openGenericMappingUI === "function") {
-        window.openGenericMappingUI(headers, "user-mapper", raw);
-      } else {
-        alert("Mapping UI not available.");
-      }
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
+  // 🔥 Wire Extract button (module-safe)
   const parseBtn = document.getElementById("parseBtn");
-
-  if (parseBtn && typeof handleParseSchedule === "function") {
+  if (parseBtn) {
     parseBtn.addEventListener("click", handleParseSchedule);
   }
-});
+}
 
-// ============================================================
-// Schedule Saving Section
-// ============================================================
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", onDomReady, { once: true });
+} else {
+  onDomReady();
+}
 
-import { saveScheduleToStorage } from "../../shared/utils.js";
+/* ============================================================
+   Schedule Saving Section
+============================================================ */
 
-// Show save modal
 const modal = document.getElementById("saveScheduleModal");
 const input = document.getElementById("saveScheduleKeyInput");
 const cancelBtn = document.getElementById("saveScheduleCancelBtn");
 const confirmBtn = document.getElementById("saveScheduleConfirmBtn");
-
 
 cancelBtn?.addEventListener("click", () => {
   modal?.classList.add("hidden");
@@ -610,15 +600,35 @@ confirmBtn?.addEventListener("click", () => {
   const gameList = window.GAME_LIST;
 
   if (!key) {
-    alert("⚠️ Enter a schedule name.");
+    alert("Enter a schedule name.");
     return;
   }
 
-  if (!Array.isArray(gameList) || gameList.length === 0) {
-    alert("⚠️ No games to save — extract a schedule first.");
+  if (!Array.isArray(gameList) || !gameList.length) {
+    alert("No games to save.");
     return;
   }
 
-  saveScheduleToStorage(key, gameList);
+  const existing = localStorage.getItem(`schedule:${key}`);
+
+  if (existing) {
+    const choice = confirm(
+      `"${key}" already exists.\n\nOK = Overwrite\nCancel = Rename`
+    );
+
+    if (!choice) {
+      input.focus();
+      return;
+    }
+  }
+
+  localStorage.setItem(`schedule:${key}`, JSON.stringify(gameList));
+
   modal.classList.add("hidden");
+
+  const loadStatus = document.getElementById("scheduleLoadStatus");
+  if (loadStatus) {
+    loadStatus.textContent =
+      `Saved schedule "${key}" (${gameList.length} games).`;
+  }
 });
